@@ -891,6 +891,37 @@ Minimum version required to store current data is: `+i+`.
     .erp-header-controls .field{ flex:1; min-width:140px; }
     .erp-profile-card{ flex-direction:column; align-items:flex-start; text-align:left; }
   }
+
+  /* ---- Overlay notifikasi hasil Scan QR (muncul di tengah kamera) ---- */
+  .qr-scan-overlay{
+    position:absolute; inset:0; z-index:9999;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(4,20,30,.55); backdrop-filter:blur(2px);
+    opacity:0; pointer-events:none; transition:opacity .25s ease;
+  }
+  .qr-scan-overlay.show{ opacity:1; }
+  .qr-scan-overlay-card{
+    background:#FBF6E6; border-radius:18px; padding:22px 26px; width:min(86%,320px);
+    text-align:center; box-shadow:0 12px 34px rgba(0,0,0,.35);
+    transform:scale(.9); transition:transform .25s ease;
+  }
+  .qr-scan-overlay.show .qr-scan-overlay-card{ transform:scale(1); }
+  .qr-scan-overlay-avatar{
+    width:84px; height:84px; border-radius:50%; margin:0 auto 12px; overflow:hidden;
+    background:linear-gradient(135deg,var(--teal-900),var(--teal-500));
+    display:flex; align-items:center; justify-content:center;
+    color:#FBF6E6; font-size:30px; font-weight:700;
+    border:3px solid #fff; box-shadow:0 4px 14px rgba(4,63,123,.3);
+  }
+  .qr-scan-overlay-avatar img{ width:100%; height:100%; object-fit:cover; }
+  .qr-scan-overlay-nama{ font-family:'Amiri',serif; font-size:19px; font-weight:700; color:var(--teal-900); margin-bottom:4px; }
+  .qr-scan-overlay-kelas{ font-size:13px; color:var(--ink-soft); margin-bottom:12px; }
+  .qr-scan-overlay-status{
+    display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:999px;
+    background:#EAF6EE; color:#1E6E3C; font-weight:700; font-size:13.5px;
+  }
+  .qr-scan-overlay-status.warn{ background:#FFF6E5; color:#9A6B12; }
+  .qr-scan-overlay-status svg{ width:16px; height:16px; }
 </style>
 </head>
 <body>
@@ -2368,6 +2399,7 @@ Minimum version required to store current data is: `+i+`.
     qrScanState.rafId = null;
     qrScanState.active = false;
     qrScanState.paused = false;
+    if(qrScanOverlayTimer){ clearTimeout(qrScanOverlayTimer); qrScanOverlayTimer = null; }
   }
 
   function startQrLoop(videoEl, canvasEl, onDetect){
@@ -2407,7 +2439,38 @@ Minimum version required to store current data is: `+i+`.
       </div>`;
   }
 
-  async function handleQrDetected(mode, rawData, opts, statusEl){
+  // Tampilkan overlay popup profil santri + status di tengah kamera,
+  // muncul ~2.5 detik lalu otomatis hilang agar kamera siap untuk scan berikutnya.
+  // status: { type:'success'|'warn', label:'Absensi Berhasil' / 'Sudah Absen' }
+  let qrScanOverlayTimer = null;
+  function showQrScanOverlay(overlayEl, s, status){
+    if(!overlayEl || !s) return;
+    status = status || { type:'success', label:'Absensi Berhasil' };
+    const isWarn = status.type === 'warn';
+    const avatarHtml = s.foto_url
+      ? `<img src="${escapeHtml(s.foto_url)}" alt="">`
+      : escapeHtml((s.nama||'?').trim().charAt(0).toUpperCase());
+    const icon = isWarn
+      ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>`
+      : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>`;
+    overlayEl.innerHTML = `
+      <div class="qr-scan-overlay-card">
+        <div class="qr-scan-overlay-avatar">${avatarHtml}</div>
+        <div class="qr-scan-overlay-nama">${escapeHtml(s.nama)}</div>
+        <div class="qr-scan-overlay-kelas">${escapeHtml(s.kelas || '-')}${s.no_kamar ? ' • Kamar '+escapeHtml(s.no_kamar) : ''}</div>
+        <div class="qr-scan-overlay-status${isWarn ? ' warn' : ''}">
+          ${icon}
+          ${escapeHtml(status.label)}
+        </div>
+      </div>`;
+    overlayEl.classList.add('show');
+    if(qrScanOverlayTimer) clearTimeout(qrScanOverlayTimer);
+    qrScanOverlayTimer = setTimeout(()=>{
+      overlayEl.classList.remove('show');
+    }, 2500);
+  }
+
+  async function handleQrDetected(mode, rawData, opts, statusEl, overlayEl){
     if(!rawData || rawData.indexOf(QR_SANTRI_PREFIX) !== 0){
       statusEl.innerHTML = `<div style="background:#FBEAE8;border-radius:12px;padding:14px 16px;text-align:center;color:var(--danger);font-size:13px;">QR tidak dikenali. Gunakan QR Santri Alhidayah.</div>`;
       return;
@@ -2436,6 +2499,7 @@ Minimum version required to store current data is: `+i+`.
       }
       if(rec[ibadahKey]){
         renderQrScanStatus(statusEl, `Sudah absen ${ibadahOpt.label}.`, 'warn', s.nama);
+        showQrScanOverlay(overlayEl, s, { type:'warn', label:'Sudah Absen' });
         return;
       }
       const newRec = Object.assign({}, rec);
@@ -2446,6 +2510,7 @@ Minimum version required to store current data is: `+i+`.
         mutabaahData[key] = newRec;
         renderAbsensiTable();
         renderQrScanStatus(statusEl, `Absensi ${ibadahOpt.label} berhasil ✓`, 'success', s.nama);
+        showQrScanOverlay(overlayEl, s);
       }else{
         renderQrScanStatus(statusEl, 'Gagal menyimpan absensi.', 'error', s.nama);
       }
@@ -2461,6 +2526,7 @@ Minimum version required to store current data is: `+i+`.
       const prev = absensiKegiatanData[key];
       if(prev && prev.hadir){
         renderQrScanStatus(statusEl, `Sudah absen ${kegiatanObj.nama}.`, 'warn', s.nama);
+        showQrScanOverlay(overlayEl, s, { type:'warn', label:'Sudah Absen' });
         return;
       }
       const saved = await dbSaveAbsensiKegiatan(santriId, kegiatanId, date, true);
@@ -2468,6 +2534,7 @@ Minimum version required to store current data is: `+i+`.
         absensiKegiatanData[key] = { id: saved.id, hadir:true };
         renderKegiatanTable();
         renderQrScanStatus(statusEl, `Absensi ${kegiatanObj.nama} berhasil ✓`, 'success', s.nama);
+        showQrScanOverlay(overlayEl, s);
       }else{
         renderQrScanStatus(statusEl, 'Gagal menyimpan absensi.', 'error', s.nama);
       }
@@ -2520,6 +2587,7 @@ Minimum version required to store current data is: `+i+`.
       ${kegiatanSelectHtml}
       <div style="position:relative;border-radius:12px;overflow:hidden;background:#0b1a24;">
         <video id="qr-video" playsinline muted autoplay style="width:100%;max-height:340px;object-fit:cover;display:block;"></video>
+        <div id="qr-scan-overlay" class="qr-scan-overlay"></div>
       </div>
       <div id="qr-scan-status" style="margin-top:14px;"></div>
     `;
@@ -2528,12 +2596,13 @@ Minimum version required to store current data is: `+i+`.
     const videoEl = document.getElementById('qr-video');
     const canvasEl = document.createElement('canvas');
     const statusEl = document.getElementById('qr-scan-status');
+    const overlayEl = document.getElementById('qr-scan-overlay');
 
     async function onDetect(rawData){
       const opts = mode === 'kegiatan'
         ? { kegiatanId: document.getElementById('qr-kegiatan-select').value }
         : { ibadahKey: document.getElementById('qr-ibadah-select').value };
-      await handleQrDetected(mode, rawData, opts, statusEl);
+      await handleQrDetected(mode, rawData, opts, statusEl, overlayEl);
     }
 
     navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
