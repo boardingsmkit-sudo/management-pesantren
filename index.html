@@ -731,6 +731,68 @@ Minimum version required to store current data is: `+i+`.
   .modal-close svg{width:16px;height:16px;}
   .modal-body{padding:20px 22px;}
 
+  /* ---------- AI Chat Musyrif ---------- */
+  .ai-fab{
+    position:fixed; right:22px; bottom:22px; z-index:60;
+    width:56px; height:56px; border-radius:50%; border:none; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(160deg, var(--gold-500, #c9a227), var(--gold-700, #a3811c));
+    box-shadow:0 6px 18px rgba(0,0,0,.28), 0 0 0 4px rgba(201,162,39,.15);
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .ai-fab:hover{transform:translateY(-2px) scale(1.04); box-shadow:0 10px 22px rgba(0,0,0,.32), 0 0 0 5px rgba(201,162,39,.2);}
+  .ai-fab:active{transform:translateY(0) scale(.97);}
+  .ai-fab-icon{font-size:24px; line-height:1;}
+  .ai-fab-badge{
+    position:absolute; top:-2px; right:-2px; width:14px; height:14px; border-radius:50%;
+    background:#e0473e; border:2px solid #fff; display:none;
+  }
+  @media (max-width:640px){
+    .ai-fab{right:16px; bottom:16px; width:50px; height:50px;}
+    .ai-fab-icon{font-size:21px;}
+  }
+  .ai-chat-wrap{display:flex;flex-direction:column;}
+  .ai-chat-messages{
+    display:flex;flex-direction:column;gap:12px;
+    max-height:48vh;min-height:180px;overflow-y:auto;
+    padding:4px 4px 8px;
+  }
+  .ai-chat-msg{display:flex;gap:8px;align-items:flex-start;}
+  .ai-chat-msg.user{flex-direction:row-reverse;}
+  .ai-chat-avatar{
+    width:30px;height:30px;border-radius:50%;flex:0 0 30px;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--paper-soft);font-size:15px;
+  }
+  .ai-chat-msg.user .ai-chat-avatar{background:var(--teal-900);}
+  .ai-chat-bubble{
+    background:var(--paper-soft);border-radius:14px;padding:10px 14px;
+    font-size:13.5px;line-height:1.7;color:var(--ink);max-width:82%;
+  }
+  .ai-chat-bubble p{margin:0 0 8px;}
+  .ai-chat-bubble p:last-child{margin-bottom:0;}
+  .ai-chat-bubble ul{margin:6px 0;padding-left:18px;}
+  .ai-chat-msg.ai .ai-chat-bubble{border-top-left-radius:4px;}
+  .ai-chat-msg.user .ai-chat-bubble{background:#0A5296;color:#fff;border-top-right-radius:4px;}
+  .ai-chat-typing-dots{display:flex;gap:4px;padding:4px 2px;}
+  .ai-chat-typing-dots span{
+    width:6px;height:6px;border-radius:50%;background:var(--ink-soft);
+    display:inline-block;animation:aiChatBlink 1.2s infinite ease-in-out;
+  }
+  .ai-chat-typing-dots span:nth-child(2){animation-delay:.2s;}
+  .ai-chat-typing-dots span:nth-child(3){animation-delay:.4s;}
+  @keyframes aiChatBlink{0%,80%,100%{opacity:.25;}40%{opacity:1;}}
+  .ai-chat-suggest{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0;}
+  .ai-chat-chip{
+    appearance:none;border:1px solid var(--line);background:#fff;color:var(--teal-900);
+    border-radius:999px;padding:6px 12px;font-size:12px;cursor:pointer;text-align:left;
+  }
+  .ai-chat-chip:hover{background:var(--paper-soft);}
+  .ai-chat-input-row{display:flex;gap:8px;margin-top:4px;}
+  .ai-chat-input-row input{
+    flex:1;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13.5px;
+  }
+
   /* ---------- Sub-tab pills (dalam satu panel) ---------- */
   .subtabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
   .subtabs button{
@@ -827,14 +889,12 @@ Minimum version required to store current data is: `+i+`.
   .erp-profile-avatar{
     width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg,var(--teal-900),var(--teal-500));
     color:#FBF6E6; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:700;
-    flex-shrink:0; box-shadow:0 4px 14px rgba(4,63,123,.25); overflow:hidden;
+    flex-shrink:0; box-shadow:0 4px 14px rgba(4,63,123,.25);
   }
-  .erp-profile-avatar img{ width:100%; height:100%; object-fit:cover; }
   .erp-profile-info{ flex:1; min-width:220px; }
   .erp-profile-info h3{ margin:0 0 6px; font-size:18px; color:var(--teal-900); font-weight:700; }
   .erp-profile-meta{ display:flex; flex-wrap:wrap; gap:14px 22px; font-size:13px; color:var(--ink-soft); }
   .erp-profile-meta b{ color:var(--ink); font-weight:600; }
-  .erp-profile-status{ flex-shrink:0; }
 
   .erp-summary-grid{
     display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-bottom:16px;
@@ -891,37 +951,6 @@ Minimum version required to store current data is: `+i+`.
     .erp-header-controls .field{ flex:1; min-width:140px; }
     .erp-profile-card{ flex-direction:column; align-items:flex-start; text-align:left; }
   }
-
-  /* ---- Overlay notifikasi hasil Scan QR (muncul di tengah kamera) ---- */
-  .qr-scan-overlay{
-    position:absolute; inset:0; z-index:9999;
-    display:flex; align-items:center; justify-content:center;
-    background:rgba(4,20,30,.55); backdrop-filter:blur(2px);
-    opacity:0; pointer-events:none; transition:opacity .25s ease;
-  }
-  .qr-scan-overlay.show{ opacity:1; }
-  .qr-scan-overlay-card{
-    background:#FBF6E6; border-radius:18px; padding:22px 26px; width:min(86%,320px);
-    text-align:center; box-shadow:0 12px 34px rgba(0,0,0,.35);
-    transform:scale(.9); transition:transform .25s ease;
-  }
-  .qr-scan-overlay.show .qr-scan-overlay-card{ transform:scale(1); }
-  .qr-scan-overlay-avatar{
-    width:84px; height:84px; border-radius:50%; margin:0 auto 12px; overflow:hidden;
-    background:linear-gradient(135deg,var(--teal-900),var(--teal-500));
-    display:flex; align-items:center; justify-content:center;
-    color:#FBF6E6; font-size:30px; font-weight:700;
-    border:3px solid #fff; box-shadow:0 4px 14px rgba(4,63,123,.3);
-  }
-  .qr-scan-overlay-avatar img{ width:100%; height:100%; object-fit:cover; }
-  .qr-scan-overlay-nama{ font-family:'Amiri',serif; font-size:19px; font-weight:700; color:var(--teal-900); margin-bottom:4px; }
-  .qr-scan-overlay-kelas{ font-size:13px; color:var(--ink-soft); margin-bottom:12px; }
-  .qr-scan-overlay-status{
-    display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:999px;
-    background:#EAF6EE; color:#1E6E3C; font-weight:700; font-size:13.5px;
-  }
-  .qr-scan-overlay-status.warn{ background:#FFF6E5; color:#9A6B12; }
-  .qr-scan-overlay-status svg{ width:16px; height:16px; }
 </style>
 </head>
 <body>
@@ -1353,6 +1382,10 @@ Minimum version required to store current data is: `+i+`.
   </main>
   </div>
 </div>
+
+<button type="button" id="ai-fab" class="ai-fab" aria-label="Buka Chat AI Musyrif" title="Chat AI Musyrif">
+  <span class="ai-fab-icon">😊</span>
+</button>
 
 <datalist id="datalist-kelas"></datalist>
 
@@ -2399,7 +2432,6 @@ Minimum version required to store current data is: `+i+`.
     qrScanState.rafId = null;
     qrScanState.active = false;
     qrScanState.paused = false;
-    if(qrScanOverlayTimer){ clearTimeout(qrScanOverlayTimer); qrScanOverlayTimer = null; }
   }
 
   function startQrLoop(videoEl, canvasEl, onDetect){
@@ -2439,38 +2471,7 @@ Minimum version required to store current data is: `+i+`.
       </div>`;
   }
 
-  // Tampilkan overlay popup profil santri + status di tengah kamera,
-  // muncul ~2.5 detik lalu otomatis hilang agar kamera siap untuk scan berikutnya.
-  // status: { type:'success'|'warn', label:'Absensi Berhasil' / 'Sudah Absen' }
-  let qrScanOverlayTimer = null;
-  function showQrScanOverlay(overlayEl, s, status){
-    if(!overlayEl || !s) return;
-    status = status || { type:'success', label:'Absensi Berhasil' };
-    const isWarn = status.type === 'warn';
-    const avatarHtml = s.foto_url
-      ? `<img src="${escapeHtml(s.foto_url)}" alt="">`
-      : escapeHtml((s.nama||'?').trim().charAt(0).toUpperCase());
-    const icon = isWarn
-      ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>`
-      : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>`;
-    overlayEl.innerHTML = `
-      <div class="qr-scan-overlay-card">
-        <div class="qr-scan-overlay-avatar">${avatarHtml}</div>
-        <div class="qr-scan-overlay-nama">${escapeHtml(s.nama)}</div>
-        <div class="qr-scan-overlay-kelas">${escapeHtml(s.kelas || '-')}${s.no_kamar ? ' • Kamar '+escapeHtml(s.no_kamar) : ''}</div>
-        <div class="qr-scan-overlay-status${isWarn ? ' warn' : ''}">
-          ${icon}
-          ${escapeHtml(status.label)}
-        </div>
-      </div>`;
-    overlayEl.classList.add('show');
-    if(qrScanOverlayTimer) clearTimeout(qrScanOverlayTimer);
-    qrScanOverlayTimer = setTimeout(()=>{
-      overlayEl.classList.remove('show');
-    }, 2500);
-  }
-
-  async function handleQrDetected(mode, rawData, opts, statusEl, overlayEl){
+  async function handleQrDetected(mode, rawData, opts, statusEl){
     if(!rawData || rawData.indexOf(QR_SANTRI_PREFIX) !== 0){
       statusEl.innerHTML = `<div style="background:#FBEAE8;border-radius:12px;padding:14px 16px;text-align:center;color:var(--danger);font-size:13px;">QR tidak dikenali. Gunakan QR Santri Alhidayah.</div>`;
       return;
@@ -2499,7 +2500,6 @@ Minimum version required to store current data is: `+i+`.
       }
       if(rec[ibadahKey]){
         renderQrScanStatus(statusEl, `Sudah absen ${ibadahOpt.label}.`, 'warn', s.nama);
-        showQrScanOverlay(overlayEl, s, { type:'warn', label:'Sudah Absen' });
         return;
       }
       const newRec = Object.assign({}, rec);
@@ -2510,7 +2510,6 @@ Minimum version required to store current data is: `+i+`.
         mutabaahData[key] = newRec;
         renderAbsensiTable();
         renderQrScanStatus(statusEl, `Absensi ${ibadahOpt.label} berhasil ✓`, 'success', s.nama);
-        showQrScanOverlay(overlayEl, s);
       }else{
         renderQrScanStatus(statusEl, 'Gagal menyimpan absensi.', 'error', s.nama);
       }
@@ -2526,7 +2525,6 @@ Minimum version required to store current data is: `+i+`.
       const prev = absensiKegiatanData[key];
       if(prev && prev.hadir){
         renderQrScanStatus(statusEl, `Sudah absen ${kegiatanObj.nama}.`, 'warn', s.nama);
-        showQrScanOverlay(overlayEl, s, { type:'warn', label:'Sudah Absen' });
         return;
       }
       const saved = await dbSaveAbsensiKegiatan(santriId, kegiatanId, date, true);
@@ -2534,7 +2532,6 @@ Minimum version required to store current data is: `+i+`.
         absensiKegiatanData[key] = { id: saved.id, hadir:true };
         renderKegiatanTable();
         renderQrScanStatus(statusEl, `Absensi ${kegiatanObj.nama} berhasil ✓`, 'success', s.nama);
-        showQrScanOverlay(overlayEl, s);
       }else{
         renderQrScanStatus(statusEl, 'Gagal menyimpan absensi.', 'error', s.nama);
       }
@@ -2587,7 +2584,6 @@ Minimum version required to store current data is: `+i+`.
       ${kegiatanSelectHtml}
       <div style="position:relative;border-radius:12px;overflow:hidden;background:#0b1a24;">
         <video id="qr-video" playsinline muted autoplay style="width:100%;max-height:340px;object-fit:cover;display:block;"></video>
-        <div id="qr-scan-overlay" class="qr-scan-overlay"></div>
       </div>
       <div id="qr-scan-status" style="margin-top:14px;"></div>
     `;
@@ -2596,13 +2592,12 @@ Minimum version required to store current data is: `+i+`.
     const videoEl = document.getElementById('qr-video');
     const canvasEl = document.createElement('canvas');
     const statusEl = document.getElementById('qr-scan-status');
-    const overlayEl = document.getElementById('qr-scan-overlay');
 
     async function onDetect(rawData){
       const opts = mode === 'kegiatan'
         ? { kegiatanId: document.getElementById('qr-kegiatan-select').value }
         : { ibadahKey: document.getElementById('qr-ibadah-select').value };
-      await handleQrDetected(mode, rawData, opts, statusEl, overlayEl);
+      await handleQrDetected(mode, rawData, opts, statusEl);
     }
 
     navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
@@ -3150,10 +3145,9 @@ Minimum version required to store current data is: `+i+`.
     const sel = document.getElementById('eraport-filter-santri');
     if(!sel) return;
     const prev = sel.value;
-    const allOption = santriList.length > 0 ? `<option value="all">— Semua Santri —</option>` : '';
-    sel.innerHTML = '<option value="">Pilih santri...</option>' + allOption + sortSantriList(santriList)
+    sel.innerHTML = '<option value="">Pilih santri...</option>' + sortSantriList(santriList)
       .map(s=>`<option value="${s.id}">${escapeHtml(s.nama)}${s.kelas ? ' — '+escapeHtml(s.kelas):''}</option>`).join('');
-    if(prev === 'all' || santriList.some(s=>s.id===prev)) sel.value = prev;
+    if(santriList.some(s=>s.id===prev)) sel.value = prev;
   }
   // Hitung deret harian % kepatuhan fardhu (untuk grafik) — hanya hari yang sudah ada datanya
   function erpMutabaahDailySeries(santriId, dari, sampai){
@@ -3217,10 +3211,6 @@ Minimum version required to store current data is: `+i+`.
       content.innerHTML = emptyState('Pilih santri untuk melihat E-Raport.');
       return;
     }
-    if(santriId === 'all'){
-      renderEraportSemuaSantri(content, dari, sampai, periodeLabel);
-      return;
-    }
     const s = santriList.find(x=>x.id===santriId);
     if(!s){ content.innerHTML = emptyState('Data santri tidak ditemukan.'); return; }
 
@@ -3262,6 +3252,10 @@ Minimum version required to store current data is: `+i+`.
     // Penilaian Kedisiplinan, Kerapian & Attitude — nilai bulan berjalan (diisi di menu Catatan Santri)
     const penKey = santriId + '_' + sampai.slice(0,7);
     const pen = penilaianData[penKey] || {};
+    // Deskripsi Raport (AI) tersimpan sebelumnya, jika ada — disimpan sebagai field tambahan
+    // di dalam JSON meta kolom `catatan` tabel penilaian_karakter (pola yang sudah dipakai
+    // untuk skor/catatan per kategori), tanpa migrasi database apapun.
+    const erpDeskripsiTersimpan = (penDecodeMeta(pen.catatan).deskripsi_raport) || '';
 
     // Grafik mutaba'ah harian
     const mutabaahSeries = erpMutabaahDailySeries(santriId, dari, sampai);
@@ -3299,13 +3293,10 @@ Minimum version required to store current data is: `+i+`.
     if(countJenis('pelanggaran') > 0) kesimpulanItems.push('Terdapat ' + countJenis('pelanggaran') + ' catatan pelanggaran yang perlu dipantau.');
     if(kesimpulanItems.length === 0) kesimpulanItems.push('Belum ada data yang cukup pada periode ini untuk disimpulkan.');
 
-    const erpAvatar = s.foto_url
-      ? `<img src="${escapeHtml(s.foto_url)}" alt="">`
-      : escapeHtml((s.nama||'?').trim().charAt(0).toUpperCase());
     content.innerHTML = `
       <div id="eraport-print-area">
         <div class="erp-profile-card">
-          <div class="erp-profile-avatar">${erpAvatar}</div>
+          <div class="erp-profile-avatar">${escapeHtml((s.nama||'?').trim().charAt(0).toUpperCase())}</div>
           <div class="erp-profile-info">
             <h3>${escapeHtml(s.nama)}</h3>
             <div class="erp-profile-meta">
@@ -3314,9 +3305,6 @@ Minimum version required to store current data is: `+i+`.
               <span>Kamar: <b>${escapeHtml(s.no_kamar || '-')}</b></span>
               <span>Periode: <b>${escapeHtml(periodeLabel)}</b></span>
             </div>
-          </div>
-          <div class="erp-profile-status">
-            <span class="badge ${s.aktif===false ? 'nonaktif' : 'aktif'}">${s.aktif===false ? 'Tidak Aktif' : 'Aktif'}</span>
           </div>
         </div>
 
@@ -3401,6 +3389,22 @@ Minimum version required to store current data is: `+i+`.
           <p class="erp-card-sub">Ringkasan otomatis berdasarkan data yang tersedia pada periode ${escapeHtml(periodeLabel)}.</p>
           <ul>${kesimpulanItems.map(it=>`<li>${escapeHtml(it)}</li>`).join('')}</ul>
         </div>
+
+        <div class="erp-card erp-deskripsi-ai-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;">
+            <div>
+              <h3 style="margin:0;">Deskripsi Raport</h3>
+              <p class="erp-card-sub" style="margin:4px 0 0;">Deskripsi naratif singkat untuk raport. Buat draf otomatis lalu edit sesuai kebutuhan sebelum disimpan.</p>
+            </div>
+            <button type="button" class="btn btn-gold" id="btn-erp-ai-generate" style="white-space:nowrap;">✨ Buat Deskripsi dengan AI</button>
+          </div>
+          <div class="field" style="margin-top:12px;">
+            <textarea id="erp-ai-deskripsi-text" style="min-height:110px;" placeholder="Klik &quot;Buat Deskripsi dengan AI&quot; untuk membuat draf otomatis, atau tulis deskripsi sendiri di sini.">${escapeHtml(erpDeskripsiTersimpan)}</textarea>
+          </div>
+          <div style="margin-top:10px;display:flex;justify-content:flex-end;">
+            <button type="button" class="btn btn-primary" id="btn-erp-ai-simpan">Simpan Deskripsi</button>
+          </div>
+        </div>
       </div>
     `;
 
@@ -3422,8 +3426,92 @@ Minimum version required to store current data is: `+i+`.
       }
     }
 
+    document.getElementById('btn-erp-ai-generate')?.addEventListener('click', ()=>{
+      const teks = generateEraportAiDeskripsi(s, pen, persenFardhu, total, persenKegiatan, totalKegiatan, setoranTahfidz.length, countJenis, periodeLabel);
+      const ta = document.getElementById('erp-ai-deskripsi-text');
+      if(ta) ta.value = teks;
+    });
+    document.getElementById('btn-erp-ai-simpan')?.addEventListener('click', async ()=>{
+      const ta = document.getElementById('erp-ai-deskripsi-text');
+      const btn = document.getElementById('btn-erp-ai-simpan');
+      if(!ta || !btn) return;
+      const teks = ta.value.trim();
+      btn.disabled = true;
+      const labelAwal = btn.textContent;
+      btn.textContent = 'Menyimpan...';
+      await erpSimpanDeskripsi(santriId, sampai.slice(0,7), teks);
+      btn.disabled = false;
+      btn.textContent = labelAwal;
+    });
+
   }
   document.getElementById('eraport-filter-santri')?.addEventListener('change', renderEraportTab);
+
+  /* -------- Deskripsi Raport (AI) — sederhana, berjalan lokal di browser --------
+     Membaca nilai yang SUDAH ada (kedisiplinan, kerapian, attitude, ibadah,
+     kehadiran, tahfidz, catatan santri) lalu menyusun draf deskripsi naratif
+     berbasis aturan (rule-based). Musyrif bebas mengedit hasilnya sebelum
+     disimpan — tidak ada nilai/data yang diubah otomatis oleh AI. */
+  function erpNilaiLabel(v){
+    if(v===null || v===undefined || v==='') return null;
+    const n = Number(v);
+    if(isNaN(n)) return null;
+    if(n >= 90) return 'sangat baik';
+    if(n >= 75) return 'baik';
+    if(n >= 60) return 'cukup dan masih dapat ditingkatkan';
+    return 'masih perlu pembinaan lebih lanjut';
+  }
+  function generateEraportAiDeskripsi(s, pen, persenFardhu, totalFardhu, persenKegiatan, totalKegiatan, jumlahSetoran, countJenis, periodeLabel){
+    const nama = (s && s.nama) ? s.nama : 'Santri';
+
+    const aspekKarakter = [];
+    const kd = erpNilaiLabel(pen.kedisiplinan);
+    const kr = erpNilaiLabel(pen.kerapian);
+    const at = erpNilaiLabel(pen.attitude);
+    if(kd) aspekKarakter.push(`kedisiplinan yang ${kd}`);
+    if(kr) aspekKarakter.push(`kerapian yang ${kr}`);
+    if(at) aspekKarakter.push(`attitude/adab yang ${at}`);
+    const kalimatKarakter = aspekKarakter.length > 0
+      ? `Selama periode ${periodeLabel}, ${nama} menunjukkan ${aspekKarakter.join(', ')}.`
+      : `Selama periode ${periodeLabel}, penilaian karakter ${nama} belum tercatat secara lengkap.`;
+
+    const bagianIbadah = [];
+    if(totalFardhu > 0) bagianIbadah.push(`kepatuhan ibadah fardhu tercatat ${persenFardhu}%`);
+    if(totalKegiatan > 0) bagianIbadah.push(`kehadiran kegiatan ${persenKegiatan}%`);
+    if(jumlahSetoran > 0) bagianIbadah.push(`${jumlahSetoran} kali setoran tahfidz`);
+    const kalimatIbadah = bagianIbadah.length > 0 ? `Dari sisi ibadah dan kegiatan, ${bagianIbadah.join(', ')}.` : '';
+
+    const bagianCatatan = [];
+    const nPrestasi = countJenis('prestasi');
+    const nPelanggaran = countJenis('pelanggaran');
+    if(nPrestasi > 0) bagianCatatan.push(`${nPrestasi} catatan prestasi`);
+    if(nPelanggaran > 0) bagianCatatan.push(`${nPelanggaran} catatan pelanggaran`);
+    const kalimatCatatan = bagianCatatan.length > 0 ? `Tercatat pula ${bagianCatatan.join(' dan ')} pada periode ini.` : '';
+
+    const penutup = 'Diharapkan santri dapat terus mempertahankan dan meningkatkan capaian yang telah diraih.';
+
+    return [kalimatKarakter, kalimatIbadah, kalimatCatatan, penutup].filter(Boolean).join(' ');
+  }
+  async function erpSimpanDeskripsi(santriId, periodeKey, teks){
+    const penKey = santriId + '_' + periodeKey;
+    const pen = penilaianData[penKey] || {};
+    const meta = penDecodeMeta(pen.catatan);
+    meta.deskripsi_raport = teks;
+    const rec = {
+      kedisiplinan: (pen.kedisiplinan ?? null),
+      kerapian: (pen.kerapian ?? null),
+      attitude: (pen.attitude ?? null),
+      catatan: penEncodeMeta(meta)
+    };
+    const saved = await dbSavePenilaian(santriId, periodeKey, rec);
+    if(!saved) return false;
+    penilaianData[penKey] = {
+      id: saved.id, kedisiplinan: saved.kedisiplinan, kerapian: saved.kerapian,
+      attitude: saved.attitude, catatan: saved.catatan
+    };
+    return true;
+  }
+
   function clampNilaiKarakter(v){
     if(v === '' || v === null || v === undefined) return null;
     let n = Math.round(Number(v));
@@ -3433,79 +3521,12 @@ Minimum version required to store current data is: `+i+`.
     return n;
   }
 
-  /* -------- Tampilan ringkasan E-Raport untuk 'Semua Santri' -------- */
-  function renderEraportSemuaSantri(content, dari, sampai, periodeLabel){
-    const avatarCell = (s) => s.foto_url
-      ? `<img class="avatar" src="${escapeHtml(s.foto_url)}" alt="">`
-      : `<div class="avatar-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>`;
-    let rows = '';
-    sortSantriList(santriList).forEach(s=>{
-      let checked = 0, total = 0;
-      Object.keys(mutabaahData).forEach(key=>{
-        if(!key.startsWith(s.id+'_')) return;
-        const tgl = key.slice(s.id.length+1);
-        if(tgl < dari || tgl > sampai) return;
-        const rec = mutabaahData[key];
-        if(!rec || rec.haid) return;
-        IBADAH_FARDHU.forEach(f=>{ total++; if(rec[f.key]) checked++; });
-      });
-      const persenFardhu = total > 0 ? Math.round((checked/total)*100) : null;
-
-      let hadirKegiatan = 0, totalKegiatan = 0;
-      Object.keys(absensiKegiatanData).forEach(key=>{
-        if(!key.startsWith(s.id+'_')) return;
-        const parts = key.split('_');
-        const tgl = parts[parts.length-1];
-        if(tgl < dari || tgl > sampai) return;
-        totalKegiatan++;
-        if(absensiKegiatanData[key] && absensiKegiatanData[key].hadir) hadirKegiatan++;
-      });
-      const persenKegiatan = totalKegiatan > 0 ? Math.round((hadirKegiatan/totalKegiatan)*100) : null;
-
-      const jumlahTahfidz = (tahfidzData[s.id] || []).filter(t=>t.tanggal && t.tanggal >= dari && t.tanggal <= sampai).length;
-
-      const penKey = s.id + '_' + sampai.slice(0,7);
-      const pen = penilaianData[penKey] || {};
-
-      rows += `<tr>
-        <td>${avatarCell(s)}</td>
-        <td>${escapeHtml(s.nama)}</td>
-        <td class="mono">${escapeHtml(s.nis || '-')}</td>
-        <td>${escapeHtml(s.kelas || '-')}</td>
-        <td>${escapeHtml(s.no_kamar || '-')}</td>
-        <td><span class="badge ${s.aktif===false ? 'nonaktif' : 'aktif'}">${s.aktif===false ? 'Tidak Aktif' : 'Aktif'}</span></td>
-        <td>${persenFardhu!==null ? persenFardhu+'%' : '-'}</td>
-        <td>${persenKegiatan!==null ? persenKegiatan+'%' : '-'}</td>
-        <td>${jumlahTahfidz}</td>
-        <td>${nilaiKarakterLabel(pen.kedisiplinan)}</td>
-        <td style="text-align:right;white-space:nowrap;">
-          <button class="btn btn-ghost" style="color:var(--teal-900);border-color:var(--sage-200);padding:6px 12px;font-size:12px;" data-eraport-detail="${s.id}">Lihat Detail</button>
-        </td>
-      </tr>`;
-    });
-    content.innerHTML = `
-      <p class="sub" style="margin:0 0 12px;">Ringkasan seluruh santri — Periode ${escapeHtml(periodeLabel)}. Pilih salah satu santri untuk melihat E-Raport lengkap beserta grafik dan opsi cetak/PDF.</p>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th></th><th>Nama</th><th>NIS</th><th>Kelas</th><th>Kamar</th><th>Status</th><th>Ibadah</th><th>Kehadiran</th><th>Tahfidz</th><th>Kedisiplinan</th><th></th></tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </div>`;
-    content.querySelectorAll('[data-eraport-detail]').forEach(b=>{
-      b.addEventListener('click', ()=>{
-        const sel = document.getElementById('eraport-filter-santri');
-        if(sel){ sel.value = b.dataset.eraportDetail; }
-        renderEraportTab();
-      });
-    });
-  }
-
   /* -------- Cetak / Unduh PDF E-Raport -------- */
   async function downloadEraportPdf(){
     const selSantri = document.getElementById('eraport-filter-santri');
     const printArea = document.getElementById('eraport-print-area');
-    if(!selSantri || !selSantri.value || selSantri.value === 'all' || !printArea){
-      showToast(selSantri && selSantri.value === 'all' ? 'Pilih satu santri untuk mencetak E-Raport. Tampilan "Semua Santri" hanya untuk melihat ringkasan.' : 'Pilih santri terlebih dahulu untuk mencetak E-Raport', true);
+    if(!selSantri || !selSantri.value || !printArea){
+      showToast('Pilih santri terlebih dahulu untuk mencetak E-Raport', true);
       return;
     }
     const s = santriList.find(x=>x.id===selSantri.value);
@@ -3746,6 +3767,8 @@ Minimum version required to store current data is: `+i+`.
   }
 
   let ctEditingId = null;      // null = mode tambah baru, selain itu = id catatan yang sedang diedit
+  // Sertifikat prestasi (upload): undefined = tidak diubah, null = dihapus, {data,nama,tipe} = file baru dipilih
+  let ctPendingSertifikat;
   let ctFilterJenis = 'semua';
   let ctFilterPeriode = 'semua';
   let ctSearchQuery = '';
@@ -3785,6 +3808,95 @@ Minimum version required to store current data is: `+i+`.
   function ctSelectedSantriId(){
     const sel = document.getElementById('catatan-santri');
     return sel ? sel.value : '';
+  }
+
+  /* -------- Upload Sertifikat (khusus jenis Prestasi) --------
+     File PDF/JPG/PNG dibaca sebagai data URL lalu disimpan sebagai field
+     tambahan (sertifikat_data, sertifikat_nama, sertifikat_tipe) di dalam
+     blok JSON meta yang sama seperti field prestasi lain (lihat
+     ctEncodeKeterangan/ctParseKeterangan) — tanpa migrasi database apapun. */
+  function ctReadFileAsDataUrl(file){
+    return new Promise((resolve, reject)=>{
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('Gagal membaca file'));
+      reader.onload = () => resolve(reader.result);
+      reader.readAsDataURL(file);
+    });
+  }
+  function ctDataUrlToBlobUrl(dataUrl){
+    try{
+      const parts = dataUrl.split(',');
+      const mimeMatch = parts[0].match(/data:(.*?);base64/);
+      const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+      const binary = atob(parts[1]);
+      const bytes = new Uint8Array(binary.length);
+      for(let i=0;i<binary.length;i++) bytes[i] = binary.charCodeAt(i);
+      return URL.createObjectURL(new Blob([bytes], {type:mime}));
+    }catch(e){ return null; }
+  }
+  function ctLihatSertifikat(dataUrl){
+    if(!dataUrl) return;
+    const url = ctDataUrlToBlobUrl(dataUrl);
+    window.open(url || dataUrl, '_blank');
+  }
+  function ctSertifikatFieldHtml(meta){
+    const pending = ctPendingSertifikat;
+    const removed = pending === null;
+    const hasNew = pending && pending.data;
+    const hasExisting = !removed && !hasNew && meta && meta.sertifikat_data;
+    const currentNama = hasNew ? pending.nama : (hasExisting ? (meta.sertifikat_nama || 'Sertifikat') : '');
+    const showFile = hasNew || hasExisting;
+    return `
+      <div class="ct-sertifikat-box" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--sand-50, #FAF7F2);">
+        <label class="btn btn-ghost" style="color:var(--teal-900);border-color:var(--sage-200);cursor:pointer;margin:0;">
+          ${showFile ? 'Ganti File' : 'Pilih File'}
+          <input type="file" id="ct-f-sertifikat-file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" style="display:none;">
+        </label>
+        ${showFile ? `<span style="font-size:12.5px;color:var(--ink-soft);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(currentNama)}</span>
+          <button type="button" class="btn btn-ghost" id="ct-f-sertifikat-lihat" style="color:var(--teal-700);border-color:var(--sage-200);padding:6px 12px;">Lihat Sertifikat</button>
+          <button type="button" class="btn btn-ghost" id="ct-f-sertifikat-hapus" style="color:var(--danger);border-color:#E4C9C5;padding:6px 12px;">Hapus</button>`
+          : `<span style="font-size:12.5px;color:var(--ink-soft);">Belum ada sertifikat diunggah</span>`}
+      </div>`;
+  }
+  function ctBindSertifikatField(meta){
+    const wrap = document.getElementById('ct-sertifikat-wrap');
+    if(!wrap) return;
+    wrap.innerHTML = ctSertifikatFieldHtml(meta);
+    const fileInput = document.getElementById('ct-f-sertifikat-file');
+    if(fileInput){
+      fileInput.addEventListener('change', async ()=>{
+        const file = fileInput.files && fileInput.files[0];
+        if(!file) return;
+        const allowed = ['application/pdf','image/jpeg','image/png'];
+        if(!allowed.includes(file.type)){
+          showToast('Format harus PDF, JPG, atau PNG', true);
+          fileInput.value = '';
+          return;
+        }
+        try{
+          const data = await ctReadFileAsDataUrl(file);
+          ctPendingSertifikat = { data, nama:file.name, tipe:file.type };
+        }catch(e){
+          showToast('Gagal membaca file sertifikat', true);
+          return;
+        }
+        ctBindSertifikatField(meta);
+      });
+    }
+    const btnLihat = document.getElementById('ct-f-sertifikat-lihat');
+    if(btnLihat){
+      btnLihat.addEventListener('click', ()=>{
+        const data = (ctPendingSertifikat && ctPendingSertifikat.data) ? ctPendingSertifikat.data : (meta && meta.sertifikat_data);
+        ctLihatSertifikat(data);
+      });
+    }
+    const btnHapus = document.getElementById('ct-f-sertifikat-hapus');
+    if(btnHapus){
+      btnHapus.addEventListener('click', ()=>{
+        ctPendingSertifikat = null;
+        ctBindSertifikatField(meta);
+      });
+    }
   }
 
   function populateCatatanSantriSelect(){
@@ -3942,6 +4054,12 @@ Minimum version required to store current data is: `+i+`.
               ${['Internal','Kecamatan','Kabupaten','Provinsi','Nasional'].map(t=>`<option value="${t}" ${meta.tingkat===t?'selected':''}>${t}</option>`).join('')}
             </select>
           </div>
+        </div>
+        <div class="row" style="margin-top:12px;">
+          <div class="field" style="flex:1;min-width:260px;">
+            <label>Sertifikat (PDF/JPG/PNG, opsional)</label>
+            <div id="ct-sertifikat-wrap"></div>
+          </div>
         </div>`;
     }
     if(jenis === 'pelanggaran'){
@@ -3992,6 +4110,7 @@ Minimum version required to store current data is: `+i+`.
   }
 
   function ctRenderDynamicFields(jenis, editEntry){
+    ctPendingSertifikat = undefined; // reset setiap kali form jenis dirender ulang
     const wrap = document.getElementById('ct-dynamic-fields');
     const meta = (editEntry && editEntry.jenis === jenis) ? (editEntry.ctMeta || {}) : {};
     const tanggal = editEntry ? editEntry.tanggal : todayStr();
@@ -4015,13 +4134,29 @@ Minimum version required to store current data is: `+i+`.
       </div>`;
     document.getElementById('btn-batal-catatan').addEventListener('click', ctCloseForm);
     document.getElementById('btn-simpan-catatan').addEventListener('click', ()=> ctSubmitForm(jenis, editEntry));
+    if(jenis === 'prestasi') ctBindSertifikatField(meta);
   }
 
-  function ctCollectMeta(jenis){
-    if(jenis === 'prestasi') return {
-      nama_prestasi: (document.getElementById('ct-f-nama-prestasi')||{}).value || '',
-      tingkat: (document.getElementById('ct-f-tingkat-prestasi')||{}).value || ''
-    };
+  function ctCollectMeta(jenis, editEntry){
+    if(jenis === 'prestasi'){
+      const meta = {
+        nama_prestasi: (document.getElementById('ct-f-nama-prestasi')||{}).value || '',
+        tingkat: (document.getElementById('ct-f-tingkat-prestasi')||{}).value || ''
+      };
+      const prevMeta = (editEntry && editEntry.jenis === 'prestasi') ? (editEntry.ctMeta || {}) : {};
+      if(ctPendingSertifikat === null){
+        // sertifikat dihapus oleh pengguna: jangan sertakan field sertifikat
+      } else if(ctPendingSertifikat && ctPendingSertifikat.data){
+        meta.sertifikat_data = ctPendingSertifikat.data;
+        meta.sertifikat_nama = ctPendingSertifikat.nama;
+        meta.sertifikat_tipe = ctPendingSertifikat.tipe;
+      } else if(prevMeta.sertifikat_data){
+        meta.sertifikat_data = prevMeta.sertifikat_data;
+        meta.sertifikat_nama = prevMeta.sertifikat_nama || '';
+        meta.sertifikat_tipe = prevMeta.sertifikat_tipe || '';
+      }
+      return meta;
+    }
     if(jenis === 'pelanggaran') return {
       jenis_pelanggaran: (document.getElementById('ct-f-jenis-pelanggaran')||{}).value || '',
       tingkat: (document.getElementById('ct-f-tingkat-pelanggaran')||{}).value || '',
@@ -4043,7 +4178,7 @@ Minimum version required to store current data is: `+i+`.
     const tanggalKembaliEl = document.getElementById('ct-tanggal-kembali');
     const tanggalKembali = (jenis === 'perizinan' && tanggalKembaliEl) ? (tanggalKembaliEl.value || null) : null;
     const keteranganRaw = document.getElementById('ct-keterangan').value.trim();
-    const meta = ctCollectMeta(jenis);
+    const meta = ctCollectMeta(jenis, editEntry);
     const keterangan = ctEncodeKeterangan(keteranganRaw, meta);
 
     const btn = document.getElementById('btn-simpan-catatan');
@@ -4094,6 +4229,7 @@ Minimum version required to store current data is: `+i+`.
     if(e.jenis === 'prestasi'){
       if(meta.nama_prestasi) rows.push(['Nama Prestasi', escapeHtml(meta.nama_prestasi)]);
       if(meta.tingkat) rows.push(['Tingkat', escapeHtml(meta.tingkat)]);
+      if(meta.sertifikat_data) rows.push(['Sertifikat', `<button type="button" class="btn btn-ghost" id="ct-detail-lihat-sertifikat" style="color:var(--teal-700);border-color:var(--sage-200);padding:6px 14px;">Lihat Sertifikat</button>`]);
     }
     if(e.jenis === 'pelanggaran'){
       if(meta.jenis_pelanggaran) rows.push(['Jenis Pelanggaran', escapeHtml(meta.jenis_pelanggaran)]);
@@ -4125,6 +4261,10 @@ Minimum version required to store current data is: `+i+`.
       closeModal();
       await ctDeleteEntry(e);
     });
+    const btnLihatSertifikat = document.getElementById('ct-detail-lihat-sertifikat');
+    if(btnLihatSertifikat){
+      btnLihatSertifikat.addEventListener('click', ()=> ctLihatSertifikat(meta.sertifikat_data));
+    }
   }
 
   async function ctDeleteEntry(e){
@@ -4920,6 +5060,561 @@ Minimum version required to store current data is: `+i+`.
     return `<div class="dash-mini"><div class="dm-num">${num}</div><div class="dm-label">${label}</div></div>`;
   }
 
+  /* -------- Analisis AI Dashboard (sederhana, berjalan lokal di browser) --------
+     Membaca data yang SUDAH dihitung oleh computeDashboardData() (tidak menghitung
+     ulang dari nol, tidak mengubah data apapun) lalu menyusun ringkasan berbasis
+     aturan (rule-based) dalam Bahasa Indonesia: Ringkasan, Hal yang Perlu
+     Diperhatikan, dan Saran Sederhana. Tidak memerlukan koneksi/API eksternal
+     apapun sehingga tetap ringan dan bisa langsung dipakai. */
+  function dashPeriodeLabel(periode){
+    if(periode === 'hari') return 'Hari Ini';
+    if(periode === 'bulan') return 'Bulan Ini';
+    return 'Minggu Ini';
+  }
+  function generateDashboardAiAnalysis(d, periodeLabel){
+    const perhatian = [];
+    const saran = [];
+
+    // Kondisi santri
+    if(d.santriAktif < d.totalSantri){
+      const nonAktif = d.totalSantri - d.santriAktif;
+      perhatian.push(`Terdapat ${nonAktif} santri berstatus tidak aktif dari total ${d.totalSantri} santri.`);
+    }
+
+    // Mutaba'ah
+    if(d.adaMutabaah && d.persentaseMutabaah < 70){
+      perhatian.push(`Kepatuhan mutaba'ah ibadah fardhu masih di bawah 70% (${d.persentaseMutabaah}%).`);
+      saran.push('Tingkatkan pendampingan dan pengingat ibadah fardhu bagi santri, terutama yang sering absen mengisi mutaba\'ah.');
+    } else if(!d.adaMutabaah){
+      perhatian.push('Belum ada data mutaba\'ah yang tercatat pada periode ini.');
+    }
+
+    // Absensi kegiatan
+    if(d.totalAbsensi > 0 && d.persentaseHadir < 80){
+      perhatian.push(`Persentase kehadiran kegiatan berada di bawah 80% (${d.persentaseHadir}%).`);
+      saran.push('Telusuri penyebab ketidakhadiran santri pada kegiatan dan lakukan pendekatan personal bila perlu.');
+    } else if(d.totalAbsensi === 0){
+      perhatian.push('Belum ada data absensi kegiatan pada periode ini.');
+    }
+
+    // Tahfidz
+    if(d.jumlahSetoran === 0){
+      perhatian.push('Belum ada setoran tahfidz yang tercatat pada periode ini.');
+      saran.push('Dorong kembali kegiatan setoran hafalan santri secara rutin.');
+    }
+
+    // Catatan santri (prestasi vs pelanggaran)
+    const nPrestasi = d.jenisCount.prestasi || 0;
+    const nPelanggaran = d.jenisCount.pelanggaran || 0;
+    if(nPelanggaran > nPrestasi && nPelanggaran > 0){
+      perhatian.push(`Catatan pelanggaran (${nPelanggaran}) lebih banyak dibanding catatan prestasi (${nPrestasi}) pada periode ini.`);
+      saran.push('Perkuat pembinaan karakter untuk santri dengan catatan pelanggaran, serta beri apresiasi pada santri berprestasi.');
+    }
+
+    // Penilaian karakter
+    if(d.adaPenilaian){
+      const rendah = [];
+      if(d.rataKedisiplinan > 0 && d.rataKedisiplinan < 70) rendah.push('kedisiplinan');
+      if(d.rataKerapian > 0 && d.rataKerapian < 70) rendah.push('kerapian');
+      if(d.rataAttitude > 0 && d.rataAttitude < 70) rendah.push('attitude/adab');
+      if(rendah.length > 0){
+        perhatian.push(`Rata-rata nilai karakter untuk aspek ${rendah.join(', ')} masih di bawah 70.`);
+        saran.push('Berikan pembinaan tambahan pada aspek karakter yang nilainya masih rendah.');
+      }
+    } else {
+      perhatian.push('Belum ada penilaian karakter (kedisiplinan/kerapian/attitude) bulan ini.');
+    }
+
+    // Keuangan
+    if(d.adaKeuangan && d.saldoPeriode < 0){
+      perhatian.push('Total pengeluaran santri lebih besar dibanding pemasukan pada periode ini.');
+      saran.push('Pantau pengeluaran santri agar tetap seimbang dengan pemasukan (jajan).');
+    }
+
+    if(perhatian.length === 0){
+      perhatian.push('Tidak ditemukan indikator yang perlu perhatian khusus pada periode ini — kondisi secara umum baik.');
+    }
+    if(saran.length === 0){
+      saran.push('Pertahankan pola pembinaan dan pendampingan yang sudah berjalan baik saat ini.');
+    }
+
+    const ringkasan = `Pada periode ${periodeLabel}, tercatat ${d.totalSantri} santri (${d.santriAktif} aktif). `
+      + `Kepatuhan mutaba'ah ibadah fardhu ${d.adaMutabaah ? d.persentaseMutabaah + '%' : 'belum ada data'}, `
+      + `kehadiran kegiatan ${d.totalAbsensi > 0 ? d.persentaseHadir + '%' : 'belum ada data'}, `
+      + `dan tercatat ${d.jumlahSetoran} setoran tahfidz. `
+      + `Penilaian karakter rata-rata: kedisiplinan ${d.rataKedisiplinan}, kerapian ${d.rataKerapian}, attitude ${d.rataAttitude}. `
+      + `Catatan santri periode ini terdiri dari ${nPrestasi} prestasi dan ${nPelanggaran} pelanggaran. `
+      + `Keuangan santri: pemasukan Rp${(d.totalMasuk||0).toLocaleString('id-ID')} dan pengeluaran Rp${(d.totalKeluar||0).toLocaleString('id-ID')}.`;
+
+    return { ringkasan, perhatian, saran };
+  }
+  function openDashboardAiModal(){
+    const periodeLabel = dashPeriodeLabel(dashboardFilterPeriode);
+    const d = computeDashboardData(dashboardFilterPeriode);
+    const hasil = generateDashboardAiAnalysis(d, periodeLabel);
+    const bodyHtml = `
+      <div class="erp-card" style="margin-bottom:14px;">
+        <h3 style="margin-top:0;">Ringkasan</h3>
+        <p style="margin:0;line-height:1.7;color:var(--ink);">${escapeHtml(hasil.ringkasan)}</p>
+      </div>
+      <div class="erp-card" style="margin-bottom:14px;">
+        <h3 style="margin-top:0;">Hal yang Perlu Diperhatikan</h3>
+        <ul style="margin:0;padding-left:18px;line-height:1.8;">
+          ${hasil.perhatian.map(it=>`<li>${escapeHtml(it)}</li>`).join('')}
+        </ul>
+      </div>
+      <div class="erp-card" style="margin-bottom:4px;">
+        <h3 style="margin-top:0;">Saran Sederhana</h3>
+        <ul style="margin:0;padding-left:18px;line-height:1.8;">
+          ${hasil.saran.map(it=>`<li>${escapeHtml(it)}</li>`).join('')}
+        </ul>
+      </div>
+      <p class="sub" style="margin-top:14px;margin-bottom:0;">Analisis dibuat otomatis berdasarkan data yang tersedia di Dashboard, hanya sebagai bantuan pembacaan data dan tidak mengubah data apapun.</p>
+    `;
+    openModal('✨ Analisis dengan AI — ' + periodeLabel, bodyHtml);
+  }
+  document.getElementById('ai-fab')?.addEventListener('click', openAiChatModal);
+
+  /* =============================================================================
+     AI CHAT MUSYRIF — Asisten AI berbasis chat, berjalan lokal di browser
+     -----------------------------------------------------------------------------
+     Prinsip:
+     - AI HANYA MEMBACA & MENGANALISIS data yang sudah dimuat di aplikasi
+       (santriList, mutabaahData, absensiKegiatanData, tahfidzData, catatanData,
+       penilaianData, pelanggaranData, tabunganData). AI TIDAK PERNAH mengubah,
+       menghapus, atau menambah data secara otomatis ke database.
+     - Jika data yang ditanyakan tidak tersedia, AI menjawab apa adanya bahwa
+       data belum tersedia — tidak mengarang jawaban.
+     - Ini tidak membuat tab/menu baru: AI Chat dibuka lewat tombol yang sudah
+       ada di Dashboard ("Analisis dengan AI" sebelumnya), memakai komponen
+       modal yang sudah ada di aplikasi (openModal / #modal-overlay).
+     ============================================================================= */
+
+  let aiChatHistory = []; // { role: 'user'|'ai', html }[] — hanya di memori, reset saat refresh halaman
+
+  const AI_CHAT_SUGGESTIONS = [
+    "Berapa jumlah santri sekarang?",
+    "Bagaimana kondisi santri minggu ini?",
+    "Siapa yang paling sering tidak hadir?",
+    "Siapa yang perlu mendapat perhatian?",
+    "Bagaimana Mutaba'ah Ihsan bulan ini?",
+    "Bagaimana perkembangan Tahfidz Ihsan?",
+    "Bagaimana nilai Ihsan?",
+    "Buatkan deskripsi E-Raport Ihsan.",
+    "Berapa uang masuk dan keluar bulan ini?"
+  ];
+
+  function openAiChatModal(){
+    const bodyHtml = `
+      <div class="ai-chat-wrap">
+        <div class="ai-chat-messages" id="ai-chat-messages"></div>
+        <div class="ai-chat-suggest" id="ai-chat-suggest">
+          ${AI_CHAT_SUGGESTIONS.map(q=>`<button type="button" class="ai-chat-chip" data-q="${escapeHtml(q)}">${escapeHtml(q)}</button>`).join('')}
+        </div>
+        <form id="ai-chat-form" class="ai-chat-input-row">
+          <input type="text" id="ai-chat-input" placeholder="Tulis pertanyaan, mis. 'Berapa jumlah santri sekarang?'" autocomplete="off" />
+          <button type="submit" class="btn btn-primary">Kirim</button>
+        </form>
+        <p class="sub" style="margin:10px 0 0;">AI hanya membaca &amp; menganalisis data yang sudah ada di aplikasi. Data tidak diubah, dihapus, atau ditambahkan secara otomatis.</p>
+      </div>
+    `;
+    openModal('💬 Chat AI Musyrif', bodyHtml);
+
+    if(aiChatHistory.length === 0){
+      aiChatPush('ai', aiChatWelcomeHtml());
+    } else {
+      aiChatRenderAll();
+      aiChatScrollBottom();
+    }
+
+    document.getElementById('ai-chat-form')?.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const inp = document.getElementById('ai-chat-input');
+      const text = (inp?.value || '').trim();
+      if(!text) return;
+      if(inp) inp.value = '';
+      aiChatHandleUserMessage(text);
+    });
+    document.getElementById('ai-chat-suggest')?.addEventListener('click', (e)=>{
+      const btn = e.target.closest('.ai-chat-chip');
+      if(!btn) return;
+      aiChatHandleUserMessage(btn.dataset.q || '');
+    });
+    setTimeout(()=>{ document.getElementById('ai-chat-input')?.focus(); }, 60);
+  }
+
+  function aiChatWelcomeHtml(){
+    return `<p>Assalamu'alaikum, saya <b>Asisten AI Musyrif</b>. Saya bisa membantu membaca dan menganalisis data aplikasi: Santri, Mutaba'ah, Absensi Kegiatan, Tahfidz, Catatan Santri, Penilaian, E-Raport, dan Keuangan.</p><p>Silakan tanyakan sesuatu, atau pilih salah satu contoh pertanyaan di bawah ini.</p>`;
+  }
+
+  function aiChatPush(role, html){
+    aiChatHistory.push({ role, html });
+    aiChatRenderAll();
+    aiChatScrollBottom();
+  }
+  function aiChatRenderAll(){
+    const wrap = document.getElementById('ai-chat-messages');
+    if(!wrap) return;
+    wrap.innerHTML = aiChatHistory.map(m=>`
+      <div class="ai-chat-msg ${m.role==='user' ? 'user' : 'ai'}">
+        <div class="ai-chat-avatar">${m.role==='user' ? '👤' : '😊'}</div>
+        <div class="ai-chat-bubble">${m.html}</div>
+      </div>
+    `).join('');
+  }
+  function aiChatScrollBottom(){
+    const wrap = document.getElementById('ai-chat-messages');
+    if(wrap) wrap.scrollTop = wrap.scrollHeight;
+  }
+  function aiChatHandleUserMessage(text){
+    aiChatPush('user', escapeHtml(text));
+    const wrap = document.getElementById('ai-chat-messages');
+    if(wrap){
+      wrap.insertAdjacentHTML('beforeend', `<div class="ai-chat-msg ai" id="ai-chat-typing"><div class="ai-chat-avatar">😊</div><div class="ai-chat-bubble ai-chat-typing-dots"><span></span><span></span><span></span></div></div>`);
+      aiChatScrollBottom();
+    }
+    const delay = 450 + Math.random()*350;
+    setTimeout(()=>{
+      document.getElementById('ai-chat-typing')?.remove();
+      let answer;
+      try{
+        answer = aiAnswerQuery(text);
+      }catch(err){
+        answer = '<p>Maaf, terjadi kendala saat memproses pertanyaan ini. Silakan coba tanyakan dengan kalimat lain yang lebih spesifik.</p>';
+      }
+      aiChatPush('ai', answer);
+    }, delay);
+  }
+
+  /* -------- Util NLU sederhana (rule-based, tanpa API eksternal) -------- */
+  function aiEscapeRegex(str){ return String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  function aiFmtRp(n){ return 'Rp' + Math.round(n || 0).toLocaleString('id-ID'); }
+  function aiP(text){ return `<p>${text}</p>`; }
+  function aiUl(items){ return `<ul>${items.map(it=>`<li>${it}</li>`).join('')}</ul>`; }
+
+  function aiDetectPeriode(q){
+    if(/\bhari ini\b|\bharian\b/.test(q)) return 'hari';
+    if(/\bminggu\b/.test(q)) return 'minggu';
+    if(/\bbulan\b/.test(q)) return 'bulan';
+    return null;
+  }
+
+  // Cari santri yang namanya disebut di pertanyaan. Utamakan kecocokan nama lengkap
+  // (kata demi kata), baru kecocokan kata pertama nama bila tidak ada yang cocok persis.
+  function aiFindSantriInQuery(q){
+    const full = santriList.filter(s=>{
+      const nama = (s.nama || '').toLowerCase().trim();
+      if(!nama) return false;
+      const re = new RegExp('\\b' + aiEscapeRegex(nama) + '\\b');
+      return re.test(q);
+    });
+    if(full.length > 0) return full;
+    const partial = santriList.filter(s=>{
+      const first = (s.nama || '').toLowerCase().trim().split(/\s+/)[0];
+      if(!first || first.length < 3) return false;
+      const re = new RegExp('\\b' + aiEscapeRegex(first) + '\\b');
+      return re.test(q);
+    });
+    return partial;
+  }
+
+  // Statistik lengkap seorang santri pada rentang tanggal [dari, sampai] (inklusif),
+  // dibaca langsung dari data yang sudah dimuat aplikasi (tidak mengubah apa pun).
+  function aiComputeSantriStats(santriId, dari, sampai){
+    let checked = 0, total = 0;
+    Object.keys(mutabaahData).forEach(key=>{
+      if(!key.startsWith(santriId + '_')) return;
+      const tgl = key.slice(santriId.length + 1);
+      if(tgl < dari || tgl > sampai) return;
+      const rec = mutabaahData[key];
+      if(!rec || rec.haid) return;
+      IBADAH_FARDHU.forEach(f=>{ total++; if(rec[f.key]) checked++; });
+    });
+    const persenFardhu = total > 0 ? Math.round((checked/total)*100) : 0;
+
+    let hadir = 0, tidakHadir = 0, totalKeg = 0;
+    Object.keys(absensiKegiatanData).forEach(key=>{
+      if(!key.startsWith(santriId + '_')) return;
+      const parts = key.split('_');
+      const tgl = parts[parts.length - 1];
+      if(tgl < dari || tgl > sampai) return;
+      totalKeg++;
+      const e = absensiKegiatanData[key];
+      if(e && e.hadir) hadir++; else tidakHadir++;
+    });
+    const persenKegiatan = totalKeg > 0 ? Math.round((hadir/totalKeg)*100) : null;
+
+    const setoran = (tahfidzData[santriId] || [])
+      .filter(t=>t.tanggal && t.tanggal >= dari && t.tanggal <= sampai)
+      .slice().sort((a,b)=> (b.tanggal||'').localeCompare(a.tanggal||''));
+
+    const catatanPeriode = (catatanData[santriId] || []).filter(c=>c.tanggal && c.tanggal >= dari && c.tanggal <= sampai);
+    const countJenis = j => catatanPeriode.filter(c=>c.jenis === j).length;
+
+    let poinPelanggaran = 0;
+    (pelanggaranData[santriId] || []).forEach(p=>{
+      if(!p.tanggal || p.tanggal < dari || p.tanggal > sampai) return;
+      const mp = masterPelanggaranList.find(m=>m.id === p.masterId);
+      poinPelanggaran += mp ? (mp.poin || 0) : 0;
+    });
+
+    return { checked, total, persenFardhu, hadir, tidakHadir, totalKeg, persenKegiatan, setoran, catatanPeriode, countJenis, poinPelanggaran };
+  }
+
+  // Daftar santri paling sering tidak hadir kegiatan pada rentang tanggal tertentu.
+  function aiTopTidakHadir(dari, sampai, topN){
+    const map = {};
+    Object.keys(absensiKegiatanData).forEach(key=>{
+      const parts = key.split('_');
+      const tgl = parts[parts.length - 1];
+      if(tgl < dari || tgl > sampai) return;
+      const santriId = parts[0];
+      if(!map[santriId]) map[santriId] = { hadir:0, tidakHadir:0 };
+      const e = absensiKegiatanData[key];
+      if(e && e.hadir) map[santriId].hadir++; else map[santriId].tidakHadir++;
+    });
+    const arr = Object.keys(map).map(id=>{
+      const s = santriList.find(x=>x.id === id);
+      return { nama: s ? s.nama : '(santri tidak ditemukan)', kelas: s ? s.kelas : '', ...map[id] };
+    }).filter(x=>x.tidakHadir > 0);
+    arr.sort((a,b)=> b.tidakHadir - a.tidakHadir);
+    return arr.slice(0, topN || 5);
+  }
+
+  // Daftar santri yang perlu mendapat perhatian, berdasarkan gabungan beberapa
+  // indikator: kepatuhan ibadah fardhu rendah, sering tidak hadir kegiatan,
+  // catatan pelanggaran, dan nilai karakter rendah pada bulan berjalan.
+  function aiPerluPerhatian(dari, sampai, topN){
+    const bulanKey = sampai.slice(0,7);
+    const results = [];
+    santriList.forEach(s=>{
+      if(s.aktif === false) return;
+      const st = aiComputeSantriStats(s.id, dari, sampai);
+      const alasan = [];
+      let skor = 0;
+      if(st.total > 0 && st.persenFardhu < 70){
+        skor += (70 - st.persenFardhu);
+        alasan.push(`kepatuhan ibadah fardhu ${st.persenFardhu}%`);
+      }
+      if(st.totalKeg > 0 && st.tidakHadir > 0){
+        skor += st.tidakHadir * 8;
+        alasan.push(`${st.tidakHadir}x tidak hadir kegiatan`);
+      }
+      const nPelanggaran = st.countJenis('pelanggaran');
+      if(nPelanggaran > 0){
+        skor += nPelanggaran * 15 + st.poinPelanggaran;
+        alasan.push(`${nPelanggaran} catatan pelanggaran`);
+      }
+      const pen = penilaianData[s.id + '_' + bulanKey] || {};
+      const rendahKar = [];
+      if(pen.kedisiplinan !== null && pen.kedisiplinan !== undefined && pen.kedisiplinan !== '' && Number(pen.kedisiplinan) < 70) rendahKar.push('kedisiplinan');
+      if(pen.kerapian !== null && pen.kerapian !== undefined && pen.kerapian !== '' && Number(pen.kerapian) < 70) rendahKar.push('kerapian');
+      if(pen.attitude !== null && pen.attitude !== undefined && pen.attitude !== '' && Number(pen.attitude) < 70) rendahKar.push('attitude');
+      if(rendahKar.length > 0){
+        skor += rendahKar.length * 10;
+        alasan.push(`nilai ${rendahKar.join('/')} rendah`);
+      }
+      if(skor > 0) results.push({ nama: s.nama, kelas: s.kelas, skor, alasan });
+    });
+    results.sort((a,b)=> b.skor - a.skor);
+    return results.slice(0, topN || 5);
+  }
+
+  /* -------- Mesin jawaban utama -------- */
+  function aiAnswerQuery(rawText){
+    const q = String(rawText || '').toLowerCase().replace(/['".,!?;:()]/g, ' ').replace(/\s+/g, ' ').trim();
+    if(!q) return aiP('Silakan tulis pertanyaan Anda, atau pilih salah satu contoh pertanyaan di atas.');
+
+    if(/^(hai|halo|hi|hello|assalamu|selamat (pagi|siang|sore|malam))/.test(q) && q.length < 25){
+      return aiP("Wa'alaikumsalam, ada yang bisa saya bantu terkait data santri, mutaba'ah, absensi, tahfidz, catatan, penilaian, E-Raport, atau keuangan?");
+    }
+
+    const periode = aiDetectPeriode(q);
+    const periodeUse = periode || 'bulan';
+    const periodeLabel = dashPeriodeLabel(periodeUse);
+    const { dari, sampai } = getDashboardPeriodeRange(periodeUse);
+
+    const santriMatches = aiFindSantriInQuery(q);
+    const santri = santriMatches[0] || null;
+    const catatanNamaGanda = santriMatches.length > 1
+      ? aiP(`<i>Catatan: ada ${santriMatches.length} santri dengan nama serupa, jawaban di bawah untuk <b>${escapeHtml(santri.nama)}</b>${santri.kelas ? ' (kelas '+escapeHtml(santri.kelas)+')' : ''}. Sebutkan nama lengkap bila yang dimaksud santri lain.</i>`)
+      : '';
+
+    /* --- 1. Jumlah santri --- */
+    if(/jumlah santri|berapa santri|total santri|banyak santri/.test(q)){
+      const total = santriList.length;
+      const aktif = santriList.filter(s=>s.aktif !== false).length;
+      const nonaktif = total - aktif;
+      const perKelas = {};
+      santriList.forEach(s=>{ const k = s.kelas || '-'; perKelas[k] = (perKelas[k]||0) + 1; });
+      const kelasItems = Object.keys(perKelas).sort().map(k=>`Kelas ${escapeHtml(k)}: ${perKelas[k]} santri`);
+      return aiP(`Saat ini tercatat <b>${total} santri</b> (${aktif} aktif${nonaktif>0 ? ', '+nonaktif+' tidak aktif' : ''}).`)
+        + (kelasItems.length ? aiP('Rincian per kelas:') + aiUl(kelasItems) : '');
+    }
+
+    /* --- 2. Siapa yang perlu perhatian --- */
+    if(/perlu (mendapat )?perhatian|perlu diperhatikan|perlu dipantau|butuh perhatian/.test(q)){
+      const list = aiPerluPerhatian(dari, sampai, 5);
+      if(list.length === 0){
+        return aiP(`Berdasarkan data ${periodeLabel.toLowerCase()}, belum ada santri yang menonjol perlu perhatian khusus — kondisi secara umum baik.`);
+      }
+      return aiP(`Berikut santri yang perlu mendapat perhatian pada periode ${periodeLabel} (berdasarkan ibadah, kehadiran, catatan pelanggaran, dan nilai karakter):`)
+        + aiUl(list.map(r=>`<b>${escapeHtml(r.nama)}</b>${r.kelas ? ' (kelas '+escapeHtml(r.kelas)+')' : ''} — ${r.alasan.map(escapeHtml).join(', ')}`));
+    }
+
+    /* --- 3. Siapa yang paling sering tidak hadir --- */
+    if(/paling sering (tidak hadir|absen|bolos)|sering (tidak hadir|absen|bolos)|jarang hadir/.test(q)){
+      const list = aiTopTidakHadir(dari, sampai, 5);
+      if(list.length === 0){
+        return aiP(`Belum ada data ketidakhadiran kegiatan pada periode ${periodeLabel.toLowerCase()}.`);
+      }
+      return aiP(`Santri yang paling sering tidak hadir kegiatan pada periode ${periodeLabel}:`)
+        + aiUl(list.map(r=>`<b>${escapeHtml(r.nama)}</b>${r.kelas ? ' (kelas '+escapeHtml(r.kelas)+')' : ''} — tidak hadir ${r.tidakHadir}x dari ${r.hadir + r.tidakHadir}x kegiatan`));
+    }
+
+    /* --- 4. Deskripsi E-Raport --- */
+    if(/deskripsi.*(e-?raport|rapor)|(e-?raport|rapor).*deskripsi|buatkan.*(e-?raport|rapor)/.test(q)){
+      if(!santri){
+        return aiP('Sebutkan nama santri yang dimaksud, contoh: <i>"Buatkan deskripsi E-Raport ' + (santriList[0] ? escapeHtml(santriList[0].nama) : 'Ahmad') + '"</i>.');
+      }
+      const rDari = getDashboardPeriodeRange('bulan').dari, rSampai = getDashboardPeriodeRange('bulan').sampai;
+      const st = aiComputeSantriStats(santri.id, rDari, rSampai);
+      const pen = penilaianData[santri.id + '_' + rSampai.slice(0,7)] || {};
+      const teks = generateEraportAiDeskripsi(santri, pen, st.persenFardhu, st.total, st.persenKegiatan, st.totalKeg, st.setoran.length, st.countJenis, 'Bulan Ini');
+      return catatanNamaGanda
+        + aiP(`Draf deskripsi E-Raport untuk <b>${escapeHtml(santri.nama)}</b> (Bulan Ini):`)
+        + aiP(escapeHtml(teks))
+        + aiP('<i>Ini hanya draf bacaan dari AI dan belum tersimpan. Untuk menyimpannya, buka menu E-Raport → pilih santri ini → klik "Buat Deskripsi dengan AI" lalu "Simpan Deskripsi".</i>');
+    }
+
+    /* --- 5. Tahfidz --- */
+    if(/tahfidz|hafalan|setoran/.test(q)){
+      if(santri){
+        const st = aiComputeSantriStats(santri.id, dari, sampai);
+        if(st.setoran.length === 0){
+          return catatanNamaGanda + aiP(`Belum ada data setoran tahfidz untuk <b>${escapeHtml(santri.nama)}</b> pada periode ${periodeLabel.toLowerCase()}.`);
+        }
+        const items = st.setoran.slice(0,5).map(t=>`${escapeHtml(fmtTanggalShort(t.tanggal))} — ${escapeHtml(t.surat || '-')}${t.juz ? ' (Juz '+escapeHtml(String(t.juz))+')' : ''}${(t.ayatDari||t.ayatSampai) ? ' ayat '+escapeHtml(String(t.ayatDari||'-'))+'-'+escapeHtml(String(t.ayatSampai||'-')) : ''}`);
+        return catatanNamaGanda
+          + aiP(`Perkembangan Tahfidz <b>${escapeHtml(santri.nama)}</b> pada periode ${periodeLabel}: tercatat <b>${st.setoran.length} kali setoran</b>.`)
+          + aiP('Setoran terbaru:') + aiUl(items);
+      }
+      const d = computeDashboardData(periodeUse);
+      if(d.jumlahSetoran === 0){
+        return aiP(`Belum ada setoran tahfidz yang tercatat pada periode ${periodeLabel.toLowerCase()}.`);
+      }
+      const items = d.setoranTerbaru.slice(0,5).map(t=>`${escapeHtml(t.santriNama)} — ${escapeHtml(fmtTanggalShort(t.tanggal))} (${escapeHtml(t.surat||'-')})`);
+      return aiP(`Pada periode ${periodeLabel}, tercatat <b>${d.jumlahSetoran} setoran tahfidz</b> dari seluruh santri.`)
+        + aiP('Setoran terbaru:') + aiUl(items);
+    }
+
+    /* --- 6. Mutaba'ah --- */
+    if(/mutaba/.test(q)){
+      if(santri){
+        const st = aiComputeSantriStats(santri.id, dari, sampai);
+        if(st.total === 0){
+          return catatanNamaGanda + aiP(`Belum ada data mutaba'ah untuk <b>${escapeHtml(santri.nama)}</b> pada periode ${periodeLabel.toLowerCase()}.`);
+        }
+        return catatanNamaGanda + aiP(`Mutaba'ah ibadah fardhu <b>${escapeHtml(santri.nama)}</b> pada periode ${periodeLabel}: <b>${st.persenFardhu}%</b> terisi (${st.checked} dari ${st.total} entri sholat fardhu).`);
+      }
+      const d = computeDashboardData(periodeUse);
+      if(!d.adaMutabaah){
+        return aiP(`Belum ada data mutaba'ah yang tercatat pada periode ${periodeLabel.toLowerCase()}.`);
+      }
+      return aiP(`Kepatuhan mutaba'ah ibadah fardhu pada periode ${periodeLabel}: <b>${d.persentaseMutabaah}%</b> (dari ${d.totalSantri} santri terdaftar, ${d.santriAktif} aktif).`);
+    }
+
+    /* --- 7. Nilai / karakter --- */
+    if(/nilai\b|karakter|kedisiplinan|kerapian|attitude/.test(q)){
+      if(santri){
+        const bulanKey = todayStr().slice(0,7);
+        const pen = penilaianData[santri.id + '_' + bulanKey] || {};
+        if(pen.kedisiplinan==null && pen.kerapian==null && pen.attitude==null){
+          return catatanNamaGanda + aiP(`Belum ada penilaian karakter (kedisiplinan/kerapian/attitude) untuk <b>${escapeHtml(santri.nama)}</b> bulan ini.`);
+        }
+        return catatanNamaGanda + aiP(`Nilai karakter <b>${escapeHtml(santri.nama)}</b> bulan ini: Kedisiplinan <b>${pen.kedisiplinan ?? '-'}</b> (${nilaiKarakterLabel(pen.kedisiplinan)}), Kerapian <b>${pen.kerapian ?? '-'}</b> (${nilaiKarakterLabel(pen.kerapian)}), Attitude <b>${pen.attitude ?? '-'}</b> (${nilaiKarakterLabel(pen.attitude)}).`);
+      }
+      const d = computeDashboardData(periodeUse);
+      if(!d.adaPenilaian){
+        return aiP('Belum ada penilaian karakter (kedisiplinan/kerapian/attitude) yang tercatat bulan ini.');
+      }
+      return aiP(`Rata-rata nilai karakter seluruh santri bulan ini: Kedisiplinan <b>${d.rataKedisiplinan}</b>, Kerapian <b>${d.rataKerapian}</b>, Attitude <b>${d.rataAttitude}</b>.`);
+    }
+
+    /* --- 8. Keuangan --- */
+    if(/uang masuk|uang keluar|keuangan|pemasukan|pengeluaran|saldo|jajan|tabungan/.test(q)){
+      const d = computeDashboardData(periodeUse);
+      if(!d.adaKeuangan){
+        return aiP(`Belum ada data keuangan (uang masuk/keluar) santri yang tercatat pada periode ${periodeLabel.toLowerCase()}.`);
+      }
+      const info = d.saldoPeriode >= 0
+        ? `Pemasukan lebih besar dari pengeluaran sebesar ${aiFmtRp(d.saldoPeriode)}.`
+        : `Pengeluaran lebih besar dari pemasukan sebesar ${aiFmtRp(Math.abs(d.saldoPeriode))}.`;
+      return aiP(`Keuangan santri pada periode ${periodeLabel}: uang masuk <b>${aiFmtRp(d.totalMasuk)}</b>, uang keluar <b>${aiFmtRp(d.totalKeluar)}</b>. ${info}`);
+    }
+
+    /* --- 9. Catatan santri --- */
+    if(/catatan/.test(q)){
+      if(santri){
+        const st = aiComputeSantriStats(santri.id, dari, sampai);
+        if(st.catatanPeriode.length === 0){
+          return catatanNamaGanda + aiP(`Belum ada catatan santri untuk <b>${escapeHtml(santri.nama)}</b> pada periode ${periodeLabel.toLowerCase()}.`);
+        }
+        const items = st.catatanPeriode.slice().sort((a,b)=>(b.tanggal||'').localeCompare(a.tanggal||'')).slice(0,5)
+          .map(c=>{
+            const meta = JENIS_META[c.jenis] || { label:c.jenis, icon:'📝' };
+            const ket = (c.keterangan||'').slice(0,70);
+            return `${escapeHtml(fmtTanggalShort(c.tanggal))} — ${meta.icon} ${escapeHtml(meta.label)}${ket ? ': '+escapeHtml(ket) + (c.keterangan && c.keterangan.length>70 ? '…' : '') : ''}`;
+          });
+        return catatanNamaGanda
+          + aiP(`Catatan santri <b>${escapeHtml(santri.nama)}</b> pada periode ${periodeLabel} (${st.catatanPeriode.length} catatan):`)
+          + aiUl(items);
+      }
+      const d = computeDashboardData(periodeUse);
+      const items = Object.keys(JENIS_META).map(j=>`${JENIS_META[j].icon} ${JENIS_META[j].label}: ${d.jenisCount[j]||0}`);
+      return aiP(`Ringkasan catatan santri pada periode ${periodeLabel}:`) + aiUl(items);
+    }
+
+    /* --- 10. Absensi kegiatan (individual) --- */
+    if(santri && /absensi|kehadiran|hadir/.test(q)){
+      const st = aiComputeSantriStats(santri.id, dari, sampai);
+      if(st.totalKeg === 0){
+        return catatanNamaGanda + aiP(`Belum ada data absensi kegiatan untuk <b>${escapeHtml(santri.nama)}</b> pada periode ${periodeLabel.toLowerCase()}.`);
+      }
+      return catatanNamaGanda + aiP(`Kehadiran kegiatan <b>${escapeHtml(santri.nama)}</b> pada periode ${periodeLabel}: hadir ${st.hadir}x, tidak hadir ${st.tidakHadir}x dari total ${st.totalKeg}x kegiatan (${st.persenKegiatan}%).`);
+    }
+
+    /* --- 11. Kondisi umum / ringkasan dashboard --- */
+    if(/kondisi|bagaimana keadaan|ringkasan|gambaran umum/.test(q)){
+      const d = computeDashboardData(periodeUse);
+      const hasil = generateDashboardAiAnalysis(d, periodeLabel);
+      return aiP(hasil.ringkasan)
+        + aiP('Hal yang perlu diperhatikan:') + aiUl(hasil.perhatian.map(escapeHtml))
+        + aiP('Saran singkat:') + aiUl(hasil.saran.map(escapeHtml));
+    }
+
+    /* --- 12. Fallback: ada nama santri disebut tapi maksud tidak jelas → ringkasan santri --- */
+    if(santri){
+      const st = aiComputeSantriStats(santri.id, dari, sampai);
+      const bulanKey = todayStr().slice(0,7);
+      const pen = penilaianData[santri.id + '_' + bulanKey] || {};
+      return catatanNamaGanda
+        + aiP(`Ringkasan singkat <b>${escapeHtml(santri.nama)}</b> pada periode ${periodeLabel}:`)
+        + aiUl([
+            `Mutaba'ah fardhu: ${st.total>0 ? st.persenFardhu+'%' : 'belum ada data'}`,
+            `Kehadiran kegiatan: ${st.totalKeg>0 ? st.persenKegiatan+'%' : 'belum ada data'}`,
+            `Setoran tahfidz: ${st.setoran.length} kali`,
+            `Nilai karakter (bulan ini): Kedisiplinan ${pen.kedisiplinan ?? '-'}, Kerapian ${pen.kerapian ?? '-'}, Attitude ${pen.attitude ?? '-'}`,
+            `Catatan santri: ${st.catatanPeriode.length} catatan`
+          ]);
+    }
+
+    /* --- 13. Tidak dikenali --- */
+    return aiP('Maaf, saya belum memahami maksud pertanyaan tersebut.')
+      + aiP('Anda bisa bertanya seputar Santri, Mutaba\'ah, Absensi Kegiatan, Tahfidz, Catatan Santri, Penilaian, E-Raport, atau Keuangan, misalnya:')
+      + aiUl(AI_CHAT_SUGGESTIONS.slice(0,4).map(escapeHtml));
+  }
+
   function renderDashboard(){
     const wrap = document.getElementById('dash-content');
     if(!wrap) return;
@@ -5138,10 +5833,12 @@ Minimum version required to store current data is: `+i+`.
   function showLoginScreen(){
     document.getElementById('login-screen').style.display = 'flex';
     document.getElementById('app-layout').style.display = 'none';
+    const fab = document.getElementById('ai-fab'); if(fab) fab.style.display = 'none';
   }
   function hideLoginScreen(){
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app-layout').style.display = 'flex';
+    const fab = document.getElementById('ai-fab'); if(fab) fab.style.display = 'flex';
   }
   function showLoginError(msg){
     const el = document.getElementById('login-error');
@@ -5194,6 +5891,8 @@ Minimum version required to store current data is: `+i+`.
         el.closest('.field').style.display = (role === 'santri') ? 'none' : '';
       }
     });
+    const fab = document.getElementById('ai-fab');
+    if(fab) fab.style.display = (role === 'musyrif') ? 'flex' : 'none';
     const defaultTab = 'dashboard';
     const defaultBtn = document.querySelector(`.side-nav button[data-tab="${defaultTab}"]`);
     if(defaultBtn) defaultBtn.classList.add('active');
