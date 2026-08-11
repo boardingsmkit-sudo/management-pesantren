@@ -434,9 +434,32 @@ Minimum version required to store current data is: `+i+`.
   .dash-setoran-item .ds-tgl{color:var(--ink-soft);font-size:11px;white-space:nowrap;flex-shrink:0;}
   @media (max-width:900px){
     .dash-header{flex-direction:column;}
+    .dash-filter-wrap{width:100%;align-items:stretch;}
     .dash-filter{width:100%;}
     .dash-filter button{flex:1;text-align:center;}
+    .dash-custom-range{flex-wrap:wrap;}
   }
+  .dash-filter-wrap{display:flex;flex-direction:column;gap:8px;align-items:flex-end;flex-shrink:0;}
+  .dash-custom-range{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--ink-soft);}
+  .dash-custom-range input[type=date]{padding:7px 8px;font-size:12px;}
+  .dash-section-sub{font-family:'Amiri',serif;font-weight:700;font-size:13.5px;color:var(--ink);margin:16px 0 10px;}
+  .dash-section-sub:first-of-type{margin-top:0;}
+  .dash-list-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  .dash-list-table th{text-align:left;color:var(--ink-soft);font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.3px;padding:0 8px 8px;border-bottom:1px solid var(--line);}
+  .dash-list-table td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top;}
+  .dash-list-table tr:last-child td{border-bottom:none;}
+  .dash-list-table .dl-nama{font-weight:700;color:var(--ink);}
+  .dash-list-table .dl-kelas{color:var(--ink-soft);font-size:11px;}
+  .dash-badge-warn{display:inline-block;background:#FBEAE8;color:#B5443A;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:700;}
+  .dash-badge-good{display:inline-block;background:#E7F4EC;color:#1E6E3C;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:700;}
+  .dash-karakter-dist{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:10px;margin-top:12px;}
+  .dk-item{background:var(--paper-soft);border:1px solid var(--line);border-radius:11px;padding:10px 8px;text-align:center;}
+  .dk-item .dk-num{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--teal-900);}
+  .dk-item .dk-label{font-size:10px;color:var(--ink-soft);margin-top:3px;}
+  .dash-tahfidz-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;}
+  @media (max-width:700px){ .dash-tahfidz-cols{grid-template-columns:1fr;} }
+  .dash-name-chip{display:flex;justify-content:space-between;align-items:center;background:var(--paper-soft);border:1px solid var(--line);border-radius:9px;padding:7px 10px;font-size:12px;margin-bottom:7px;}
+  .dash-name-chip:last-child{margin-bottom:0;}
 
   .nilai-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;}
   .nilai-card{
@@ -1178,12 +1201,21 @@ Minimum version required to store current data is: `+i+`.
         <div class="dash-header">
           <div class="dash-header-text">
             <h2>Dashboard</h2>
-            <p class="sub" style="margin-bottom:0;">Ringkasan kondisi umum pesantren dalam satu halaman.</p>
+            <p class="sub" id="dash-periode-label" style="margin-bottom:0;">Ringkasan kondisi umum pesantren dalam satu halaman.</p>
           </div>
-          <div class="dash-filter" id="dash-periode-toggle">
-            <button type="button" data-dashperiode="hari">Hari Ini</button>
-            <button type="button" data-dashperiode="minggu" class="active">Minggu Ini</button>
-            <button type="button" data-dashperiode="bulan">Bulan Ini</button>
+          <div class="dash-filter-wrap">
+            <div class="dash-filter" id="dash-periode-toggle">
+              <button type="button" data-dashperiode="hari">Hari Ini</button>
+              <button type="button" data-dashperiode="minggu" class="active">Minggu Ini</button>
+              <button type="button" data-dashperiode="bulan">Bulan Ini</button>
+              <button type="button" data-dashperiode="custom">Custom</button>
+            </div>
+            <div class="dash-custom-range" id="dash-custom-range" style="display:none;">
+              <input type="date" id="dash-custom-dari" />
+              <span>s/d</span>
+              <input type="date" id="dash-custom-sampai" />
+              <button type="button" class="btn btn-primary" style="padding:8px 12px;font-size:12px;" id="dash-custom-apply">Terapkan</button>
+            </div>
           </div>
         </div>
       </div>
@@ -5501,11 +5533,20 @@ Minimum version required to store current data is: `+i+`.
 
   /* ---------------- Dashboard ---------------- */
   let dashboardCharts = [];
-  let dashboardFilterPeriode = 'minggu'; // 'hari' | 'minggu' | 'bulan'
+  let dashboardFilterPeriode = 'minggu'; // 'hari' | 'minggu' | 'bulan' | 'custom'
+  // Rentang tanggal Custom dipilih pengguna lewat input date di header Dashboard.
+  // Default awal: bulan berjalan, agar input tidak kosong saat pertama membuka "Custom".
+  let dashboardCustomDari = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0,10);
+  let dashboardCustomSampai = todayStr();
 
   function fmtTanggalPendek(dateStr){
     const d = new Date(dateStr + 'T00:00:00');
     return d.toLocaleDateString('id-ID', {day:'numeric', month:'short'});
+  }
+  function fmtTanggalPanjang(dateStr){
+    if(!dateStr) return '-';
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
   }
 
   // Rentang tanggal [dari, sampai] (inklusif, format YYYY-MM-DD) sesuai filter periode dashboard.
@@ -5518,6 +5559,12 @@ Minimum version required to store current data is: `+i+`.
     if(periode === 'bulan'){
       const dari = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
       return { dari, sampai };
+    }
+    if(periode === 'custom'){
+      let dari = dashboardCustomDari || sampai;
+      let sc = dashboardCustomSampai || sampai;
+      if(dari > sc){ const tmp = dari; dari = sc; sc = tmp; } // jaga urutan bila terbalik
+      return { dari, sampai: sc };
     }
     // minggu: Senin s.d. hari ini
     const hariKe = now.getDay(); // 0=Minggu..6=Sabtu
@@ -5546,37 +5593,78 @@ Minimum version required to store current data is: `+i+`.
     const totalSantri = santriList.length;
     const santriAktif = santriList.filter(s=> s.aktif !== false).length;
 
-    /* -------- 2. Mutaba'ah: % kepatuhan fardhu dalam periode + tren harian -------- */
+    /* -------- 2. Mutaba'ah Ibadah Fardhu: total + rincian per waktu sholat + tren harian -------- */
     let mtChecked = 0, mtTotal = 0;
+    const fardhuPerWaktu = {};
+    IBADAH_FARDHU.forEach(f=>{ fardhuPerWaktu[f.key] = { checked:0, total:0, label:f.label }; });
     const mutabaahSeries = dateList.map(tgl=>{
       let checked = 0, total = 0;
       santriList.forEach(s=>{
         const rec = mutabaahData[s.id + '_' + tgl];
         if(!rec || rec.haid) return;
-        IBADAH_FARDHU.forEach(f=>{ total++; if(rec[f.key]) checked++; });
+        IBADAH_FARDHU.forEach(f=>{
+          total++; fardhuPerWaktu[f.key].total++;
+          if(rec[f.key]){ checked++; fardhuPerWaktu[f.key].checked++; }
+        });
       });
       mtChecked += checked; mtTotal += total;
       return { label: fmtTanggalPendek(tgl), pct: total > 0 ? Math.round((checked/total)*100) : null };
     });
     const persentaseMutabaah = mtTotal > 0 ? Math.round((mtChecked/mtTotal)*100) : 0;
     const adaMutabaah = mtTotal > 0;
+    Object.values(fardhuPerWaktu).forEach(f=>{ f.persen = f.total > 0 ? Math.round((f.checked/f.total)*100) : null; });
 
-    /* -------- 3. Absensi Kegiatan: hadir vs tidak hadir dalam periode -------- */
-    let jmlHadir = 0, jmlTidakHadir = 0;
+    /* -------- 2b. Mutaba'ah Ibadah Sunnah: Rawatib, Dhuha, Tahajud, Puasa Senin-Kamis -------- */
+    let rawatibChecked=0, rawatibTotal=0, dhuhaChecked=0, dhuhaTotal=0, tahajudChecked=0, tahajudTotal=0, puasaChecked=0, puasaTotal=0;
+    dateList.forEach(tgl=>{
+      const hari = new Date(tgl + 'T00:00:00').getDay(); // 1=Senin, 4=Kamis
+      santriList.forEach(s=>{
+        const rec = mutabaahData[s.id + '_' + tgl];
+        if(!rec || rec.haid) return;
+        RAWATIB_ALL_FIELDS.forEach(fk=>{ rawatibTotal++; if(rec[fk]) rawatibChecked++; });
+        dhuhaTotal++; if(rec.dhuha) dhuhaChecked++;
+        tahajudTotal++; if(rec.tahajud) tahajudChecked++;
+        if(hari === 1){ puasaTotal++; if(rec.puasa_senin) puasaChecked++; }
+        else if(hari === 4){ puasaTotal++; if(rec.puasa_kamis) puasaChecked++; }
+      });
+    });
+    const persenRawatib = rawatibTotal > 0 ? Math.round((rawatibChecked/rawatibTotal)*100) : 0;
+    const persenDhuha = dhuhaTotal > 0 ? Math.round((dhuhaChecked/dhuhaTotal)*100) : 0;
+    const persenTahajud = tahajudTotal > 0 ? Math.round((tahajudChecked/tahajudTotal)*100) : 0;
+    const persenPuasaSunnah = puasaTotal > 0 ? Math.round((puasaChecked/puasaTotal)*100) : 0;
+    const adaIbadahSunnah = (rawatibTotal + dhuhaTotal + tahajudTotal + puasaTotal) > 0;
+    const sunnahCheckedTotal = rawatibChecked + dhuhaChecked + tahajudChecked + puasaChecked;
+    const sunnahGrandTotal = rawatibTotal + dhuhaTotal + tahajudTotal + puasaTotal;
+    const persentaseSunnah = sunnahGrandTotal > 0 ? Math.round((sunnahCheckedTotal/sunnahGrandTotal)*100) : 0;
+
+    /* -------- 3. Absensi Kegiatan: Hadir / Izin / Sakit / Tidak Hadir (Alpa) -------- */
+    // Alasan ketidakhadiran (Izin/Sakit) dibaca dari Catatan Santri pada tanggal yang sama,
+    // bukan data baru — jika tidak ada catatan yang cocok maka dikategorikan "Tidak Hadir".
+    let jmlHadir = 0, jmlTidakHadir = 0, jmlIzin = 0, jmlSakit = 0, jmlAlpa = 0;
     Object.keys(absensiKegiatanData).forEach(key=>{
       const entry = absensiKegiatanData[key];
       if(!entry) return;
       const parts = key.split('_');
       const tgl = parts[parts.length - 1];
       if(tgl < dari || tgl > sampai) return;
-      if(entry.hadir) jmlHadir++; else jmlTidakHadir++;
+      if(entry.hadir){ jmlHadir++; return; }
+      jmlTidakHadir++;
+      const santriId = parts[0];
+      const catatanTgl = (catatanData[santriId] || []).find(c => c && c.tanggal === tgl && (c.jenis === 'sakit' || c.jenis === 'perizinan'));
+      if(catatanTgl && catatanTgl.jenis === 'sakit') jmlSakit++;
+      else if(catatanTgl && catatanTgl.jenis === 'perizinan') jmlIzin++;
+      else jmlAlpa++;
     });
     const totalAbsensi = jmlHadir + jmlTidakHadir;
     const persentaseHadir = totalAbsensi > 0 ? Math.round((jmlHadir/totalAbsensi)*100) : 0;
+    const persentaseIzin = totalAbsensi > 0 ? Math.round((jmlIzin/totalAbsensi)*100) : 0;
+    const persentaseSakit = totalAbsensi > 0 ? Math.round((jmlSakit/totalAbsensi)*100) : 0;
+    const persentaseAlpa = totalAbsensi > 0 ? Math.round((jmlAlpa/totalAbsensi)*100) : 0;
 
-    /* -------- 4. Penilaian Santri: rata-rata bulan berjalan (data tersimpan per bulan) -------- */
-    const bulanIni = todayStr().slice(0,7);
+    /* -------- 4. Penilaian Karakter: rata-rata + distribusi, mengikuti bulan dari periode dipilih -------- */
+    const bulanIni = sampai.slice(0,7);
     let sumKedisiplinan = 0, sumKerapian = 0, sumAttitude = 0, cntPenilaian = 0;
+    const karakterDistribusi = { sangatBaik:0, baik:0, cukup:0, perluPembinaan:0 };
     Object.keys(penilaianData).forEach(key=>{
       if(!key.endsWith('_' + bulanIni)) return;
       const rec = penilaianData[key];
@@ -5585,12 +5673,21 @@ Minimum version required to store current data is: `+i+`.
       sumKerapian += (rec.kerapian || 0);
       sumAttitude += (rec.attitude || 0);
       cntPenilaian++;
+      const vals = [rec.kedisiplinan, rec.kerapian, rec.attitude].filter(v=> v !== null && v !== undefined && v !== '' && !isNaN(Number(v))).map(Number);
+      if(vals.length > 0){
+        const avg = vals.reduce((a,b)=>a+b,0)/vals.length;
+        if(avg >= 90) karakterDistribusi.sangatBaik++;
+        else if(avg >= 75) karakterDistribusi.baik++;
+        else if(avg >= 60) karakterDistribusi.cukup++;
+        else karakterDistribusi.perluPembinaan++;
+      }
     });
     const rataKedisiplinan = cntPenilaian > 0 ? Math.round(sumKedisiplinan/cntPenilaian) : 0;
     const rataKerapian = cntPenilaian > 0 ? Math.round(sumKerapian/cntPenilaian) : 0;
     const rataAttitude = cntPenilaian > 0 ? Math.round(sumAttitude/cntPenilaian) : 0;
+    const avgKarakter = cntPenilaian > 0 ? Math.round((rataKedisiplinan + rataKerapian + rataAttitude)/3) : 0;
 
-    /* -------- 5. Catatan Santri: jumlah per jenis dalam periode -------- */
+    /* -------- 5. Catatan Santri / Data Pembinaan: jumlah per jenis dalam periode (statistik, bukan nilai) -------- */
     const jenisCount = { prestasi:0, pelanggaran:0, konseling:0, sakit:0, perizinan:0 };
     Object.values(catatanData).forEach(list=>{
       (list || []).forEach(e=>{
@@ -5600,18 +5697,33 @@ Minimum version required to store current data is: `+i+`.
       });
     });
 
-    /* -------- 6. Tahfidz: jumlah setoran dalam periode + setoran terbaru -------- */
+    /* -------- 6. Tahfidz: jumlah setoran, rata-rata, keaktifan, & top performers seluruh santri -------- */
     let semuaSetoran = [];
     santriList.forEach(s=>{
       (tahfidzData[s.id] || []).forEach(e=>{
-        semuaSetoran.push({ tanggal:e.tanggal, juz:e.juz, surat:e.surat, ayatDari:e.ayatDari, ayatSampai:e.ayatSampai, santriNama:s.nama });
+        semuaSetoran.push({ tanggal:e.tanggal, juz:e.juz, surat:e.surat, ayatDari:e.ayatDari, ayatSampai:e.ayatSampai, santriId:s.id, santriNama:s.nama });
       });
     });
     const setoranPeriode = semuaSetoran.filter(e=> e.tanggal && e.tanggal >= dari && e.tanggal <= sampai);
     const jumlahSetoran = setoranPeriode.length;
     const setoranTerbaru = setoranPeriode.slice().sort((a,b)=> b.tanggal.localeCompare(a.tanggal)).slice(0,5);
+    const adaTahfidz = jumlahSetoran > 0;
 
-    /* -------- 7. Keuangan Santri: rekap global masuk vs keluar dalam periode -------- */
+    const setoranCountPerSantri = {};
+    setoranPeriode.forEach(e=>{ setoranCountPerSantri[e.santriId] = (setoranCountPerSantri[e.santriId]||0) + 1; });
+    const santriAktifTahfidz = Object.keys(setoranCountPerSantri).length;
+    const rataSetoranPerSantri = santriAktif > 0 ? Math.round((jumlahSetoran/santriAktif)*10)/10 : 0;
+    const persenAktifTahfidz = santriAktif > 0 ? Math.round((santriAktifTahfidz/santriAktif)*100) : 0;
+    const topTahfidz = Object.keys(setoranCountPerSantri).map(id=>{
+      const s = santriList.find(x=>x.id === id);
+      return { nama: s ? s.nama : '-', kelas: s ? s.kelas : '', jumlah: setoranCountPerSantri[id] };
+    }).sort((a,b)=> b.jumlah - a.jumlah).slice(0,5);
+    const kurangAktifTahfidz = santriList
+      .filter(s=> s.aktif !== false && !setoranCountPerSantri[s.id])
+      .map(s=>({ nama:s.nama, kelas:s.kelas }))
+      .slice(0,8);
+
+    /* -------- 7. Keuangan Santri: rekap global masuk vs keluar dalam periode (dipertahankan untuk Chat AI) -------- */
     let totalMasuk = 0, totalKeluar = 0;
     Object.values(tabunganData).forEach(list=>{
       (list || []).forEach(e=>{
@@ -5624,34 +5736,110 @@ Minimum version required to store current data is: `+i+`.
     const saldoPeriode = totalMasuk - totalKeluar;
     const adaKeuangan = (totalMasuk > 0 || totalKeluar > 0);
 
-    /* -------- 8. Ibadah Sunnah: perbandingan pelaksanaan Puasa Sunnah, Tahajud, Dhuha -------- */
-    let puasaChecked = 0, puasaTotal = 0, tahajudChecked = 0, tahajudTotal = 0, dhuhaChecked = 0, dhuhaTotal = 0;
-    dateList.forEach(tgl=>{
-      santriList.forEach(s=>{
-        const rec = mutabaahData[s.id + '_' + tgl];
-        if(!rec || rec.haid) return;
-        puasaTotal += 2;
-        if(rec.puasa_senin) puasaChecked++;
-        if(rec.puasa_kamis) puasaChecked++;
-        tahajudTotal++; if(rec.tahajud) tahajudChecked++;
-        dhuhaTotal++; if(rec.dhuha) dhuhaChecked++;
-      });
-    });
-    const persenPuasaSunnah = puasaTotal > 0 ? Math.round((puasaChecked/puasaTotal)*100) : 0;
-    const persenTahajud = tahajudTotal > 0 ? Math.round((tahajudChecked/tahajudTotal)*100) : 0;
-    const persenDhuha = dhuhaTotal > 0 ? Math.round((dhuhaChecked/dhuhaTotal)*100) : 0;
-    const adaIbadahSunnah = (puasaTotal + tahajudTotal + dhuhaTotal) > 0;
+    /* -------- 8. Santri Perlu Perhatian & Perkembangan Positif (berbasis data aktual periode ini) -------- */
+    const { perluPerhatian, perkembanganPositif } = dashHitungPerhatianDanPositif(dari, sampai, 8);
 
     return {
+      periodeDari: dari, periodeSampai: sampai,
       totalSantri, santriAktif,
-      persentaseMutabaah, adaMutabaah, mutabaahSeries,
+      // Mutaba'ah — Ibadah Fardhu
+      persentaseMutabaah, adaMutabaah, mutabaahSeries, fardhuPerWaktu,
+      // Mutaba'ah — Ibadah Sunnah
+      persenRawatib, persenDhuha, persenTahajud, persenPuasaSunnah, adaIbadahSunnah, persentaseSunnah,
+      // Absensi Kegiatan
       jmlHadir, jmlTidakHadir, totalAbsensi, persentaseHadir,
-      rataKedisiplinan, rataKerapian, rataAttitude, adaPenilaian: cntPenilaian > 0,
+      jmlIzin, jmlSakit, jmlAlpa, persentaseIzin, persentaseSakit, persentaseAlpa,
+      // Penilaian Karakter
+      rataKedisiplinan, rataKerapian, rataAttitude, adaPenilaian: cntPenilaian > 0, avgKarakter, karakterDistribusi,
+      // Catatan Santri / Data Pembinaan
       jenisCount,
-      jumlahSetoran, setoranTerbaru,
+      // Tahfidz
+      jumlahSetoran, setoranTerbaru, adaTahfidz, santriAktifTahfidz, rataSetoranPerSantri, persenAktifTahfidz, topTahfidz, kurangAktifTahfidz,
+      // Keuangan (dipertahankan agar Chat AI & fitur lain tetap berjalan, tidak lagi ditampilkan di kartu utama Dashboard)
       totalMasuk, totalKeluar, saldoPeriode, adaKeuangan,
-      persenPuasaSunnah, persenTahajud, persenDhuha, adaIbadahSunnah
+      // Perlu Perhatian & Perkembangan Positif
+      perluPerhatian, perkembanganPositif
     };
+  }
+
+  // Ringkasan indikator seorang santri pada rentang tanggal tertentu — dipakai khusus
+  // untuk menyusun daftar "Perlu Perhatian" & "Perkembangan Positif" di Dashboard.
+  // Hanya membaca data yang sudah ada (mutabaahData, absensiKegiatanData, tahfidzData,
+  // catatanData, penilaianData), tidak menghitung ulang / mengubah data apa pun.
+  function dashSantriStatsRingkas(santriId, dari, sampai, bulanKey){
+    let checked = 0, total = 0;
+    Object.keys(mutabaahData).forEach(key=>{
+      if(!key.startsWith(santriId + '_')) return;
+      const tgl = key.slice(santriId.length + 1);
+      if(tgl < dari || tgl > sampai) return;
+      const rec = mutabaahData[key];
+      if(!rec || rec.haid) return;
+      IBADAH_FARDHU.forEach(f=>{ total++; if(rec[f.key]) checked++; });
+    });
+    const persenFardhu = total > 0 ? Math.round((checked/total)*100) : null;
+
+    let hadir = 0, tidakHadir = 0, totalKeg = 0;
+    Object.keys(absensiKegiatanData).forEach(key=>{
+      if(!key.startsWith(santriId + '_')) return;
+      const parts = key.split('_');
+      const tgl = parts[parts.length - 1];
+      if(tgl < dari || tgl > sampai) return;
+      totalKeg++;
+      const e = absensiKegiatanData[key];
+      if(e && e.hadir) hadir++; else tidakHadir++;
+    });
+    const persenKegiatan = totalKeg > 0 ? Math.round((hadir/totalKeg)*100) : null;
+
+    const jmlSetoran = (tahfidzData[santriId] || []).filter(t=> t.tanggal && t.tanggal >= dari && t.tanggal <= sampai).length;
+
+    const catatanPeriode = (catatanData[santriId] || []).filter(c=> c && c.tanggal && c.tanggal >= dari && c.tanggal <= sampai);
+    const cJenis = j => catatanPeriode.filter(c=> c.jenis === j).length;
+
+    const pen = penilaianData[santriId + '_' + bulanKey] || {};
+    const karVals = [pen.kedisiplinan, pen.kerapian, pen.attitude].filter(v=> v !== null && v !== undefined && v !== '' && !isNaN(Number(v))).map(Number);
+    const karakterAvg = karVals.length > 0 ? Math.round(karVals.reduce((a,b)=>a+b,0)/karVals.length) : null;
+
+    return { persenFardhu, totalFardhu:total, persenKegiatan, totalKeg, jmlSetoran, prestasi:cJenis('prestasi'), pelanggaran:cJenis('pelanggaran'), konseling:cJenis('konseling'), sakit:cJenis('sakit'), karakterAvg };
+  }
+
+  // Menyusun daftar "Santri Perlu Perhatian" & "Perkembangan Positif" berdasarkan
+  // gabungan indikator nyata (ibadah, kehadiran, tahfidz, pembinaan, karakter) —
+  // tidak mengarang status; santri tanpa indikator menonjol tidak dimasukkan.
+  function dashHitungPerhatianDanPositif(dari, sampai, topN){
+    const bulanKey = sampai.slice(0,7);
+    const perhatian = [], positif = [];
+    santriList.forEach(s=>{
+      if(s.aktif === false) return;
+      const st = dashSantriStatsRingkas(s.id, dari, sampai, bulanKey);
+
+      const isuNegatif = [];
+      if(st.persenFardhu !== null && st.persenFardhu < 70) isuNegatif.push({ prioritas:(70-st.persenFardhu), indikator:`Ibadah Fardhu ${st.persenFardhu}%`, keterangan:'Perlu pembinaan ibadah' });
+      if(st.persenKegiatan !== null && st.persenKegiatan < 75) isuNegatif.push({ prioritas:(75-st.persenKegiatan), indikator:`Absensi ${st.persenKegiatan}%`, keterangan:'Perlu perhatian kehadiran' });
+      if(st.jmlSetoran === 0) isuNegatif.push({ prioritas:20, indikator:'Tahfidz kurang aktif', keterangan:'Perlu monitoring setoran' });
+      if(st.pelanggaran > 0) isuNegatif.push({ prioritas:(30 + st.pelanggaran*10), indikator:`${st.pelanggaran} Pelanggaran`, keterangan:'Perlu pembinaan' });
+      if(st.konseling > 0) isuNegatif.push({ prioritas:(15 + st.konseling*5), indikator:`${st.konseling}x Konseling`, keterangan:'Dalam pendampingan konseling' });
+      if(st.sakit >= 3) isuNegatif.push({ prioritas:(st.sakit*5), indikator:`${st.sakit}x Sakit`, keterangan:'Perlu perhatian kesehatan' });
+      if(isuNegatif.length > 0){
+        isuNegatif.sort((a,b)=> b.prioritas - a.prioritas);
+        const top = isuNegatif[0];
+        perhatian.push({ nama:s.nama, kelas:s.kelas, indikator:top.indikator, keterangan:top.keterangan, skor: isuNegatif.reduce((a,b)=>a+b.prioritas,0) });
+      }
+
+      const isuPositif = [];
+      if(st.persenFardhu !== null && st.persenFardhu >= 90) isuPositif.push({ prioritas:st.persenFardhu, indikator:`Mutaba'ah ${st.persenFardhu}%`, keterangan:'Sangat Baik' });
+      if(st.persenKegiatan !== null && st.persenKegiatan >= 90) isuPositif.push({ prioritas:st.persenKegiatan, indikator:`Kehadiran ${st.persenKegiatan}%`, keterangan:'Sangat Baik' });
+      if(st.jmlSetoran >= 3) isuPositif.push({ prioritas:(st.jmlSetoran*5), indikator:`Tahfidz ${st.jmlSetoran}x setoran`, keterangan:'Aktif setoran' });
+      if(st.prestasi > 0) isuPositif.push({ prioritas:(40 + st.prestasi*10), indikator:`${st.prestasi} Prestasi`, keterangan:'Membanggakan' });
+      if(st.karakterAvg !== null && st.karakterAvg >= 90) isuPositif.push({ prioritas:st.karakterAvg, indikator:`Karakter ${st.karakterAvg}`, keterangan:'Sangat Baik' });
+      if(isuPositif.length > 0){
+        isuPositif.sort((a,b)=> b.prioritas - a.prioritas);
+        const top = isuPositif[0];
+        positif.push({ nama:s.nama, kelas:s.kelas, indikator:top.indikator, keterangan:top.keterangan, skor: isuPositif.reduce((a,b)=>a+b.prioritas,0) });
+      }
+    });
+    perhatian.sort((a,b)=> b.skor - a.skor);
+    positif.sort((a,b)=> b.skor - a.skor);
+    return { perluPerhatian: perhatian.slice(0, topN || 8), perkembanganPositif: positif.slice(0, topN || 8) };
   }
 
   function dashMini(num, label){
@@ -5667,6 +5855,10 @@ Minimum version required to store current data is: `+i+`.
   function dashPeriodeLabel(periode){
     if(periode === 'hari') return 'Hari Ini';
     if(periode === 'bulan') return 'Bulan Ini';
+    if(periode === 'custom'){
+      const { dari, sampai } = getDashboardPeriodeRange('custom');
+      return fmtTanggalPanjang(dari) + ' – ' + fmtTanggalPanjang(sampai);
+    }
     return 'Minggu Ini';
   }
   function generateDashboardAiAnalysis(d, periodeLabel){
@@ -6219,12 +6411,50 @@ Minimum version required to store current data is: `+i+`.
       + aiUl(AI_CHAT_SUGGESTIONS.slice(0,4).map(escapeHtml));
   }
 
+  // Predikat kualitatif sederhana (dipakai untuk label ringkas di kartu Dashboard) —
+  // skala sama dengan erpPredikatPersen, hanya istilah "Kurang" diganti "Perlu Pembinaan"
+  // agar konsisten dengan istilah pembinaan yang dipakai di seluruh Dashboard.
+  function dashPredikat(persen){
+    if(persen === null || persen === undefined || isNaN(persen)) return '-';
+    if(persen >= 90) return 'Sangat Baik';
+    if(persen >= 75) return 'Baik';
+    if(persen >= 60) return 'Cukup';
+    return 'Perlu Pembinaan';
+  }
+
+  function dashListTable(rows, indikatorHeader){
+    if(!rows || rows.length === 0) return `<div class="dash-empty-inline">Belum ada data</div>`;
+    return `
+      <table class="dash-list-table">
+        <thead><tr><th>Nama Santri</th><th>${escapeHtml(indikatorHeader)}</th><th>Keterangan</th></tr></thead>
+        <tbody>
+          ${rows.map(r=>`
+            <tr>
+              <td><div class="dl-nama">${escapeHtml(r.nama)}</div>${r.kelas ? `<div class="dl-kelas">Kelas ${escapeHtml(r.kelas)}</div>` : ''}</td>
+              <td>${escapeHtml(r.indikator)}</td>
+              <td>${escapeHtml(r.keterangan)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  function updateDashPeriodeLabel(){
+    const label = document.getElementById('dash-periode-label');
+    if(!label) return;
+    const { dari, sampai } = getDashboardPeriodeRange(dashboardFilterPeriode);
+    label.textContent = `Periode Monitoring: ${fmtTanggalPanjang(dari)} – ${fmtTanggalPanjang(sampai)}`;
+  }
+
   function renderDashboard(){
     const wrap = document.getElementById('dash-content');
     if(!wrap) return;
 
     dashboardCharts.forEach(c=>{ try{ c.destroy(); }catch(e){} });
     dashboardCharts = [];
+
+    updateDashPeriodeLabel();
 
     if(santriList.length === 0){
       wrap.innerHTML = `<div class="dash-section" style="grid-column:1/-1;">${emptyState('Belum ada data santri. Tambahkan santri terlebih dahulu di menu "Data Santri".')}</div>`;
@@ -6234,39 +6464,78 @@ Minimum version required to store current data is: `+i+`.
     const d = computeDashboardData(dashboardFilterPeriode);
 
     wrap.innerHTML = `
-      <div class="dash-section dc-santri">
-        <h3 class="dash-section-title"><span class="ico">👥</span> Statistik Santri</h3>
-        <div class="dash-mini-grid">
+      <div class="dash-section dc-santri dash-grid-span2">
+        <h3 class="dash-section-title"><span class="ico">👥</span> Ringkasan Seluruh Santri</h3>
+        <div class="dash-mini-grid cols-3">
           ${dashMini(d.totalSantri, 'Total Santri')}
-          ${dashMini(d.santriAktif, 'Santri Aktif')}
+          ${dashMini(d.adaMutabaah ? d.persentaseMutabaah + '%' : '-', 'Rata-rata Ibadah Fardhu')}
+          ${dashMini(d.adaIbadahSunnah ? d.persentaseSunnah + '%' : '-', 'Rata-rata Ibadah Sunnah')}
+          ${dashMini(d.totalAbsensi > 0 ? d.persentaseHadir + '%' : '-', 'Rata-rata Absensi Kegiatan')}
+          ${dashMini(d.adaTahfidz ? d.persenAktifTahfidz + '%' : '-', 'Keaktifan Tahfidz' + (d.adaTahfidz ? ' · ' + dashPredikat(d.persenAktifTahfidz) : ''))}
+          ${dashMini(d.adaPenilaian ? d.avgKarakter : '-', 'Karakter & Adab' + (d.adaPenilaian ? ' · ' + dashPredikat(d.avgKarakter) : ''))}
         </div>
       </div>
 
-      <div class="dash-section dc-mutabaah">
-        <h3 class="dash-section-title"><span class="ico">🕌</span> Ringkasan Mutaba'ah</h3>
+      <div class="dash-section dc-mutabaah dash-grid-span2">
+        <h3 class="dash-section-title"><span class="ico">🕌</span> Mutaba'ah</h3>
+        <div class="dash-section-sub">Ibadah Fardhu</div>
         ${d.adaMutabaah ? `
-          <div class="dash-mini-grid" style="grid-template-columns:1fr;">
-            ${dashMini(d.persentaseMutabaah + '%', "Persentase Mutaba'ah (ibadah fardhu)")}
-          </div>
-          <div class="chart-wrap" style="margin-top:12px;padding:12px 10px 6px;">
-            <canvas id="dash-chart-mutabaah" height="110"></canvas>
+          <div class="dash-mini-grid cols-5">
+            ${IBADAH_FARDHU.map(f=> dashMini((d.fardhuPerWaktu[f.key].persen ?? '-') + (d.fardhuPerWaktu[f.key].persen===null?'':'%'), f.label)).join('')}
           </div>
         ` : `<div class="dash-empty-inline">Belum ada data</div>`}
+        <div class="dash-section-sub">Ibadah Sunnah</div>
+        ${d.adaIbadahSunnah ? `
+          <div class="dash-mini-grid cols-3">
+            ${dashMini(d.persenRawatib + '%', 'Rawatib / Qabliyah')}
+            ${dashMini(d.persenDhuha + '%', 'Dhuha')}
+            ${dashMini(d.persenTahajud + '%', 'Tahajud')}
+            ${dashMini(d.persenPuasaSunnah + '%', 'Puasa Senin-Kamis')}
+          </div>
+        ` : `<div class="dash-empty-inline">Belum ada data</div>`}
+        <div class="chart-wrap" style="margin-top:14px;padding:12px 10px 6px;">
+          <canvas id="dash-chart-mutabaah" height="90"></canvas>
+        </div>
       </div>
 
       <div class="dash-section dc-absensi">
         <h3 class="dash-section-title"><span class="ico">📋</span> Absensi Kegiatan</h3>
         ${d.totalAbsensi > 0 ? `
           <div class="dash-mini-grid cols-3">
-            ${dashMini(d.persentaseHadir + '%', 'Persentase Hadir')}
-            ${dashMini(d.jmlHadir, 'Jumlah Hadir')}
-            ${dashMini(d.jmlTidakHadir, 'Jumlah Tidak Hadir')}
+            ${dashMini(d.persentaseHadir + '%', 'Hadir')}
+            ${dashMini(d.persentaseIzin + '%', 'Izin')}
+            ${dashMini(d.persentaseSakit + '%', 'Sakit')}
+            ${dashMini(d.persentaseAlpa + '%', 'Tidak Hadir')}
+          </div>
+          <div class="chart-wrap" style="margin-top:12px;padding:12px 10px 6px;">
+            <canvas id="dash-chart-absensi" height="110"></canvas>
+          </div>
+        ` : `<div class="dash-empty-inline">Belum ada data</div>`}
+      </div>
+
+      <div class="dash-section dc-tahfidz">
+        <h3 class="dash-section-title"><span class="ico">📖</span> Tahfidz</h3>
+        ${d.adaTahfidz ? `
+          <div class="dash-mini-grid cols-3">
+            ${dashMini(d.jumlahSetoran, 'Jumlah Setoran')}
+            ${dashMini(d.rataSetoranPerSantri, 'Rata2 / Santri')}
+            ${dashMini(d.santriAktifTahfidz, 'Santri Aktif Setoran')}
+          </div>
+          <div class="dash-tahfidz-cols">
+            <div>
+              <div class="dash-section-sub" style="margin-top:0;">Perkembangan Sangat Baik</div>
+              ${d.topTahfidz.map(t=>`<div class="dash-name-chip"><span>${escapeHtml(t.nama)}${t.kelas?` <span class="dl-kelas">(${escapeHtml(t.kelas)})</span>`:''}</span><span class="dash-badge-good">${t.jumlah}x setoran</span></div>`).join('') || `<div class="dash-empty-inline">-</div>`}
+            </div>
+            <div>
+              <div class="dash-section-sub" style="margin-top:0;">Belum / Kurang Aktif Setoran</div>
+              ${d.kurangAktifTahfidz.map(s=>`<div class="dash-name-chip"><span>${escapeHtml(s.nama)}${s.kelas?` <span class="dl-kelas">(${escapeHtml(s.kelas)})</span>`:''}</span><span class="dash-badge-warn">Belum setoran</span></div>`).join('') || `<div class="dash-empty-inline">-</div>`}
+            </div>
           </div>
         ` : `<div class="dash-empty-inline">Belum ada data</div>`}
       </div>
 
       <div class="dash-section dc-penilaian">
-        <h3 class="dash-section-title"><span class="ico">⭐</span> Penilaian Santri</h3>
+        <h3 class="dash-section-title"><span class="ico">⭐</span> Karakter &amp; Adab</h3>
         <p class="sub" style="margin:-8px 0 12px;font-size:11.5px;">Rata-rata skor bulan berjalan (0-100)</p>
         ${d.adaPenilaian ? `
           <div class="dash-mini-grid cols-3">
@@ -6274,77 +6543,55 @@ Minimum version required to store current data is: `+i+`.
             ${dashMini(d.rataKerapian, 'Kerapian')}
             ${dashMini(d.rataAttitude, 'Attitude / Adab')}
           </div>
+          <div class="dash-section-sub">Distribusi Santri</div>
+          <div class="dash-karakter-dist">
+            <div class="dk-item"><div class="dk-num">${d.karakterDistribusi.sangatBaik}</div><div class="dk-label">Sangat Baik</div></div>
+            <div class="dk-item"><div class="dk-num">${d.karakterDistribusi.baik}</div><div class="dk-label">Baik</div></div>
+            <div class="dk-item"><div class="dk-num">${d.karakterDistribusi.cukup}</div><div class="dk-label">Cukup</div></div>
+            <div class="dk-item"><div class="dk-num">${d.karakterDistribusi.perluPembinaan}</div><div class="dk-label">Perlu Pembinaan</div></div>
+          </div>
+          <div class="chart-wrap" style="margin-top:12px;padding:12px 10px 6px;">
+            <canvas id="dash-chart-karakter" height="100"></canvas>
+          </div>
         ` : `<div class="dash-empty-inline">Belum ada data</div>`}
       </div>
 
-      <div class="dash-section dc-catatan">
-        <h3 class="dash-section-title"><span class="ico">📝</span> Catatan Santri</h3>
+      <div class="dash-section dc-catatan dash-grid-span2">
+        <h3 class="dash-section-title"><span class="ico">📝</span> Data Pembinaan</h3>
         <div class="dash-catatan-grid">
           <div class="ct-stat-card st-prestasi"><div class="ct-stat-icon">🏆</div><div class="ct-stat-num">${d.jenisCount.prestasi}</div><div class="ct-stat-label">Prestasi</div></div>
           <div class="ct-stat-card st-pelanggaran"><div class="ct-stat-icon">⚠️</div><div class="ct-stat-num">${d.jenisCount.pelanggaran}</div><div class="ct-stat-label">Pelanggaran</div></div>
+          <div class="ct-stat-card st-perizinan"><div class="ct-stat-icon">📋</div><div class="ct-stat-num">${d.jenisCount.perizinan}</div><div class="ct-stat-label">Perizinan</div></div>
           <div class="ct-stat-card st-konseling"><div class="ct-stat-icon">💬</div><div class="ct-stat-num">${d.jenisCount.konseling}</div><div class="ct-stat-label">Konseling</div></div>
           <div class="ct-stat-card st-sakit"><div class="ct-stat-icon">🏥</div><div class="ct-stat-num">${d.jenisCount.sakit}</div><div class="ct-stat-label">Sakit</div></div>
-          <div class="ct-stat-card st-perizinan"><div class="ct-stat-icon">📋</div><div class="ct-stat-num">${d.jenisCount.perizinan}</div><div class="ct-stat-label">Perizinan</div></div>
+        </div>
+        <p class="sub" style="margin:10px 0 0;font-size:11px;">Statistik pembinaan — bukan nilai akademik.</p>
+        <div class="chart-wrap" style="margin-top:12px;padding:12px 10px 6px;">
+          <canvas id="dash-chart-pembinaan" height="90"></canvas>
         </div>
       </div>
 
-      <div class="dash-section dc-tahfidz">
-        <h3 class="dash-section-title"><span class="ico">📖</span> Tahfidz</h3>
-        <div class="dash-mini-grid" style="grid-template-columns:1fr;">
-          ${dashMini(d.jumlahSetoran, 'Jumlah Setoran')}
-        </div>
-        ${d.setoranTerbaru.length > 0 ? `
-          <div class="dash-setoran-list">
-            ${d.setoranTerbaru.map(e=>`
-              <div class="dash-setoran-item">
-                <div>
-                  <div class="ds-nama">${escapeHtml(e.santriNama)}</div>
-                  <div class="ds-detail">${escapeHtml(e.surat||'-')}${e.juz ? ' · Juz '+escapeHtml(String(e.juz)) : ''}${(e.ayatDari||e.ayatSampai) ? ' · Ayat '+escapeHtml(String(e.ayatDari||'')) + '-' + escapeHtml(String(e.ayatSampai||'')) : ''}</div>
-                </div>
-                <div class="ds-tgl">${fmtTanggalShort(e.tanggal)}</div>
-              </div>
-            `).join('')}
-          </div>
-        ` : `<div class="dash-empty-inline" style="margin-top:12px;">Belum ada data</div>`}
+      <div class="dash-section dash-grid-span2" style="border-top-color:#B5443A;">
+        <h3 class="dash-section-title"><span class="ico">⚠️</span> Santri Yang Perlu Perhatian</h3>
+        ${dashListTable(d.perluPerhatian, 'Indikator')}
       </div>
 
-      <div class="dash-section dc-keuangan dash-grid-span2">
-        <h3 class="dash-section-title"><span class="ico">💰</span> Grafik Keuangan Santri</h3>
-        ${d.adaKeuangan ? `
-          <div class="dash-mini-grid cols-3">
-            ${dashMini('Rp ' + d.totalMasuk.toLocaleString('id-ID'), 'Total Uang Masuk')}
-            ${dashMini('Rp ' + d.totalKeluar.toLocaleString('id-ID'), 'Total Uang Keluar')}
-            ${dashMini('Rp ' + d.saldoPeriode.toLocaleString('id-ID'), 'Saldo')}
-          </div>
-          <div class="chart-wrap" style="margin-top:12px;padding:12px 10px 6px;">
-            <canvas id="dash-chart-keuangan" height="90"></canvas>
-          </div>
-        ` : `<div class="dash-empty-inline">Belum ada data</div>`}
-      </div>
-
-      <div class="dash-section dc-ibadah-sunnah dash-grid-span2">
-        <h3 class="dash-section-title"><span class="ico">🌙</span> Grafik Ibadah Sunnah</h3>
-        ${d.adaIbadahSunnah ? `
-          <div class="dash-mini-grid cols-3">
-            ${dashMini(d.persenPuasaSunnah + '%', 'Puasa Sunnah')}
-            ${dashMini(d.persenTahajud + '%', 'Tahajud')}
-            ${dashMini(d.persenDhuha + '%', 'Dhuha')}
-          </div>
-          <div class="chart-wrap" style="margin-top:12px;padding:12px 10px 6px;">
-            <canvas id="dash-chart-ibadah-sunnah" height="90"></canvas>
-          </div>
-        ` : `<div class="dash-empty-inline">Belum ada data</div>`}
+      <div class="dash-section dash-grid-span2" style="border-top-color:#1E6E3C;">
+        <h3 class="dash-section-title"><span class="ico">🌟</span> Perkembangan Positif</h3>
+        ${dashListTable(d.perkembanganPositif, 'Indikator')}
       </div>
     `;
 
     if(typeof Chart === 'undefined') return;
+
     const cvMutabaah = document.getElementById('dash-chart-mutabaah');
-    if(cvMutabaah){
+    if(cvMutabaah && (d.adaMutabaah || d.adaIbadahSunnah)){
       dashboardCharts.push(new Chart(cvMutabaah.getContext('2d'), {
-        type: 'line',
-        data: { labels: d.mutabaahSeries.map(x=>x.label), datasets: [{
-          label: "% Mutaba'ah", data: d.mutabaahSeries.map(x=> x.pct === null ? 0 : x.pct),
-          borderColor: '#0A5296', backgroundColor: 'rgba(10,82,150,.12)', fill:true, tension:.3, pointRadius:3
+        type: 'bar',
+        data: { labels: ['Fardhu', 'Rawatib', 'Dhuha', 'Tahajud', 'Puasa Senin-Kamis'], datasets: [{
+          label: "% Rata-rata Mutaba'ah",
+          data: [d.persentaseMutabaah, d.persenRawatib, d.persenDhuha, d.persenTahajud, d.persenPuasaSunnah],
+          backgroundColor: ['#0A5296', '#1768B0', '#8447A8', '#D3A428', '#1E6E3C'], borderRadius:6, maxBarThickness:46
         }]},
         options: {
           responsive:true, maintainAspectRatio:false,
@@ -6354,35 +6601,47 @@ Minimum version required to store current data is: `+i+`.
       }));
     }
 
-    const cvKeuangan = document.getElementById('dash-chart-keuangan');
-    if(cvKeuangan){
-      dashboardCharts.push(new Chart(cvKeuangan.getContext('2d'), {
-        type: 'bar',
-        data: { labels: ['Uang Masuk', 'Uang Keluar'], datasets: [{
-          data: [d.totalMasuk, d.totalKeluar],
-          backgroundColor: ['#1E6E3C', '#B5443A'], borderRadius:6, maxBarThickness:60
+    const cvAbsensi = document.getElementById('dash-chart-absensi');
+    if(cvAbsensi){
+      dashboardCharts.push(new Chart(cvAbsensi.getContext('2d'), {
+        type: 'doughnut',
+        data: { labels: ['Hadir', 'Izin', 'Sakit', 'Tidak Hadir'], datasets: [{
+          data: [d.jmlHadir, d.jmlIzin, d.jmlSakit, d.jmlAlpa],
+          backgroundColor: ['#1E6E3C', '#D3A428', '#8447A8', '#B5443A']
         }]},
-        options: {
-          indexAxis: 'y',
-          responsive:true, maintainAspectRatio:false,
-          plugins:{legend:{display:false}},
-          scales:{ x:{ beginAtZero:true, ticks:{callback:v=>'Rp '+Number(v).toLocaleString('id-ID'), maxTicksLimit:4, font:{size:10.5}}, grid:{color:'#EEF2F8'} }, y:{grid:{display:false}} }
-        }
+        options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{boxWidth:11, font:{size:11}}}} }
       }));
     }
 
-    const cvIbadahSunnah = document.getElementById('dash-chart-ibadah-sunnah');
-    if(cvIbadahSunnah){
-      dashboardCharts.push(new Chart(cvIbadahSunnah.getContext('2d'), {
+    const cvKarakter = document.getElementById('dash-chart-karakter');
+    if(cvKarakter){
+      dashboardCharts.push(new Chart(cvKarakter.getContext('2d'), {
         type: 'bar',
-        data: { labels: ['Puasa Sunnah', 'Tahajud', 'Dhuha'], datasets: [{
-          label: '% Pelaksanaan', data: [d.persenPuasaSunnah, d.persenTahajud, d.persenDhuha],
+        data: { labels: ['Kedisiplinan', 'Kerapian', 'Attitude'], datasets: [{
+          label: 'Rata-rata', data: [d.rataKedisiplinan, d.rataKerapian, d.rataAttitude],
           backgroundColor: ['#8447A8', '#0A5296', '#D3A428'], borderRadius:6, maxBarThickness:50
         }]},
         options: {
           responsive:true, maintainAspectRatio:false,
           plugins:{legend:{display:false}},
-          scales:{ y:{ beginAtZero:true, max:100, ticks:{callback:v=>v+'%'}, grid:{color:'#EEF2F8'} }, x:{grid:{display:false}} }
+          scales:{ y:{ beginAtZero:true, max:100, grid:{color:'#EEF2F8'} }, x:{grid:{display:false}} }
+        }
+      }));
+    }
+
+    const cvPembinaan = document.getElementById('dash-chart-pembinaan');
+    if(cvPembinaan){
+      dashboardCharts.push(new Chart(cvPembinaan.getContext('2d'), {
+        type: 'bar',
+        data: { labels: ['Prestasi', 'Pelanggaran', 'Perizinan', 'Konseling', 'Sakit'], datasets: [{
+          label: 'Jumlah',
+          data: [d.jenisCount.prestasi, d.jenisCount.pelanggaran, d.jenisCount.perizinan, d.jenisCount.konseling, d.jenisCount.sakit],
+          backgroundColor: ['#1E6E3C', '#B5443A', '#1768B0', '#8447A8', '#D3A428'], borderRadius:6, maxBarThickness:46
+        }]},
+        options: {
+          responsive:true, maintainAspectRatio:false,
+          plugins:{legend:{display:false}},
+          scales:{ y:{ beginAtZero:true, ticks:{precision:0}, grid:{color:'#EEF2F8'} }, x:{grid:{display:false}} }
         }
       }));
     }
@@ -6390,12 +6649,40 @@ Minimum version required to store current data is: `+i+`.
 
   document.querySelectorAll('#dash-periode-toggle button[data-dashperiode]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
+      const periode = btn.dataset.dashperiode;
+      const customRangeEl = document.getElementById('dash-custom-range');
+      if(periode === 'custom'){
+        document.querySelectorAll('#dash-periode-toggle button').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        if(customRangeEl) customRangeEl.style.display = 'flex';
+        const dariEl = document.getElementById('dash-custom-dari');
+        const sampaiEl = document.getElementById('dash-custom-sampai');
+        if(dariEl && !dariEl.value) dariEl.value = dashboardCustomDari;
+        if(sampaiEl && !sampaiEl.value) sampaiEl.value = dashboardCustomSampai;
+        // Belum menerapkan sampai tombol "Terapkan" ditekan — cukup menampilkan input tanggal.
+        return;
+      }
+      if(customRangeEl) customRangeEl.style.display = 'none';
       if(btn.classList.contains('active')) return;
       document.querySelectorAll('#dash-periode-toggle button').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
-      dashboardFilterPeriode = btn.dataset.dashperiode;
+      dashboardFilterPeriode = periode;
       renderDashboard();
     });
+  });
+
+  document.getElementById('dash-custom-apply')?.addEventListener('click', ()=>{
+    const dariEl = document.getElementById('dash-custom-dari');
+    const sampaiEl = document.getElementById('dash-custom-sampai');
+    const dari = dariEl?.value, sampai = sampaiEl?.value;
+    if(!dari || !sampai){
+      showToast('Pilih tanggal Dari dan Sampai terlebih dahulu', true);
+      return;
+    }
+    dashboardCustomDari = dari;
+    dashboardCustomSampai = sampai;
+    dashboardFilterPeriode = 'custom';
+    renderDashboard();
   });
 
   /* ---------------- Init ---------------- */
