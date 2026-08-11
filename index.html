@@ -1204,6 +1204,7 @@ Minimum version required to store current data is: `+i+`.
             <p class="sub" id="dash-periode-label" style="margin-bottom:0;">Ringkasan kondisi umum pesantren dalam satu halaman.</p>
           </div>
           <div class="dash-filter-wrap">
+            <button type="button" class="btn btn-gold" id="btn-download-dashboard-pdf">⬇️ Download PDF</button>
             <div class="dash-filter" id="dash-periode-toggle">
               <button type="button" data-dashperiode="hari">Hari Ini</button>
               <button type="button" data-dashperiode="minggu" class="active">Minggu Ini</button>
@@ -5593,18 +5594,25 @@ Minimum version required to store current data is: `+i+`.
     const totalSantri = santriList.length;
     const santriAktif = santriList.filter(s=> s.aktif !== false).length;
 
-    /* -------- 2. Mutaba'ah Ibadah Fardhu: total + rincian per waktu sholat + tren harian -------- */
+    /* -------- 2. Mutaba'ah Ibadah Fardhu: total + rincian per waktu sholat + tren harian --------
+       PERBAIKAN PERHITUNGAN: persentase dihitung dari JUMLAH KESEMPATAN ibadah yang seharusnya
+       (santri aktif x jumlah hari x jumlah waktu sholat), BUKAN dari jumlah record yang sudah
+       diinput. Santri yang datanya belum diisi pada suatu tanggal tetap dihitung sebagai
+       "kesempatan" dengan status belum terlaksana (bukan otomatis terlaksana/100%). Status haid
+       (jika sudah ditandai pada record yang ada) dikecualikan dari kesempatan — bukan dihitung
+       sebagai kegagalan ibadah. -------- */
     let mtChecked = 0, mtTotal = 0;
     const fardhuPerWaktu = {};
     IBADAH_FARDHU.forEach(f=>{ fardhuPerWaktu[f.key] = { checked:0, total:0, label:f.label }; });
     const mutabaahSeries = dateList.map(tgl=>{
       let checked = 0, total = 0;
       santriList.forEach(s=>{
+        if(s.aktif === false) return;
         const rec = mutabaahData[s.id + '_' + tgl];
-        if(!rec || rec.haid) return;
+        if(rec && rec.haid) return; // haid: dikecualikan dari kesempatan, bukan kegagalan
         IBADAH_FARDHU.forEach(f=>{
           total++; fardhuPerWaktu[f.key].total++;
-          if(rec[f.key]){ checked++; fardhuPerWaktu[f.key].checked++; }
+          if(rec && rec[f.key]){ checked++; fardhuPerWaktu[f.key].checked++; }
         });
       });
       mtChecked += checked; mtTotal += total;
@@ -5614,18 +5622,21 @@ Minimum version required to store current data is: `+i+`.
     const adaMutabaah = mtTotal > 0;
     Object.values(fardhuPerWaktu).forEach(f=>{ f.persen = f.total > 0 ? Math.round((f.checked/f.total)*100) : null; });
 
-    /* -------- 2b. Mutaba'ah Ibadah Sunnah: Rawatib, Dhuha, Tahajud, Puasa Senin-Kamis -------- */
+    /* -------- 2b. Mutaba'ah Ibadah Sunnah: Rawatib, Dhuha, Tahajud, Puasa Senin-Kamis --------
+       Sama seperti Ibadah Fardhu: kesempatan dihitung per santri aktif x hari (Puasa Senin-Kamis
+       hanya menghitung kesempatan pada hari Senin/Kamis), bukan hanya dari record yang sudah ada. -------- */
     let rawatibChecked=0, rawatibTotal=0, dhuhaChecked=0, dhuhaTotal=0, tahajudChecked=0, tahajudTotal=0, puasaChecked=0, puasaTotal=0;
     dateList.forEach(tgl=>{
       const hari = new Date(tgl + 'T00:00:00').getDay(); // 1=Senin, 4=Kamis
       santriList.forEach(s=>{
+        if(s.aktif === false) return;
         const rec = mutabaahData[s.id + '_' + tgl];
-        if(!rec || rec.haid) return;
-        RAWATIB_ALL_FIELDS.forEach(fk=>{ rawatibTotal++; if(rec[fk]) rawatibChecked++; });
-        dhuhaTotal++; if(rec.dhuha) dhuhaChecked++;
-        tahajudTotal++; if(rec.tahajud) tahajudChecked++;
-        if(hari === 1){ puasaTotal++; if(rec.puasa_senin) puasaChecked++; }
-        else if(hari === 4){ puasaTotal++; if(rec.puasa_kamis) puasaChecked++; }
+        if(rec && rec.haid) return;
+        RAWATIB_ALL_FIELDS.forEach(fk=>{ rawatibTotal++; if(rec && rec[fk]) rawatibChecked++; });
+        dhuhaTotal++; if(rec && rec.dhuha) dhuhaChecked++;
+        tahajudTotal++; if(rec && rec.tahajud) tahajudChecked++;
+        if(hari === 1){ puasaTotal++; if(rec && rec.puasa_senin) puasaChecked++; }
+        else if(hari === 4){ puasaTotal++; if(rec && rec.puasa_kamis) puasaChecked++; }
       });
     });
     const persenRawatib = rawatibTotal > 0 ? Math.round((rawatibChecked/rawatibTotal)*100) : 0;
@@ -5636,6 +5647,22 @@ Minimum version required to store current data is: `+i+`.
     const sunnahCheckedTotal = rawatibChecked + dhuhaChecked + tahajudChecked + puasaChecked;
     const sunnahGrandTotal = rawatibTotal + dhuhaTotal + tahajudTotal + puasaTotal;
     const persentaseSunnah = sunnahGrandTotal > 0 ? Math.round((sunnahCheckedTotal/sunnahGrandTotal)*100) : 0;
+
+    /* -------- 2c. Kelengkapan Mutaba'ah: seberapa lengkap DATA sudah diisi (bukan seberapa
+       patuh ibadahnya). Dihitung dari jumlah record (per santri aktif per tanggal) yang SUDAH
+       ADA di database dibanding total kesempatan record yang seharusnya diisi pada periode ini.
+       Ini dipisahkan secara sengaja dari Kepatuhan Ibadah di atas agar santri yang datanya belum
+       diisi tidak otomatis dianggap 100% (baik terlaksana maupun lengkap). -------- */
+    let mutabaahRecordTerisi = 0, mutabaahRecordTotal = 0;
+    santriList.forEach(s=>{
+      if(s.aktif === false) return;
+      dateList.forEach(tgl=>{
+        mutabaahRecordTotal++;
+        if(mutabaahData[s.id + '_' + tgl]) mutabaahRecordTerisi++;
+      });
+    });
+    const persentaseKelengkapanMutabaah = mutabaahRecordTotal > 0 ? Math.round((mutabaahRecordTerisi/mutabaahRecordTotal)*100) : 0;
+    const adaKelengkapanMutabaah = mutabaahRecordTotal > 0;
 
     /* -------- 3. Absensi Kegiatan: Hadir / Izin / Sakit / Tidak Hadir (Alpa) -------- */
     // Alasan ketidakhadiran (Izin/Sakit) dibaca dari Catatan Santri pada tanggal yang sama,
@@ -5746,6 +5773,8 @@ Minimum version required to store current data is: `+i+`.
       persentaseMutabaah, adaMutabaah, mutabaahSeries, fardhuPerWaktu,
       // Mutaba'ah — Ibadah Sunnah
       persenRawatib, persenDhuha, persenTahajud, persenPuasaSunnah, adaIbadahSunnah, persentaseSunnah,
+      // Mutaba'ah — Kelengkapan Data (dipisah dari Kepatuhan Ibadah)
+      persentaseKelengkapanMutabaah, adaKelengkapanMutabaah, mutabaahRecordTerisi, mutabaahRecordTotal,
       // Absensi Kegiatan
       jmlHadir, jmlTidakHadir, totalAbsensi, persentaseHadir,
       jmlIzin, jmlSakit, jmlAlpa, persentaseIzin, persentaseSakit, persentaseAlpa,
@@ -5767,14 +5796,13 @@ Minimum version required to store current data is: `+i+`.
   // Hanya membaca data yang sudah ada (mutabaahData, absensiKegiatanData, tahfidzData,
   // catatanData, penilaianData), tidak menghitung ulang / mengubah data apa pun.
   function dashSantriStatsRingkas(santriId, dari, sampai, bulanKey){
+    // Kesempatan dihitung dari SELURUH tanggal dalam periode (bukan hanya tanggal yang sudah
+    // ada recordnya), sehingga santri yang datanya belum diisi tidak dianggap 100% terlaksana.
     let checked = 0, total = 0;
-    Object.keys(mutabaahData).forEach(key=>{
-      if(!key.startsWith(santriId + '_')) return;
-      const tgl = key.slice(santriId.length + 1);
-      if(tgl < dari || tgl > sampai) return;
-      const rec = mutabaahData[key];
-      if(!rec || rec.haid) return;
-      IBADAH_FARDHU.forEach(f=>{ total++; if(rec[f.key]) checked++; });
+    dashboardDateList(dari, sampai).forEach(tgl=>{
+      const rec = mutabaahData[santriId + '_' + tgl];
+      if(rec && rec.haid) return;
+      IBADAH_FARDHU.forEach(f=>{ total++; if(rec && rec[f.key]) checked++; });
     });
     const persenFardhu = total > 0 ? Math.round((checked/total)*100) : null;
 
@@ -6468,16 +6496,18 @@ Minimum version required to store current data is: `+i+`.
         <h3 class="dash-section-title"><span class="ico">👥</span> Ringkasan Seluruh Santri</h3>
         <div class="dash-mini-grid cols-3">
           ${dashMini(d.totalSantri, 'Total Santri')}
-          ${dashMini(d.adaMutabaah ? d.persentaseMutabaah + '%' : '-', 'Rata-rata Ibadah Fardhu')}
-          ${dashMini(d.adaIbadahSunnah ? d.persentaseSunnah + '%' : '-', 'Rata-rata Ibadah Sunnah')}
+          ${dashMini(d.adaMutabaah ? d.persentaseMutabaah + '%' : '-', 'Kepatuhan Ibadah Fardhu')}
+          ${dashMini(d.adaIbadahSunnah ? d.persentaseSunnah + '%' : '-', 'Kepatuhan Ibadah Sunnah')}
           ${dashMini(d.totalAbsensi > 0 ? d.persentaseHadir + '%' : '-', 'Rata-rata Absensi Kegiatan')}
           ${dashMini(d.adaTahfidz ? d.persenAktifTahfidz + '%' : '-', 'Keaktifan Tahfidz' + (d.adaTahfidz ? ' · ' + dashPredikat(d.persenAktifTahfidz) : ''))}
           ${dashMini(d.adaPenilaian ? d.avgKarakter : '-', 'Karakter & Adab' + (d.adaPenilaian ? ' · ' + dashPredikat(d.avgKarakter) : ''))}
+          ${dashMini(d.adaKelengkapanMutabaah ? d.persentaseKelengkapanMutabaah + '%' : '-', 'Kelengkapan Mutaba\'ah')}
         </div>
       </div>
 
       <div class="dash-section dc-mutabaah dash-grid-span2">
         <h3 class="dash-section-title"><span class="ico">🕌</span> Mutaba'ah</h3>
+        <p class="sub" style="margin:-8px 0 12px;font-size:11.5px;">Kepatuhan Ibadah = seberapa banyak ibadah terlaksana dari kesempatan yang seharusnya. Kelengkapan Data = seberapa lengkap Mutaba'ah sudah diisi (lihat kartu Kelengkapan Mutaba'ah di bawah).</p>
         <div class="dash-section-sub">Ibadah Fardhu</div>
         ${d.adaMutabaah ? `
           <div class="dash-mini-grid cols-5">
@@ -6491,6 +6521,14 @@ Minimum version required to store current data is: `+i+`.
             ${dashMini(d.persenDhuha + '%', 'Dhuha')}
             ${dashMini(d.persenTahajud + '%', 'Tahajud')}
             ${dashMini(d.persenPuasaSunnah + '%', 'Puasa Senin-Kamis')}
+          </div>
+        ` : `<div class="dash-empty-inline">Belum ada data</div>`}
+        <div class="dash-section-sub">📝 Kelengkapan Mutaba'ah</div>
+        ${d.adaKelengkapanMutabaah ? `
+          <div class="dash-mini-grid cols-3">
+            ${dashMini(d.persentaseKelengkapanMutabaah + '%', 'Data Terisi')}
+            ${dashMini(d.mutabaahRecordTerisi, 'Record Terisi')}
+            ${dashMini(d.mutabaahRecordTotal, 'Total Seharusnya')}
           </div>
         ` : `<div class="dash-empty-inline">Belum ada data</div>`}
         <div class="chart-wrap" style="margin-top:14px;padding:12px 10px 6px;">
@@ -6588,10 +6626,10 @@ Minimum version required to store current data is: `+i+`.
     if(cvMutabaah && (d.adaMutabaah || d.adaIbadahSunnah)){
       dashboardCharts.push(new Chart(cvMutabaah.getContext('2d'), {
         type: 'bar',
-        data: { labels: ['Fardhu', 'Rawatib', 'Dhuha', 'Tahajud', 'Puasa Senin-Kamis'], datasets: [{
+        data: { labels: ['Fardhu', 'Rawatib', 'Dhuha', 'Tahajud', 'Puasa Senin-Kamis', 'Kelengkapan Data'], datasets: [{
           label: "% Rata-rata Mutaba'ah",
-          data: [d.persentaseMutabaah, d.persenRawatib, d.persenDhuha, d.persenTahajud, d.persenPuasaSunnah],
-          backgroundColor: ['#0A5296', '#1768B0', '#8447A8', '#D3A428', '#1E6E3C'], borderRadius:6, maxBarThickness:46
+          data: [d.persentaseMutabaah, d.persenRawatib, d.persenDhuha, d.persenTahajud, d.persenPuasaSunnah, d.persentaseKelengkapanMutabaah],
+          backgroundColor: ['#0A5296', '#1768B0', '#8447A8', '#D3A428', '#1E6E3C', '#B5443A'], borderRadius:6, maxBarThickness:46
         }]},
         options: {
           responsive:true, maintainAspectRatio:false,
@@ -6684,6 +6722,149 @@ Minimum version required to store current data is: `+i+`.
     dashboardFilterPeriode = 'custom';
     renderDashboard();
   });
+
+  /* -------- Download PDF Dashboard --------
+     Mengikuti periode yang sedang dipilih di Dashboard (Hari Ini/Minggu Ini/Bulan Ini/Custom).
+     Seluruh isi PDF dibaca langsung dari computeDashboardData() (data aktual, tidak ada data
+     dummy) sehingga otomatis berubah setiap kali periode diganti. */
+  function dashRingkasList(rows){
+    if(!rows || rows.length === 0) return `<div style="color:#8a94a6;font-size:12px;padding:6px 0;">Belum ada data pada periode ini.</div>`;
+    return `
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead>
+          <tr style="text-align:left;border-bottom:1px solid #E1E7EF;">
+            <th style="padding:5px 6px;">Nama Santri</th>
+            <th style="padding:5px 6px;">Indikator</th>
+            <th style="padding:5px 6px;">Keterangan</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(r=>`
+            <tr style="border-bottom:1px solid #F0F3F7;">
+              <td style="padding:5px 6px;">${escapeHtml(r.nama)}${r.kelas ? ' <span style="color:#8a94a6;">('+escapeHtml(r.kelas)+')</span>' : ''}</td>
+              <td style="padding:5px 6px;">${escapeHtml(r.indikator)}</td>
+              <td style="padding:5px 6px;">${escapeHtml(r.keterangan)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+  function dashPdfStat(label, value){
+    return `<div style="flex:1;min-width:110px;padding:8px 10px;background:#F7F9FC;border-radius:8px;margin:4px;">
+      <div style="font-size:16px;font-weight:700;color:#043F7B;">${escapeHtml(String(value))}</div>
+      <div style="font-size:10.5px;color:#5C6B7D;">${escapeHtml(label)}</div>
+    </div>`;
+  }
+  async function downloadDashboardPdf(){
+    if(santriList.length === 0){
+      showToast('Belum ada data santri untuk dicetak', true);
+      return;
+    }
+    const d = computeDashboardData(dashboardFilterPeriode);
+    const periodeLabel = dashPeriodeLabel(dashboardFilterPeriode);
+    const periodeTanggal = `${fmtTanggalPanjang(d.periodeDari)} – ${fmtTanggalPanjang(d.periodeSampai)}`;
+
+    const wrapper = document.createElement('div');
+    wrapper.style.position = 'fixed';
+    wrapper.style.left = '-9999px';
+    wrapper.style.top = '0';
+    wrapper.style.width = '800px';
+    wrapper.style.background = '#fff';
+    wrapper.style.padding = '20px';
+    wrapper.style.fontFamily = "'Plus Jakarta Sans', sans-serif";
+    wrapper.style.color = '#1F2937';
+    wrapper.innerHTML = `
+      <div style="display:flex;align-items:center;gap:14px;border-bottom:2px solid #043F7B;padding-bottom:14px;margin-bottom:16px;">
+        <img src="${LOGO_DATA_URI}" style="height:48px;">
+        <div>
+          <div style="font-weight:700;font-size:18px;color:#043F7B;">Alhidayah Boarding School</div>
+          <div style="font-size:12px;color:#5C6B7D;">Laporan Dashboard Kepesantrenan</div>
+          <div style="font-size:12px;color:#5C6B7D;">Periode Laporan: ${escapeHtml(periodeLabel)} (${escapeHtml(periodeTanggal)})</div>
+        </div>
+      </div>
+
+      <div style="font-size:13px;font-weight:700;color:#043F7B;margin:14px 0 6px;">👥 Ringkasan Santri</div>
+      <div style="display:flex;flex-wrap:wrap;margin:-4px;">
+        ${dashPdfStat('Total Santri', d.totalSantri)}
+        ${dashPdfStat('Santri Aktif', d.santriAktif)}
+      </div>
+
+      <div style="font-size:13px;font-weight:700;color:#043F7B;margin:14px 0 6px;">🕌 Mutaba'ah Ibadah Fardhu &amp; Sunnah</div>
+      <div style="display:flex;flex-wrap:wrap;margin:-4px;">
+        ${dashPdfStat('Kepatuhan Fardhu', d.adaMutabaah ? d.persentaseMutabaah+'%' : '-')}
+        ${dashPdfStat('Kepatuhan Sunnah', d.adaIbadahSunnah ? d.persentaseSunnah+'%' : '-')}
+        ${dashPdfStat('Rawatib/Qabliyah', d.persenRawatib+'%')}
+        ${dashPdfStat('Dhuha', d.persenDhuha+'%')}
+        ${dashPdfStat('Tahajud', d.persenTahajud+'%')}
+        ${dashPdfStat('Puasa Senin-Kamis', d.persenPuasaSunnah+'%')}
+        ${dashPdfStat("📝 Kelengkapan Mutaba'ah", d.adaKelengkapanMutabaah ? d.persentaseKelengkapanMutabaah+'%' : '-')}
+      </div>
+
+      <div style="font-size:13px;font-weight:700;color:#043F7B;margin:14px 0 6px;">📋 Absensi Kegiatan</div>
+      <div style="display:flex;flex-wrap:wrap;margin:-4px;">
+        ${dashPdfStat('Hadir', d.totalAbsensi>0 ? d.persentaseHadir+'%' : '-')}
+        ${dashPdfStat('Izin', d.totalAbsensi>0 ? d.persentaseIzin+'%' : '-')}
+        ${dashPdfStat('Sakit', d.totalAbsensi>0 ? d.persentaseSakit+'%' : '-')}
+        ${dashPdfStat('Tidak Hadir', d.totalAbsensi>0 ? d.persentaseAlpa+'%' : '-')}
+      </div>
+
+      <div style="font-size:13px;font-weight:700;color:#043F7B;margin:14px 0 6px;">📖 Tahfidz</div>
+      <div style="display:flex;flex-wrap:wrap;margin:-4px;">
+        ${dashPdfStat('Jumlah Setoran', d.jumlahSetoran)}
+        ${dashPdfStat('Rata-rata/Santri', d.rataSetoranPerSantri)}
+        ${dashPdfStat('Santri Aktif Setoran', d.santriAktifTahfidz)}
+        ${dashPdfStat('Keaktifan Tahfidz', d.adaTahfidz ? d.persenAktifTahfidz+'%' : '-')}
+      </div>
+
+      <div style="font-size:13px;font-weight:700;color:#043F7B;margin:14px 0 6px;">⭐ Karakter &amp; Adab</div>
+      <div style="display:flex;flex-wrap:wrap;margin:-4px;">
+        ${dashPdfStat('Kedisiplinan', d.adaPenilaian ? d.rataKedisiplinan : '-')}
+        ${dashPdfStat('Kerapian', d.adaPenilaian ? d.rataKerapian : '-')}
+        ${dashPdfStat('Attitude/Adab', d.adaPenilaian ? d.rataAttitude : '-')}
+        ${dashPdfStat('Rata-rata Karakter', d.adaPenilaian ? d.avgKarakter : '-')}
+      </div>
+
+      <div style="font-size:13px;font-weight:700;color:#043F7B;margin:14px 0 6px;">📝 Data Pembinaan</div>
+      <div style="display:flex;flex-wrap:wrap;margin:-4px;">
+        ${dashPdfStat('🏆 Prestasi', d.jenisCount.prestasi)}
+        ${dashPdfStat('⚠️ Pelanggaran', d.jenisCount.pelanggaran)}
+        ${dashPdfStat('📋 Perizinan', d.jenisCount.perizinan)}
+        ${dashPdfStat('💬 Konseling', d.jenisCount.konseling)}
+        ${dashPdfStat('🏥 Sakit', d.jenisCount.sakit)}
+      </div>
+
+      <div style="font-size:13px;font-weight:700;color:#B5443A;margin:16px 0 6px;">⚠️ Santri Yang Perlu Perhatian</div>
+      ${dashRingkasList(d.perluPerhatian)}
+
+      <div style="font-size:13px;font-weight:700;color:#1E6E3C;margin:16px 0 6px;">🌟 Perkembangan Positif</div>
+      ${dashRingkasList(d.perkembanganPositif)}
+
+      <div style="margin-top:18px;padding-top:10px;border-top:1px solid #E1E7EF;font-size:10px;color:#8a94a6;">
+        Dicetak otomatis dari Dashboard Kepesantrenan pada ${escapeHtml(fmtTanggalPanjang(todayStr()))}.
+      </div>
+    `;
+    document.body.appendChild(wrapper);
+    try{
+      if(typeof window.html2pdf === 'undefined'){
+        showToast('Gagal membuat PDF: library belum termuat', true);
+        return;
+      }
+      await window.html2pdf().set({
+        margin: 10,
+        filename: `Dashboard-Kepesantrenan-${periodeLabel.replace(/\s+/g,'-')}-${todayStr()}.pdf`,
+        image: {type:'jpeg', quality:0.98},
+        html2canvas: {scale:2, useCORS:true},
+        jsPDF: {unit:'mm', format:'a4', orientation:'portrait'}
+      }).from(wrapper).save();
+      showToast('Laporan Dashboard berhasil diunduh');
+    }catch(e){
+      showToast('Gagal membuat PDF', true);
+    }finally{
+      document.body.removeChild(wrapper);
+    }
+  }
+  document.getElementById('btn-download-dashboard-pdf')?.addEventListener('click', downloadDashboardPdf);
 
   /* ---------------- Init ---------------- */
   async function init(){
