@@ -883,18 +883,31 @@ Minimum version required to store current data is: `+i+`.
 
   .erp-profile-card{
     background:#fff; border:1px solid var(--line); border-radius:var(--radius);
-    box-shadow:var(--shadow); padding:20px 22px; display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+    box-shadow:var(--shadow); padding:20px 22px; display:flex; align-items:flex-start; gap:18px; flex-wrap:wrap;
     margin-bottom:16px;
   }
   .erp-profile-avatar{
-    width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg,var(--teal-900),var(--teal-500));
-    color:#FBF6E6; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:700;
-    flex-shrink:0; box-shadow:0 4px 14px rgba(4,63,123,.25);
+    width:72px; height:72px; border-radius:50%; background:linear-gradient(135deg,var(--teal-900),var(--teal-500));
+    color:#FBF6E6; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:700;
+    flex-shrink:0; box-shadow:0 4px 14px rgba(4,63,123,.25); overflow:hidden;
   }
+  .erp-profile-avatar img{ width:100%; height:100%; object-fit:cover; }
   .erp-profile-info{ flex:1; min-width:220px; }
-  .erp-profile-info h3{ margin:0 0 6px; font-size:18px; color:var(--teal-900); font-weight:700; }
-  .erp-profile-meta{ display:flex; flex-wrap:wrap; gap:14px 22px; font-size:13px; color:var(--ink-soft); }
+  .erp-profile-info-top{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+  .erp-profile-info h3{ margin:0; font-size:18px; color:var(--teal-900); font-weight:700; }
+  .erp-profile-meta{ display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px 22px; font-size:13px; color:var(--ink-soft); }
   .erp-profile-meta b{ color:var(--ink); font-weight:600; }
+
+  .erp-mapel-table{ width:100%; border-collapse:collapse; margin-top:4px; }
+  .erp-mapel-table th{ text-align:left; font-size:11.5px; text-transform:uppercase; letter-spacing:.3px; color:var(--ink-soft); padding:0 8px 8px; border-bottom:1px solid var(--line); }
+  .erp-mapel-table td{ padding:6px 8px; border-bottom:1px solid var(--paper-soft); vertical-align:middle; }
+  .erp-mapel-table input[type="text"], .erp-mapel-table input[type="number"]{
+    width:100%; border:1px solid var(--line); border-radius:8px; padding:7px 9px; font:inherit; font-size:13.5px; background:#fff;
+  }
+  .erp-mapel-table input[type="number"]{ max-width:90px; text-align:center; }
+  .erp-mapel-remove{ background:none; border:none; cursor:pointer; color:var(--danger); padding:4px; display:flex; }
+  .erp-mapel-remove svg{ width:16px; height:16px; }
+  .erp-mapel-empty{ font-size:13px; color:var(--ink-soft); padding:10px 0; }
 
   .erp-summary-grid{
     display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-bottom:16px;
@@ -906,6 +919,11 @@ Minimum version required to store current data is: `+i+`.
   .erp-summary-card .erp-sc-icon{ font-size:22px; margin-bottom:6px; }
   .erp-summary-card .erp-sc-value{ font-family:'JetBrains Mono',monospace; font-size:20px; font-weight:700; color:var(--teal-900); }
   .erp-summary-card .erp-sc-label{ font-size:11.5px; color:var(--ink-soft); margin-top:3px; text-transform:uppercase; letter-spacing:.3px; }
+  .erp-summary-card .erp-sc-predikat{ font-size:12px; font-weight:700; margin-top:6px; }
+  .erp-summary-card .erp-sc-predikat.baik{ color:#1E6E3C; }
+  .erp-summary-card .erp-sc-predikat.cukup{ color:#9A6B12; }
+  .erp-summary-card .erp-sc-predikat.kurang{ color:#B4562B; }
+  .erp-summary-card .erp-sc-predikat.kosong{ color:var(--ink-soft); }
 
   .erp-card{
     background:#fff; border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow);
@@ -941,9 +959,58 @@ Minimum version required to store current data is: `+i+`.
   }
   .erp-catatan-badge .num{ font-family:'JetBrains Mono',monospace; font-weight:700; }
 
+  /* Rincian persentase (Ibadah Sunnah, dsb.) — baris label + progress bar + persen + predikat */
+  .erp-persen-row{ display:flex; align-items:center; gap:14px; margin-bottom:14px; }
+  .erp-persen-row:last-child{ margin-bottom:0; }
+  .erp-persen-label{ width:130px; font-size:13px; font-weight:600; color:var(--ink); flex-shrink:0; }
+  .erp-persen-track{ flex:1; height:9px; border-radius:999px; background:var(--sage-200); overflow:hidden; }
+  .erp-persen-fill{ height:100%; border-radius:999px; transition:width .4s ease; }
+  .erp-persen-fill.baik{ background:linear-gradient(90deg,#2FA157,#1E6E3C); }
+  .erp-persen-fill.cukup{ background:linear-gradient(90deg,#E9CB78,#D9A73B); }
+  .erp-persen-fill.kurang{ background:linear-gradient(90deg,#E28B82,#D9564A); }
+  .erp-persen-fill.kosong{ background:var(--sage-200); }
+  .erp-persen-result{ width:150px; text-align:right; font-size:12.5px; flex-shrink:0; }
+  .erp-persen-result b{ font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--teal-900); }
+  .erp-persen-result span{ color:var(--ink-soft); }
+
+  /* Grid statistik Absensi Kegiatan (Hadir / Izin / Sakit / Tidak Hadir) */
+  .erp-absensi-stat-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:12px; margin-bottom:14px; }
+  .erp-absensi-stat{ background:var(--paper-soft); border-radius:12px; padding:12px 14px; text-align:center; }
+  .erp-absensi-stat .num{ font-family:'JetBrains Mono',monospace; font-size:20px; font-weight:700; color:var(--teal-900); }
+  .erp-absensi-stat .lbl{ font-size:11px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.3px; margin-top:2px; }
+
+  /* Daftar riwayat setoran tahfidz pada kartu Perkembangan Tahfidz */
+  .erp-tahfidz-riwayat{ margin-top:14px; border-top:1px solid var(--line); padding-top:12px; }
+  .erp-tahfidz-riwayat-title{ font-size:11px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.3px; margin-bottom:8px; }
+  .erp-tahfidz-riwayat-item{ display:flex; justify-content:space-between; gap:10px; font-size:13px; padding:6px 0; border-bottom:1px dashed var(--line); }
+  .erp-tahfidz-riwayat-item:last-child{ border-bottom:none; }
+  .erp-tahfidz-riwayat-item .tgl{ color:var(--ink-soft); font-size:11.5px; flex-shrink:0; }
+
   .erp-kesimpulan-card{ border-left:4px solid var(--gold-500); }
   .erp-kesimpulan-card ul{ margin:0; padding-left:18px; }
   .erp-kesimpulan-card li{ margin-bottom:8px; font-size:13.5px; line-height:1.55; color:var(--ink); }
+
+  .erp-section-title{ display:flex; align-items:center; gap:10px; margin:26px 0 12px; }
+  .erp-section-title:first-of-type{ margin-top:4px; }
+  .erp-section-title .erp-st-icon{ font-size:20px; }
+  .erp-section-title h2{ margin:0; font-size:16px; font-family:'Amiri',serif; font-weight:700; color:var(--teal-900); letter-spacing:.3px; }
+  .erp-section-title .erp-st-line{ flex:1; height:1px; background:var(--line); }
+
+  .erp-catatan-riwayat-item{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; padding:9px 0; border-bottom:1px dashed var(--line); }
+  .erp-catatan-riwayat-item:last-child{ border-bottom:none; }
+  .erp-catatan-riwayat-left{ min-width:0; }
+  .erp-catatan-riwayat-title{ font-size:13.5px; font-weight:600; color:var(--ink); }
+  .erp-catatan-riwayat-text{ font-size:12.5px; color:var(--ink-soft); margin-top:2px; }
+  .erp-catatan-riwayat-tgl{ font-size:11.5px; color:var(--ink-soft); flex-shrink:0; white-space:nowrap; }
+
+  .erp-analisis-list{ margin:0 0 16px; padding-left:18px; }
+  .erp-analisis-list li{ margin-bottom:8px; font-size:13.5px; line-height:1.55; color:var(--ink); }
+  .erp-analisis-cols{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; margin-top:6px; padding-top:16px; border-top:1px solid var(--line); }
+  .erp-analisis-col h4{ margin:0 0 8px; font-size:12.5px; text-transform:uppercase; letter-spacing:.3px; color:var(--ink-soft); }
+  .erp-analisis-col.dipertahankan h4{ color:#1E6E3C; }
+  .erp-analisis-col.ditingkatkan h4{ color:#B4562B; }
+  .erp-analisis-col ul{ margin:0; padding-left:18px; }
+  .erp-analisis-col li{ margin-bottom:6px; font-size:13px; line-height:1.5; color:var(--ink); }
 
   @media(max-width:640px){
     .erp-header{ flex-direction:column; }
@@ -1145,6 +1212,16 @@ Minimum version required to store current data is: `+i+`.
                 <button type="button" data-periode="hari">Hari Ini</button>
                 <button type="button" data-periode="minggu">Minggu Ini</button>
                 <button type="button" data-periode="bulan" class="active">Bulan Ini</button>
+                <button type="button" data-periode="semester">Semester</button>
+                <button type="button" data-periode="custom">Custom</button>
+              </div>
+            </div>
+            <div class="field erp-custom-range" id="eraport-custom-range" style="display:none;min-width:260px;">
+              <label>Dari Tanggal s/d Sampai Tanggal</label>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <input type="date" id="eraport-custom-dari" style="flex:1;min-width:0;">
+                <span style="font-size:12px;color:var(--ink-soft);flex-shrink:0;">s/d</span>
+                <input type="date" id="eraport-custom-sampai" style="flex:1;min-width:0;">
               </div>
             </div>
             <button type="button" class="btn-erp-print" id="btn-print-eraport">
@@ -1586,6 +1663,23 @@ Minimum version required to store current data is: `+i+`.
     const d = new Date(dateStr + "T00:00:00");
     return d.toLocaleDateString("id-ID", {day:"numeric", month:"short", year:"numeric"});
   };
+  // Format "Tempat, DD Bulan YYYY" untuk profil santri — dipakai di E-Raport.
+  function fmtTempatTanggalLahir(tempat, tanggal){
+    const t = (tempat || '').trim();
+    let tgl = '';
+    if(tanggal){
+      try{
+        tgl = new Date(tanggal + 'T00:00:00').toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
+      }catch(e){ tgl = ''; }
+    }
+    if(t && tgl) return t + ', ' + tgl;
+    if(t) return t;
+    if(tgl) return tgl;
+    return '-';
+  }
+  function jenisKelaminLabel(jk){
+    return jk === 'P' ? 'Perempuan' : 'Laki-laki';
+  }
 
   /* ---------------- Supabase connection ---------------- */
   const SUPABASE_URL = "https://fwdxlafsytzriltgstod.supabase.co";
@@ -3210,6 +3304,23 @@ Minimum version required to store current data is: `+i+`.
     if(isNaN(n)) return 'Belum dinilai';
     return n;
   }
+  // Predikat kualitatif dari persentase — dipakai khusus untuk rincian E-Raport
+  // (Ibadah Sunnah per-aktivitas, Absensi Kegiatan). Skala sama dengan yang sudah
+  // dipakai pada draf Deskripsi Raport (lihat erpNilaiLabel di bawah), hanya beda
+  // kapitalisasi supaya cocok ditampilkan sebagai label langsung di UI.
+  function erpPredikatPersen(persen){
+    if(persen === null || persen === undefined || isNaN(persen)) return null;
+    if(persen >= 90) return 'Sangat Baik';
+    if(persen >= 75) return 'Baik';
+    if(persen >= 60) return 'Cukup';
+    return 'Kurang';
+  }
+  function erpPersenFillClass(persen){
+    if(persen === null || persen === undefined || isNaN(persen)) return 'kosong';
+    if(persen >= 75) return 'baik';
+    if(persen >= 60) return 'cukup';
+    return 'kurang';
+  }
   function populateEraportSantriSelect(){
     const sel = document.getElementById('eraport-filter-santri');
     if(!sel) return;
@@ -3237,40 +3348,238 @@ Minimum version required to store current data is: `+i+`.
     }
     return { labels, values };
   }
-  /* -------- Filter periode E-Raport: Hari Ini / Minggu Ini / Bulan Ini -------- */
+  // Rincian Ibadah Sunnah per-aktivitas (Tahajud, Dhuha, Puasa Senin-Kamis) untuk
+  // periode & santri tertentu. Setiap aktivitas dihitung TERPISAH (tidak digabung
+  // jadi satu nilai) memakai sistem poin yang sama seperti Ibadah Wajib: jumlah
+  // tercentang / jumlah data yang ada, dari data Mutaba'ah yang sudah tersimpan —
+  // tanpa sistem poin baru dan tanpa data fiktif. Puasa Senin & Kamis hanya
+  // dihitung dari data pada hari Senin/Kamis yang sesungguhnya di periode tsb.
+  function erpHitungIbadahSunnahRinci(santriId, dari, sampai){
+    let tahajudChecked=0, tahajudTotal=0, dhuhaChecked=0, dhuhaTotal=0, puasaChecked=0, puasaTotal=0;
+    Object.keys(mutabaahData).forEach(key=>{
+      if(!key.startsWith(santriId+'_')) return;
+      const tgl = key.slice(santriId.length+1);
+      if(tgl < dari || tgl > sampai) return;
+      const rec = mutabaahData[key];
+      if(!rec || rec.haid) return;
+      tahajudTotal++; if(rec.tahajud) tahajudChecked++;
+      dhuhaTotal++; if(rec.dhuha) dhuhaChecked++;
+      const hari = new Date(tgl + 'T00:00:00').getDay(); // 1 = Senin, 4 = Kamis
+      if(hari === 1){ puasaTotal++; if(rec.puasa_senin) puasaChecked++; }
+      else if(hari === 4){ puasaTotal++; if(rec.puasa_kamis) puasaChecked++; }
+    });
+    const buat = (checked, total) => ({
+      checked, total,
+      persen: total > 0 ? Math.round((checked/total)*100) : null
+    });
+    return {
+      tahajud: buat(tahajudChecked, tahajudTotal),
+      dhuha: buat(dhuhaChecked, dhuhaTotal),
+      puasa: buat(puasaChecked, puasaTotal)
+    };
+  }
+  // Rincian Ibadah Wajib per-aktivitas (Subuh, Dzuhur, Ashar, Maghrib, Isya) untuk
+  // periode & santri tertentu. Sama seperti rincian Ibadah Sunnah: setiap aktivitas
+  // dihitung TERPISAH dari data Mutaba'ah per tanggal yang sudah tersimpan (jumlah
+  // tercentang / jumlah data yang ada) — memakai sistem poin yang sama seperti yang
+  // sudah ada di aplikasi, tanpa sistem poin baru dan tanpa data fiktif.
+  function erpHitungIbadahWajibRinci(santriId, dari, sampai){
+    const hasil = {};
+    IBADAH_FARDHU.forEach(f=>{ hasil[f.key] = { checked:0, total:0 }; });
+    Object.keys(mutabaahData).forEach(key=>{
+      if(!key.startsWith(santriId+'_')) return;
+      const tgl = key.slice(santriId.length+1);
+      if(tgl < dari || tgl > sampai) return;
+      const rec = mutabaahData[key];
+      if(!rec || rec.haid) return;
+      IBADAH_FARDHU.forEach(f=>{
+        hasil[f.key].total++;
+        if(rec[f.key]) hasil[f.key].checked++;
+      });
+    });
+    IBADAH_FARDHU.forEach(f=>{
+      const h = hasil[f.key];
+      h.persen = h.total > 0 ? Math.round((h.checked/h.total)*100) : null;
+      h.label = f.label;
+    });
+    return hasil;
+  }
+  // Rekap keseluruhan Ibadah Sunnah — menggabungkan Tahajud, Dhuha, dan Puasa
+  // Senin-Kamis menjadi SATU nilai ringkasan (jumlah tercentang gabungan / jumlah
+  // data gabungan), tanpa mengubah rincian per-aktivitas yang tetap ditampilkan
+  // terpisah di bagian detail. Tidak ada sistem poin baru.
+  function erpHitungPersenGabunganSunnah(sunnahRinci){
+    if(!sunnahRinci) return null;
+    const items = [sunnahRinci.tahajud, sunnahRinci.dhuha, sunnahRinci.puasa];
+    let checked = 0, total = 0;
+    items.forEach(it=>{ if(it){ checked += it.checked; total += it.total; } });
+    return total > 0 ? Math.round((checked/total)*100) : null;
+  }
+  // Rekap keseluruhan Karakter & Adab — rata-rata dari nilai Kedisiplinan,
+  // Kerapian, dan Attitude/Adab yang sudah dihitung di menu Catatan Santri
+  // (skor/4 x bobot per kategori). Hanya kategori yang sudah dinilai yang
+  // dirata-rata; jika belum ada satupun yang dinilai, hasilnya '-'.
+  function erpHitungPersenGabunganKarakter(pen){
+    if(!pen) return null;
+    const nilai = [pen.kedisiplinan, pen.kerapian, pen.attitude]
+      .filter(v=>v!==null && v!==undefined && v!=='' && !isNaN(Number(v)))
+      .map(v=>Number(v));
+    if(nilai.length === 0) return null;
+    return Math.round(nilai.reduce((a,b)=>a+b,0) / nilai.length);
+  }
+  /* -------- Filter periode E-Raport: Hari Ini / Minggu Ini / Bulan Ini / Custom -------- */
   let erpPeriodeMode = 'bulan';
+  let erpCustomDari = '';
+  let erpCustomSampai = '';
+  // Format "DD Bulan YYYY" (tanpa nama hari) — dipakai untuk menampilkan rentang
+  // periode E-Raport secara jelas (mis. "01 Agustus 2026 – 31 Agustus 2026").
+  function fmtTanggalLong(dateStr){
+    if(!dateStr) return '-';
+    try{
+      return new Date(dateStr + 'T00:00:00').toLocaleDateString('id-ID', {day:'2-digit', month:'long', year:'numeric'});
+    }catch(e){ return '-'; }
+  }
+  // Menentukan rentang tanggal [dari, sampai] yang dipakai SATU KALI untuk seluruh
+  // bagian E-Raport (Ibadah Fardhu, Ibadah Sunnah, Absensi Kegiatan, Tahfidz,
+  // Catatan Santri, Karakter & Adab) — supaya tidak ada bagian yang memakai
+  // periode berbeda. Mode 'custom' memakai tanggal yang diisi pengguna sendiri
+  // dan divalidasi dulu (tidak boleh kosong, "dari" tidak boleh lebih besar dari
+  // "sampai") sebelum dipakai untuk perhitungan apa pun.
   function erpGetRange(){
     const now = new Date();
     const today = todayStr();
+    let dari, sampai, label, valid = true, error = '';
     if(erpPeriodeMode === 'hari'){
-      return { dari: today, sampai: today, label: 'Hari Ini' };
-    }
-    if(erpPeriodeMode === 'minggu'){
+      dari = today; sampai = today; label = 'Hari Ini';
+    } else if(erpPeriodeMode === 'minggu'){
       const day = now.getDay(); // 0=Minggu, 1=Senin, ...
       const diffToMonday = (day === 0) ? 6 : day - 1;
       const monday = new Date(now); monday.setDate(now.getDate() - diffToMonday);
-      return { dari: monday.toISOString().slice(0,10), sampai: today, label: 'Minggu Ini' };
+      dari = monday.toISOString().slice(0,10); sampai = today; label = 'Minggu Ini';
+    } else if(erpPeriodeMode === 'semester'){
+      const d = new Date(now); d.setMonth(d.getMonth()-6);
+      dari = d.toISOString().slice(0,10); sampai = today; label = 'Semester Ini (6 Bulan Terakhir)';
+    } else if(erpPeriodeMode === 'custom'){
+      label = 'Custom';
+      dari = erpCustomDari || '';
+      sampai = erpCustomSampai || '';
+      if(!dari || !sampai){
+        valid = false;
+        error = 'Lengkapi tanggal "Dari" dan "Sampai" untuk periode custom terlebih dahulu.';
+      } else if(dari > sampai){
+        valid = false;
+        error = 'Tanggal "Dari" tidak boleh lebih besar dari tanggal "Sampai".';
+      }
+    } else {
+      // bulan (default)
+      dari = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
+      sampai = new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().slice(0,10);
+      label = 'Bulan Ini';
     }
-    // bulan (default)
-    const first = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
-    const last = new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().slice(0,10);
-    return { dari: first, sampai: last, label: 'Bulan Ini' };
+    const rangeLabel = (valid && dari && sampai) ? (fmtTanggalLong(dari) + ' – ' + fmtTanggalLong(sampai)) : '-';
+    return { dari, sampai, label, valid, error, rangeLabel };
   }
   document.querySelectorAll('#eraport-periode-toggle button[data-periode]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       document.querySelectorAll('#eraport-periode-toggle button').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
       erpPeriodeMode = btn.dataset.periode;
+      const customRow = document.getElementById('eraport-custom-range');
+      if(customRow) customRow.style.display = (erpPeriodeMode === 'custom') ? '' : 'none';
       renderEraportTab();
     });
   });
+  document.getElementById('eraport-custom-dari')?.addEventListener('change', (e)=>{
+    erpCustomDari = e.target.value;
+    if(erpPeriodeMode === 'custom') renderEraportTab();
+  });
+  document.getElementById('eraport-custom-sampai')?.addEventListener('change', (e)=>{
+    erpCustomSampai = e.target.value;
+    if(erpPeriodeMode === 'custom') renderEraportTab();
+  });
+  // Analisis Perkembangan Santri — BUKAN data mentah, melainkan kesimpulan yang
+  // disusun dari 4 sumber yang sudah ditampilkan sebelumnya (Absensi Mutaba'ah +
+  // Absensi Kegiatan + Tahfidz + Catatan Santri). Kedisiplinan/Adab/Ibadah/
+  // Kehadiran sengaja TIDAK dihitung ulang sebagai data baru di sini — hanya
+  // dibacakan ulang sebagai narasi analisis dari nilai & data yang sudah ada.
+  function erpBuatAnalisisPerkembangan(pen, opts){
+    opts = opts || {};
+    const countJenis = opts.countJenis || (()=>0);
+    const dipertahankan = [];
+    const ditingkatkan = [];
+
+    // Kedisiplinan (dari Catatan Santri → Penilaian Karakter)
+    const kedisiplinanLabel = erpNilaiLabel(pen.kedisiplinan);
+    let kedisiplinanTeks = 'Belum ada nilai kedisiplinan tercatat pada periode ini.';
+    if(kedisiplinanLabel){
+      kedisiplinanTeks = `Kedisiplinan santri tergolong ${kedisiplinanLabel} (${pen.kedisiplinan}).`;
+      if(Number(pen.kedisiplinan) >= 75) dipertahankan.push('Kedisiplinan santri (' + pen.kedisiplinan + ').');
+      else ditingkatkan.push('Kedisiplinan santri perlu dibina lebih lanjut (' + pen.kedisiplinan + ').');
+    }
+
+    // Adab/Attitude (dari Catatan Santri → Penilaian Karakter)
+    const attitudeLabel = erpNilaiLabel(pen.attitude);
+    let adabTeks = 'Belum ada nilai adab/attitude tercatat pada periode ini.';
+    if(attitudeLabel){
+      adabTeks = `Adab/attitude santri tergolong ${attitudeLabel} (${pen.attitude}).`;
+      if(Number(pen.attitude) >= 75) dipertahankan.push('Adab/attitude santri (' + pen.attitude + ').');
+      else ditingkatkan.push('Adab/attitude santri perlu dibina lebih lanjut (' + pen.attitude + ').');
+    }
+
+    // Konsistensi Ibadah (dari Absensi Mutaba'ah: Ibadah Wajib + Ibadah Sunnah)
+    let konsistensiTeks = 'Belum ada data ibadah tercatat pada periode ini.';
+    if(opts.totalFardhu > 0){
+      const predikatFardhu = erpPredikatPersen(opts.persenFardhu);
+      konsistensiTeks = `Konsistensi ibadah wajib ${predikatFardhu.toLowerCase()} (${opts.persenFardhu}%).`;
+      if(opts.persenFardhu >= 75) dipertahankan.push('Konsistensi ibadah wajib (' + opts.persenFardhu + '%).');
+      else ditingkatkan.push('Konsistensi ibadah wajib masih perlu ditingkatkan (' + opts.persenFardhu + '%).');
+    }
+    const sr = opts.sunnahRinci || {};
+    ['tahajud','dhuha','puasa'].forEach(k=>{
+      const item = sr[k];
+      const labelAktivitas = k === 'tahajud' ? 'Tahajud' : k === 'dhuha' ? 'Dhuha' : 'Puasa Senin-Kamis';
+      if(item && item.total > 0){
+        if(item.persen >= 75) dipertahankan.push('Ibadah sunnah ' + labelAktivitas + ' (' + item.persen + '%).');
+        else ditingkatkan.push('Ibadah sunnah ' + labelAktivitas + ' masih perlu ditingkatkan (' + item.persen + '%).');
+      }
+    });
+
+    // Keaktifan Kegiatan (dari Absensi Kegiatan)
+    let keaktifanTeks = 'Belum ada data kehadiran kegiatan pada periode ini.';
+    if(opts.totalKegiatan > 0){
+      const predikatKegiatan = erpPredikatPersen(opts.persenKegiatan);
+      keaktifanTeks = `Keaktifan mengikuti kegiatan ${predikatKegiatan.toLowerCase()} (${opts.persenKegiatan}%, ${opts.hadirKegiatan} dari ${opts.totalKegiatan} kegiatan).`;
+      if(opts.persenKegiatan >= 75) dipertahankan.push('Keaktifan mengikuti kegiatan (' + opts.persenKegiatan + '%).');
+      else ditingkatkan.push('Keaktifan mengikuti kegiatan masih perlu ditingkatkan (' + opts.persenKegiatan + '%).');
+    }
+
+    // Perkembangan Tahfidz (dari data Tahfidz)
+    let tahfidzTeks = 'Belum ada setoran tahfidz tercatat pada periode ini.';
+    if(opts.jumlahSetoran > 0){
+      tahfidzTeks = `Santri aktif menyetor hafalan sebanyak ${opts.jumlahSetoran} kali pada periode ini.`;
+      dipertahankan.push('Keaktifan setoran tahfidz (' + opts.jumlahSetoran + ' kali).');
+    } else {
+      ditingkatkan.push('Keaktifan setoran tahfidz masih perlu ditingkatkan.');
+    }
+
+    // Catatan Santri — prestasi jadi hal yang dipertahankan, pelanggaran jadi hal yang ditingkatkan
+    if(countJenis('prestasi') > 0) dipertahankan.push('Pencapaian prestasi (' + countJenis('prestasi') + ' catatan).');
+    if(countJenis('pelanggaran') > 0) ditingkatkan.push('Pelanggaran yang tercatat perlu terus dipantau (' + countJenis('pelanggaran') + ' catatan).');
+    if(countJenis('konseling') > 0) ditingkatkan.push('Tindak lanjut hasil konseling perlu terus dipantau (' + countJenis('konseling') + ' catatan).');
+
+    return {
+      kedisiplinanTeks, adabTeks, konsistensiTeks, keaktifanTeks, tahfidzTeks,
+      dipertahankan, ditingkatkan
+    };
+  }
   function renderEraportTab(){
     populateEraportSantriSelect();
     const selSantri = document.getElementById('eraport-filter-santri');
     const content = document.getElementById('eraport-content');
     if(!content) return;
     const santriId = selSantri.value;
-    const { dari, sampai, label: periodeLabel } = erpGetRange();
+    const erpRange = erpGetRange();
+    const { dari, sampai, label: periodeLabel, valid: periodeValid, error: periodeError, rangeLabel: periodeRangeLabel } = erpRange;
     if(eraportChartInstance){ try{ eraportChartInstance.destroy(); }catch(e){} eraportChartInstance = null; }
     if(santriList.length === 0){
       content.innerHTML = emptyState('Belum ada data santri. Tambahkan santri terlebih dahulu di menu "Data Santri".');
@@ -3282,6 +3591,12 @@ Minimum version required to store current data is: `+i+`.
     }
     const s = santriList.find(x=>x.id===santriId);
     if(!s){ content.innerHTML = emptyState('Data santri tidak ditemukan.'); return; }
+    // Validasi periode custom: jika tanggal belum lengkap atau tidak valid,
+    // JANGAN melakukan perhitungan apapun — tampilkan pesan saja.
+    if(!periodeValid){
+      content.innerHTML = emptyState(periodeError || 'Periode tanggal tidak valid.');
+      return;
+    }
 
     // Mutaba'ah: rata-rata % kepatuhan fardhu selama periode
     let checked = 0, total = 0;
@@ -3295,7 +3610,15 @@ Minimum version required to store current data is: `+i+`.
     });
     const persenFardhu = total > 0 ? Math.round((checked/total)*100) : 0;
 
-    // Absensi Kegiatan: total hadir selama periode
+    // Rincian Ibadah Wajib per-aktivitas — Subuh, Dzuhur, Ashar, Maghrib, Isya dihitung terpisah
+    const wajibRinci = erpHitungIbadahWajibRinci(santriId, dari, sampai);
+
+    // Rincian Ibadah Sunnah — Tahajud, Dhuha, Puasa Senin-Kamis dihitung terpisah
+    const sunnahRinci = erpHitungIbadahSunnahRinci(santriId, dari, sampai);
+    // Rekap gabungan Ibadah Sunnah (untuk kartu Ringkasan Perkembangan)
+    const persenSunnahGabungan = erpHitungPersenGabunganSunnah(sunnahRinci);
+
+    // Absensi Kegiatan: Hadir vs Tidak Hadir selama periode (dari data yang sudah ada)
     let hadirKegiatan = 0, totalKegiatan = 0;
     Object.keys(absensiKegiatanData).forEach(key=>{
       if(!key.startsWith(santriId+'_')) return;
@@ -3305,6 +3628,7 @@ Minimum version required to store current data is: `+i+`.
       totalKegiatan++;
       if(absensiKegiatanData[key] && absensiKegiatanData[key].hadir) hadirKegiatan++;
     });
+    const tidakHadirKegiatan = totalKegiatan - hadirKegiatan;
     const persenKegiatan = totalKegiatan > 0 ? Math.round((hadirKegiatan/totalKegiatan)*100) : null;
 
     // Tahfidz: setoran selama periode (urut terbaru dulu)
@@ -3317,10 +3641,29 @@ Minimum version required to store current data is: `+i+`.
     const catatanBulan = (catatanData[santriId] || []).filter(c=>c.tanggal && c.tanggal >= dari && c.tanggal <= sampai);
     const countJenis = j => catatanBulan.filter(c=>c.jenis===j).length;
     const catatanJenisList = ['prestasi','konseling','pelanggaran','sakit','perizinan'];
+    // Izin & Sakit untuk kartu Absensi Kegiatan — diambil dari data Catatan Santri
+    // yang sudah ada (jenis "perizinan" & "sakit"), karena data absensi_kegiatan
+    // sendiri hanya mencatat Hadir/Tidak Hadir per kegiatan (tidak ada field
+    // izin/sakit terpisah di sana). Tidak membuat data atau tabel baru.
+    const izinKegiatan = countJenis('perizinan');
+    const sakitKegiatan = countJenis('sakit');
+    // Daftar ringkas catatan santri (pembinaan/perkembangan) periode ini, terbaru dulu —
+    // memakai ctParseKeterangan/ctEntryTitle yang sudah ada di Menu Catatan Santri,
+    // tanpa membuat data atau tabel baru.
+    const catatanRingkas = catatanBulan.slice()
+      .sort((a,b)=> (b.tanggal||'').localeCompare(a.tanggal||''))
+      .slice(0,6)
+      .map(c=>{
+        const parsed = ctParseKeterangan(c.keterangan);
+        const title = ctEntryTitle(Object.assign({}, c, { ctText: parsed.text, ctMeta: parsed.meta }));
+        return { tanggal: c.tanggal, jenis: c.jenis, title, text: parsed.text };
+      });
 
     // Penilaian Kedisiplinan, Kerapian & Attitude — nilai bulan berjalan (diisi di menu Catatan Santri)
     const penKey = santriId + '_' + sampai.slice(0,7);
     const pen = penilaianData[penKey] || {};
+    // Rekap gabungan Karakter & Adab (untuk kartu Ringkasan Perkembangan)
+    const persenKarakterGabungan = erpHitungPersenGabunganKarakter(pen);
     // Deskripsi Raport (AI) tersimpan sebelumnya, jika ada — disimpan sebagai field tambahan
     // di dalam JSON meta kolom `catatan` tabel penilaian_karakter (pola yang sudah dipakai
     // untuk skor/catatan per kategori), tanpa migrasi database apapun.
@@ -3328,6 +3671,14 @@ Minimum version required to store current data is: `+i+`.
 
     // Grafik mutaba'ah harian
     const mutabaahSeries = erpMutabaahDailySeries(santriId, dari, sampai);
+
+    // Analisis Perkembangan — disusun dari 4 bagian data di atas (bukan sumber data baru)
+    const erpAnalisis = erpBuatAnalisisPerkembangan(pen, {
+      persenFardhu, totalFardhu: total, sunnahRinci,
+      persenKegiatan, totalKegiatan, hadirKegiatan,
+      jumlahSetoran: setoranTahfidz.length,
+      countJenis
+    });
 
     const progressRow = (label, val) => {
       const cls = nilaiKarakterClass(val);
@@ -3342,37 +3693,44 @@ Minimum version required to store current data is: `+i+`.
         </div>`;
     };
 
-    // Kesimpulan otomatis berbasis data yang ada (tidak ada data fiktif)
-    const kesimpulanItems = [];
-    if(total > 0){
-      if(persenFardhu >= 80) kesimpulanItems.push('Kepatuhan ibadah fardhu santri sangat baik pada periode ini (' + persenFardhu + '%).');
-      else if(persenFardhu >= 60) kesimpulanItems.push('Kepatuhan ibadah fardhu santri cukup baik, namun masih dapat ditingkatkan (' + persenFardhu + '%).');
-      else kesimpulanItems.push('Kepatuhan ibadah fardhu santri masih perlu perhatian dan pembinaan lebih lanjut (' + persenFardhu + '%).');
-    }
-    if(totalKegiatan > 0){
-      kesimpulanItems.push('Kehadiran pada kegiatan tercatat ' + hadirKegiatan + ' dari ' + totalKegiatan + ' kegiatan (' + persenKegiatan + '%).');
-    }
-    if(setoranTahfidz.length > 0){
-      kesimpulanItems.push('Santri melakukan ' + setoranTahfidz.length + ' kali setoran tahfidz pada periode ini.');
-    }
-    if(pen.kedisiplinan!==null && pen.kedisiplinan!==undefined && pen.kedisiplinan!==''){
-      kesimpulanItems.push('Nilai kedisiplinan tercatat ' + pen.kedisiplinan + ', kerapian ' + (pen.kerapian ?? '-') + ', dan attitude ' + (pen.attitude ?? '-') + '.');
-    }
-    if(countJenis('prestasi') > 0) kesimpulanItems.push('Terdapat ' + countJenis('prestasi') + ' catatan prestasi pada periode ini.');
-    if(countJenis('pelanggaran') > 0) kesimpulanItems.push('Terdapat ' + countJenis('pelanggaran') + ' catatan pelanggaran yang perlu dipantau.');
-    if(kesimpulanItems.length === 0) kesimpulanItems.push('Belum ada data yang cukup pada periode ini untuk disimpulkan.');
+    // Baris rincian persentase per-aktivitas (dipakai untuk Ibadah Sunnah) —
+    // menampilkan label, progress bar, persen, dan predikat, sesuai data yang ada.
+    const persenRow = (label, item) => {
+      const persen = item ? item.persen : null;
+      const fillCls = erpPersenFillClass(persen);
+      const predikat = erpPredikatPersen(persen);
+      const hasilTeks = persen !== null
+        ? `<b>${persen}%</b> <span>— ${predikat}</span>`
+        : `<span>-</span>`;
+      return `
+        <div class="erp-persen-row">
+          <div class="erp-persen-label">${label}</div>
+          <div class="erp-persen-track"><div class="erp-persen-fill ${fillCls}" style="width:${persen!==null?persen:0}%;"></div></div>
+          <div class="erp-persen-result">${hasilTeks}</div>
+        </div>`;
+    };
 
+    const erpAvatarHtml = s.foto_url
+      ? `<img src="${escapeHtml(s.foto_url)}" alt="">`
+      : escapeHtml((s.nama||'?').trim().charAt(0).toUpperCase());
     content.innerHTML = `
       <div id="eraport-print-area">
         <div class="erp-profile-card">
-          <div class="erp-profile-avatar">${escapeHtml((s.nama||'?').trim().charAt(0).toUpperCase())}</div>
+          <div class="erp-profile-avatar">${erpAvatarHtml}</div>
           <div class="erp-profile-info">
-            <h3>${escapeHtml(s.nama)}</h3>
+            <div class="erp-profile-info-top">
+              <h3>${escapeHtml(s.nama)}</h3>
+              <span class="badge ${s.aktif===false ? 'nonaktif' : 'aktif'}">${s.aktif===false ? 'Tidak Aktif' : 'Aktif'}</span>
+            </div>
             <div class="erp-profile-meta">
               <span>NIS: <b>${escapeHtml(s.nis || '-')}</b></span>
               <span>Kelas: <b>${escapeHtml(s.kelas || '-')}</b></span>
               <span>Kamar: <b>${escapeHtml(s.no_kamar || '-')}</b></span>
-              <span>Periode: <b>${escapeHtml(periodeLabel)}</b></span>
+              <span>Jenis Kelamin: <b>${jenisKelaminLabel(s.jenis_kelamin)}</b></span>
+              <span>Tempat, Tanggal Lahir: <b>${escapeHtml(fmtTempatTanggalLahir(s.tempat_lahir, s.tanggal_lahir))}</b></span>
+              <span>Wali/Orang Tua: <b>${escapeHtml(s.nama_wali || '-')}</b></span>
+              <span>Alamat: <b>${escapeHtml(s.alamat || '-')}</b></span>
+              <span>Periode Penilaian: <b>${escapeHtml(periodeLabel)} (${escapeHtml(periodeRangeLabel)})</b></span>
             </div>
           </div>
         </div>
@@ -3380,39 +3738,56 @@ Minimum version required to store current data is: `+i+`.
         <div class="erp-summary-grid">
           <div class="erp-summary-card">
             <div class="erp-sc-icon">🕌</div>
-            <div class="erp-sc-value">${persenFardhu}%</div>
-            <div class="erp-sc-label">Ibadah</div>
+            <div class="erp-sc-value">${total > 0 ? persenFardhu+'%' : '-'}</div>
+            <div class="erp-sc-label">Ibadah Fardhu</div>
+            ${total > 0 ? `<div class="erp-sc-predikat ${erpPersenFillClass(persenFardhu)}">${escapeHtml(erpPredikatPersen(persenFardhu))}</div>` : ''}
           </div>
           <div class="erp-summary-card">
-            <div class="erp-sc-icon">📚</div>
+            <div class="erp-sc-icon">🌙</div>
+            <div class="erp-sc-value">${persenSunnahGabungan!==null ? persenSunnahGabungan+'%' : '-'}</div>
+            <div class="erp-sc-label">Ibadah Sunnah</div>
+            ${persenSunnahGabungan!==null ? `<div class="erp-sc-predikat ${erpPersenFillClass(persenSunnahGabungan)}">${escapeHtml(erpPredikatPersen(persenSunnahGabungan))}</div>` : ''}
+          </div>
+          <div class="erp-summary-card">
+            <div class="erp-sc-icon">📋</div>
             <div class="erp-sc-value">${persenKegiatan!==null ? persenKegiatan+'%' : '-'}</div>
-            <div class="erp-sc-label">Kehadiran</div>
+            <div class="erp-sc-label">Absensi Kegiatan</div>
+            ${persenKegiatan!==null ? `<div class="erp-sc-predikat ${erpPersenFillClass(persenKegiatan)}">${escapeHtml(erpPredikatPersen(persenKegiatan))}</div>` : ''}
           </div>
           <div class="erp-summary-card">
             <div class="erp-sc-icon">📖</div>
             <div class="erp-sc-value">${setoranTahfidz.length}</div>
             <div class="erp-sc-label">Tahfidz</div>
+            <div class="erp-sc-predikat kosong">${setoranTahfidz.length > 0 ? 'Setoran' : '-'}</div>
           </div>
           <div class="erp-summary-card">
-            <div class="erp-sc-icon">🎯</div>
-            <div class="erp-sc-value">${nilaiKarakterLabel(pen.kedisiplinan)}</div>
-            <div class="erp-sc-label">Kedisiplinan</div>
-          </div>
-          <div class="erp-summary-card">
-            <div class="erp-sc-icon">✨</div>
-            <div class="erp-sc-value">${nilaiKarakterLabel(pen.attitude)}</div>
-            <div class="erp-sc-label">Attitude</div>
+            <div class="erp-sc-icon">⭐</div>
+            <div class="erp-sc-value">${persenKarakterGabungan!==null ? persenKarakterGabungan+'%' : '-'}</div>
+            <div class="erp-sc-label">Karakter &amp; Adab</div>
+            ${persenKarakterGabungan!==null ? `<div class="erp-sc-predikat ${erpPersenFillClass(persenKarakterGabungan)}">${escapeHtml(erpPredikatPersen(persenKarakterGabungan))}</div>` : ''}
           </div>
         </div>
 
+        <div class="erp-section-title"><span class="erp-st-icon">🕌</span><h2>Absensi Mutaba'ah</h2><span class="erp-st-line"></span></div>
+
         <div class="erp-card">
-          <h3>Penilaian Karakter</h3>
-          <p class="erp-card-sub">Kedisiplinan, kerapian &amp; attitude santri periode ${escapeHtml(periodeLabel)}.</p>
-          <div class="erp-progress-grid">
-            ${progressRow('Kedisiplinan', pen.kedisiplinan)}
-            ${progressRow('Kerapian', pen.kerapian)}
-            ${progressRow('Attitude', pen.attitude)}
-          </div>
+          <h3>Ibadah Fardhu</h3>
+          <p class="erp-card-sub">Dibaca dari data Mutaba'ah per tanggal (bukan nilai rekap akhir) — setiap aktivitas dihitung terpisah untuk periode ${escapeHtml(periodeLabel)}.${total>0 ? ' Rata-rata keseluruhan: <b>'+persenFardhu+'%</b> — '+escapeHtml(erpPredikatPersen(persenFardhu)||'-')+'.' : ''}</p>
+          ${total === 0
+            ? emptyState('Belum ada data ibadah wajib untuk periode ini.')
+            : IBADAH_FARDHU.map(f=>persenRow(f.label, wajibRinci[f.key])).join('')}
+        </div>
+
+        <div class="erp-card">
+          <h3>Ibadah Sunnah</h3>
+          <p class="erp-card-sub">Rincian per-aktivitas untuk periode ${escapeHtml(periodeLabel)} (tidak digabung menjadi satu nilai di sini).${persenSunnahGabungan!==null ? ' Rekap keseluruhan: <b>'+persenSunnahGabungan+'%</b> — '+escapeHtml(erpPredikatPersen(persenSunnahGabungan)||'-')+'.' : ''}</p>
+          ${(sunnahRinci.tahajud.total + sunnahRinci.dhuha.total + sunnahRinci.puasa.total) === 0
+            ? emptyState('Belum ada data ibadah sunnah untuk periode ini.')
+            : `
+              ${persenRow('Tahajud', sunnahRinci.tahajud)}
+              ${persenRow('Dhuha', sunnahRinci.dhuha)}
+              ${persenRow('Puasa Senin-Kamis', sunnahRinci.puasa)}
+            `}
         </div>
 
         <div class="erp-card erp-chart-card">
@@ -3423,47 +3798,129 @@ Minimum version required to store current data is: `+i+`.
             : '<div class="chart-wrap"><canvas id="erp-chart-mutabaah"></canvas></div>'}
         </div>
 
+        <div class="erp-section-title"><span class="erp-st-icon">📋</span><h2>Absensi Kegiatan</h2><span class="erp-st-line"></span></div>
+
         <div class="erp-card">
-          <h3>Perkembangan Tahfidz</h3>
-          <p class="erp-card-sub">Ringkasan setoran hafalan periode ${escapeHtml(periodeLabel)}.</p>
+          <h3>Absensi Kegiatan</h3>
+          <p class="erp-card-sub">Kehadiran kegiatan periode ${escapeHtml(periodeLabel)}, dari data kegiatan yang tercatat untuk santri ini. Izin &amp; Sakit diambil dari data Catatan Santri.</p>
+          <div class="erp-absensi-stat-grid">
+            <div class="erp-absensi-stat"><div class="num">${totalKegiatan > 0 ? hadirKegiatan : '-'}</div><div class="lbl">Hadir</div></div>
+            <div class="erp-absensi-stat"><div class="num">${izinKegiatan || '-'}</div><div class="lbl">Izin</div></div>
+            <div class="erp-absensi-stat"><div class="num">${sakitKegiatan || '-'}</div><div class="lbl">Sakit</div></div>
+            <div class="erp-absensi-stat"><div class="num">${totalKegiatan > 0 ? tidakHadirKegiatan : '-'}</div><div class="lbl">Tidak Hadir</div></div>
+          </div>
+          ${totalKegiatan > 0
+            ? persenRow('Total Kegiatan', { persen: persenKegiatan, total: totalKegiatan })
+            : emptyState('Belum ada data absensi kegiatan untuk periode ini.')}
+        </div>
+
+        <div class="erp-section-title"><span class="erp-st-icon">📖</span><h2>Tahfidz</h2><span class="erp-st-line"></span></div>
+
+        <div class="erp-card">
+          <h3>Tahfidz</h3>
+          <p class="erp-card-sub">Ringkasan setoran hafalan dari data Tahfidz periode ${escapeHtml(periodeLabel)}.</p>
           <div class="erp-tahfidz-grid">
             <div class="erp-tahfidz-item">
               <div class="erp-t-label">Jumlah Setoran</div>
               <div class="erp-t-value">${setoranTahfidz.length}</div>
             </div>
             <div class="erp-tahfidz-item">
-              <div class="erp-t-label">Setoran Terbaru</div>
+              <div class="erp-t-label">Surat Terbaru</div>
               <div class="erp-t-value">${setoranTerbaru ? escapeHtml((setoranTerbaru.surat||'-') + (setoranTerbaru.juz? ' (Juz '+escapeHtml(String(setoranTerbaru.juz))+')':'')) : '-'}</div>
+            </div>
+            <div class="erp-tahfidz-item">
+              <div class="erp-t-label">Ayat</div>
+              <div class="erp-t-value">${setoranTerbaru && (setoranTerbaru.ayatDari || setoranTerbaru.ayatSampai) ? escapeHtml(String(setoranTerbaru.ayatDari ?? '-') + ' - ' + String(setoranTerbaru.ayatSampai ?? '-')) : '-'}</div>
             </div>
             <div class="erp-tahfidz-item">
               <div class="erp-t-label">Tanggal Setoran</div>
               <div class="erp-t-value">${setoranTerbaru ? escapeHtml(fmtTanggalShort(setoranTerbaru.tanggal)) : '-'}</div>
             </div>
           </div>
+          ${setoranTahfidz.length > 0 ? `
+            <div class="erp-tahfidz-riwayat">
+              <div class="erp-tahfidz-riwayat-title">Perkembangan Hafalan (Riwayat Setoran)</div>
+              ${setoranTahfidz.slice(0,5).map(t=>`
+                <div class="erp-tahfidz-riwayat-item">
+                  <span>${escapeHtml((t.surat||'-') + (t.juz ? ' (Juz '+escapeHtml(String(t.juz))+')' : '') + ((t.ayatDari||t.ayatSampai) ? ' — Ayat ' + escapeHtml(String(t.ayatDari ?? '-')) + '-' + escapeHtml(String(t.ayatSampai ?? '-')) : ''))}</span>
+                  <span class="tgl">${escapeHtml(fmtTanggalShort(t.tanggal))}</span>
+                </div>`).join('')}
+            </div>` : ''}
         </div>
+
+        <div class="erp-section-title"><span class="erp-st-icon">📝</span><h2>Catatan Santri</h2><span class="erp-st-line"></span></div>
 
         <div class="erp-card">
           <h3>Catatan Santri</h3>
-          <p class="erp-card-sub">Ringkasan catatan periode ${escapeHtml(periodeLabel)}.</p>
+          <p class="erp-card-sub">Ringkasan catatan (prestasi, pelanggaran, konseling, perizinan, sakit) periode ${escapeHtml(periodeLabel)}.</p>
           <div class="erp-catatan-grid">
             ${catatanJenisList.map(j=>{
               const meta = JENIS_META[j];
               return `<span class="erp-catatan-badge badge ${meta.badge}">${meta.icon} ${meta.label} <span class="num">${countJenis(j)}</span></span>`;
             }).join('')}
           </div>
+          ${catatanRingkas.length > 0 ? `
+            <div class="erp-tahfidz-riwayat">
+              <div class="erp-tahfidz-riwayat-title">Catatan Pembinaan &amp; Perkembangan Terbaru</div>
+              ${catatanRingkas.map(c=>{
+                const meta = JENIS_META[c.jenis] || { label:c.jenis, icon:'📝' };
+                return `
+                <div class="erp-catatan-riwayat-item">
+                  <div class="erp-catatan-riwayat-left">
+                    <div class="erp-catatan-riwayat-title">${meta.icon} ${escapeHtml(meta.label)} — ${escapeHtml(c.title || '-')}</div>
+                    ${c.text ? `<div class="erp-catatan-riwayat-text">${escapeHtml(c.text.slice(0,140))}${c.text.length>140?'…':''}</div>` : ''}
+                  </div>
+                  <div class="erp-catatan-riwayat-tgl">${escapeHtml(fmtTanggalShort(c.tanggal))}</div>
+                </div>`;
+              }).join('')}
+            </div>` : ''}
         </div>
 
-        <div class="erp-card erp-kesimpulan-card">
-          <h3>Kesimpulan Perkembangan</h3>
-          <p class="erp-card-sub">Ringkasan otomatis berdasarkan data yang tersedia pada periode ${escapeHtml(periodeLabel)}.</p>
-          <ul>${kesimpulanItems.map(it=>`<li>${escapeHtml(it)}</li>`).join('')}</ul>
+        <div class="erp-card">
+          <h3>Penilaian Karakter</h3>
+          <p class="erp-card-sub">Kedisiplinan, kerapian &amp; attitude santri periode ${escapeHtml(periodeLabel)} (diisi di menu Catatan Santri).</p>
+          <div class="erp-progress-grid">
+            ${progressRow('Kedisiplinan', pen.kedisiplinan)}
+            ${progressRow('Kerapian', pen.kerapian)}
+            ${progressRow('Attitude', pen.attitude)}
+          </div>
         </div>
+
+        <div class="erp-section-title"><span class="erp-st-icon">⭐</span><h2>Analisis Perkembangan Santri</h2><span class="erp-st-line"></span></div>
+
+        <div class="erp-card erp-kesimpulan-card">
+          <h3>Analisis Perkembangan</h3>
+          <p class="erp-card-sub">Hasil analisis dari Absensi Mutaba'ah, Absensi Kegiatan, Tahfidz &amp; Catatan Santri di atas — bukan data baru.</p>
+          <ul class="erp-analisis-list">
+            <li><b>Kedisiplinan:</b> ${escapeHtml(erpAnalisis.kedisiplinanTeks)}</li>
+            <li><b>Adab/Attitude:</b> ${escapeHtml(erpAnalisis.adabTeks)}</li>
+            <li><b>Konsistensi Ibadah:</b> ${escapeHtml(erpAnalisis.konsistensiTeks)}</li>
+            <li><b>Keaktifan Kegiatan:</b> ${escapeHtml(erpAnalisis.keaktifanTeks)}</li>
+            <li><b>Perkembangan Tahfidz:</b> ${escapeHtml(erpAnalisis.tahfidzTeks)}</li>
+          </ul>
+          <div class="erp-analisis-cols">
+            <div class="erp-analisis-col dipertahankan">
+              <h4>Hal yang Perlu Dipertahankan</h4>
+              ${erpAnalisis.dipertahankan.length > 0
+                ? `<ul>${erpAnalisis.dipertahankan.map(it=>`<li>${escapeHtml(it)}</li>`).join('')}</ul>`
+                : '<p class="erp-card-sub" style="margin:0;">Belum ada data yang cukup untuk periode ini.</p>'}
+            </div>
+            <div class="erp-analisis-col ditingkatkan">
+              <h4>Hal yang Perlu Ditingkatkan</h4>
+              ${erpAnalisis.ditingkatkan.length > 0
+                ? `<ul>${erpAnalisis.ditingkatkan.map(it=>`<li>${escapeHtml(it)}</li>`).join('')}</ul>`
+                : '<p class="erp-card-sub" style="margin:0;">Belum ada data yang cukup untuk periode ini.</p>'}
+            </div>
+          </div>
+        </div>
+
+        <div class="erp-section-title"><span class="erp-st-icon">📄</span><h2>Deskripsi E-Raport</h2><span class="erp-st-line"></span></div>
 
         <div class="erp-card erp-deskripsi-ai-card">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;">
             <div>
-              <h3 style="margin:0;">Deskripsi Raport</h3>
-              <p class="erp-card-sub" style="margin:4px 0 0;">Deskripsi naratif singkat untuk raport. Buat draf otomatis lalu edit sesuai kebutuhan sebelum disimpan.</p>
+              <h3 style="margin:0;">Deskripsi E-Raport</h3>
+              <p class="erp-card-sub" style="margin:4px 0 0;">Deskripsi naratif singkat berdasarkan seluruh data di atas. Buat draf otomatis lalu edit sesuai kebutuhan sebelum disimpan.</p>
             </div>
             <button type="button" class="btn btn-gold" id="btn-erp-ai-generate" style="white-space:nowrap;">✨ Buat Deskripsi dengan AI</button>
           </div>
@@ -3496,7 +3953,13 @@ Minimum version required to store current data is: `+i+`.
     }
 
     document.getElementById('btn-erp-ai-generate')?.addEventListener('click', ()=>{
-      const teks = generateEraportAiDeskripsi(s, pen, persenFardhu, total, persenKegiatan, totalKegiatan, setoranTahfidz.length, countJenis, periodeLabel);
+      const teks = generateEraportAiDeskripsi(s, pen, {
+        persenFardhu, totalFardhu: total, sunnahRinci,
+        persenKegiatan, totalKegiatan, hadirKegiatan, tidakHadirKegiatan,
+        izinCount: izinKegiatan, sakitCount: sakitKegiatan,
+        jumlahSetoran: setoranTahfidz.length, setoranList: setoranTahfidz,
+        countJenis, periodeLabel
+      });
       const ta = document.getElementById('erp-ai-deskripsi-text');
       if(ta) ta.value = teks;
     });
@@ -3530,8 +3993,16 @@ Minimum version required to store current data is: `+i+`.
     if(n >= 60) return 'cukup dan masih dapat ditingkatkan';
     return 'masih perlu pembinaan lebih lanjut';
   }
-  function generateEraportAiDeskripsi(s, pen, persenFardhu, totalFardhu, persenKegiatan, totalKegiatan, jumlahSetoran, countJenis, periodeLabel){
+  // Deskripsi E-Raport (AI) — menyusun narasi dari GABUNGAN data aktivitas yang
+  // sudah ada: Ibadah Wajib + Ibadah Sunnah (per-aktivitas) + Absensi Kegiatan
+  // (Hadir/Izin/Sakit) + Tahfidz + Penilaian Karakter + Catatan Santri. Tidak
+  // hanya mengambil nilai rekap akhir, dan tidak ada data fiktif — bagian yang
+  // datanya kosong pada periode berjalan otomatis dilewati (bukan diisi angka).
+  function generateEraportAiDeskripsi(s, pen, opts){
+    opts = opts || {};
     const nama = (s && s.nama) ? s.nama : 'Santri';
+    const periodeLabel = opts.periodeLabel || 'periode ini';
+    const countJenis = opts.countJenis || (()=>0);
 
     const aspekKarakter = [];
     const kd = erpNilaiLabel(pen.kedisiplinan);
@@ -3544,28 +4015,79 @@ Minimum version required to store current data is: `+i+`.
       ? `Selama periode ${periodeLabel}, ${nama} menunjukkan ${aspekKarakter.join(', ')}.`
       : `Selama periode ${periodeLabel}, penilaian karakter ${nama} belum tercatat secara lengkap.`;
 
-    const bagianIbadah = [];
-    if(totalFardhu > 0) bagianIbadah.push(`kepatuhan ibadah fardhu tercatat ${persenFardhu}%`);
-    if(totalKegiatan > 0) bagianIbadah.push(`kehadiran kegiatan ${persenKegiatan}%`);
-    if(jumlahSetoran > 0) bagianIbadah.push(`${jumlahSetoran} kali setoran tahfidz`);
-    const kalimatIbadah = bagianIbadah.length > 0 ? `Dari sisi ibadah dan kegiatan, ${bagianIbadah.join(', ')}.` : '';
+    // Ibadah Wajib (satu nilai gabungan, dari sistem poin Mutaba'ah yang sudah ada)
+    const bagianWajib = (opts.totalFardhu > 0)
+      ? `ibadah wajib tercatat ${opts.persenFardhu}% (${(erpPredikatPersen(opts.persenFardhu)||'').toLowerCase()})`
+      : '';
 
+    // Ibadah Sunnah — tiap aktivitas disebutkan terpisah, bukan digabung
+    const bagianSunnah = [];
+    const sr = opts.sunnahRinci || {};
+    if(sr.tahajud && sr.tahajud.total > 0) bagianSunnah.push(`tahajud ${sr.tahajud.persen}%`);
+    if(sr.dhuha && sr.dhuha.total > 0) bagianSunnah.push(`dhuha ${sr.dhuha.persen}%`);
+    if(sr.puasa && sr.puasa.total > 0) bagianSunnah.push(`puasa Senin-Kamis ${sr.puasa.persen}%`);
+    const kalimatIbadah = [bagianWajib, bagianSunnah.length > 0 ? `ibadah sunnah (${bagianSunnah.join(', ')})` : '']
+      .filter(Boolean).join(', sedangkan ');
+    const kalimatIbadahFinal = kalimatIbadah ? `Dari sisi ibadah, ${kalimatIbadah}.` : '';
+
+    // Absensi Kegiatan — Hadir/Izin/Sakit
+    const bagianKegiatan = [];
+    if(opts.totalKegiatan > 0) bagianKegiatan.push(`kehadiran kegiatan ${opts.hadirKegiatan} dari ${opts.totalKegiatan} kali (${opts.persenKegiatan}%)`);
+    if(opts.izinCount > 0) bagianKegiatan.push(`${opts.izinCount} kali izin`);
+    if(opts.sakitCount > 0) bagianKegiatan.push(`${opts.sakitCount} kali sakit`);
+    const kalimatKegiatan = bagianKegiatan.length > 0 ? `Dari sisi kehadiran kegiatan, ${bagianKegiatan.join(', ')}.` : '';
+
+    // Tahfidz — jumlah setoran & perkembangan hafalan terakhir
+    const bagianTahfidz = [];
+    if(opts.jumlahSetoran > 0){
+      bagianTahfidz.push(`${opts.jumlahSetoran} kali setoran tahfidz`);
+      const terbaru = (opts.setoranList || [])[0];
+      if(terbaru && terbaru.surat) bagianTahfidz.push(`terakhir pada surat ${terbaru.surat}${terbaru.juz ? ' (Juz '+terbaru.juz+')' : ''}`);
+    }
+    const kalimatTahfidz = bagianTahfidz.length > 0 ? `Perkembangan hafalan tahfidz: ${bagianTahfidz.join(', ')}.` : '';
+
+    // Catatan Santri — prestasi, pelanggaran, konseling
     const bagianCatatan = [];
     const nPrestasi = countJenis('prestasi');
     const nPelanggaran = countJenis('pelanggaran');
+    const nKonseling = countJenis('konseling');
     if(nPrestasi > 0) bagianCatatan.push(`${nPrestasi} catatan prestasi`);
     if(nPelanggaran > 0) bagianCatatan.push(`${nPelanggaran} catatan pelanggaran`);
-    const kalimatCatatan = bagianCatatan.length > 0 ? `Tercatat pula ${bagianCatatan.join(' dan ')} pada periode ini.` : '';
+    if(nKonseling > 0) bagianCatatan.push(`${nKonseling} catatan konseling`);
+    const kalimatCatatan = bagianCatatan.length > 0 ? `Tercatat pula ${bagianCatatan.join(', ')} pada periode ini.` : '';
 
     const penutup = 'Diharapkan santri dapat terus mempertahankan dan meningkatkan capaian yang telah diraih.';
 
-    return [kalimatKarakter, kalimatIbadah, kalimatCatatan, penutup].filter(Boolean).join(' ');
+    return [kalimatKarakter, kalimatIbadahFinal, kalimatKegiatan, kalimatTahfidz, kalimatCatatan, penutup].filter(Boolean).join(' ');
   }
   async function erpSimpanDeskripsi(santriId, periodeKey, teks){
     const penKey = santriId + '_' + periodeKey;
     const pen = penilaianData[penKey] || {};
     const meta = penDecodeMeta(pen.catatan);
     meta.deskripsi_raport = teks;
+    const rec = {
+      kedisiplinan: (pen.kedisiplinan ?? null),
+      kerapian: (pen.kerapian ?? null),
+      attitude: (pen.attitude ?? null),
+      catatan: penEncodeMeta(meta)
+    };
+    const saved = await dbSavePenilaian(santriId, periodeKey, rec);
+    if(!saved) return false;
+    penilaianData[penKey] = {
+      id: saved.id, kedisiplinan: saved.kedisiplinan, kerapian: saved.kerapian,
+      attitude: saved.attitude, catatan: saved.catatan
+    };
+    return true;
+  }
+
+  // Simpan Nilai Mata Pelajaran — pola sama seperti Deskripsi Raport: disimpan sebagai
+  // field JSON meta (nilai_mapel) di kolom `catatan` tabel penilaian_karakter yang sudah
+  // ada, sehingga tidak perlu tabel/database baru untuk fitur ini.
+  async function erpSimpanNilaiMapel(santriId, periodeKey, rows){
+    const penKey = santriId + '_' + periodeKey;
+    const pen = penilaianData[penKey] || {};
+    const meta = penDecodeMeta(pen.catatan);
+    meta.nilai_mapel = rows;
     const rec = {
       kedisiplinan: (pen.kedisiplinan ?? null),
       kerapian: (pen.kerapian ?? null),
@@ -3600,7 +4122,13 @@ Minimum version required to store current data is: `+i+`.
     }
     const s = santriList.find(x=>x.id===selSantri.value);
     if(!s) return;
-    const periode = erpGetRange().label;
+    const erpRange = erpGetRange();
+    if(!erpRange.valid){
+      showToast(erpRange.error || 'Lengkapi periode tanggal terlebih dahulu', true);
+      return;
+    }
+    const periode = erpRange.label;
+    const periodeTanggal = erpRange.rangeLabel;
 
     const wrapper = document.createElement('div');
     wrapper.style.position = 'fixed';
@@ -3615,7 +4143,8 @@ Minimum version required to store current data is: `+i+`.
         <img src="${LOGO_DATA_URI}" style="height:48px;">
         <div>
           <div style="font-weight:700;font-size:18px;color:#043F7B;">Alhidayah Boarding School</div>
-          <div style="font-size:12px;color:#5C6B7D;">E-Raport Santri — ${escapeHtml(s.nama)}${s.kelas ? ' — '+escapeHtml(s.kelas):''} — Periode ${escapeHtml(periode)}</div>
+          <div style="font-size:12px;color:#5C6B7D;">E-Raport Santri — ${escapeHtml(s.nama)}${s.kelas ? ' — '+escapeHtml(s.kelas):''}</div>
+          <div style="font-size:12px;color:#5C6B7D;">Periode Penilaian: ${escapeHtml(periode)} (${escapeHtml(periodeTanggal)})</div>
         </div>
       </div>
     `;
@@ -5549,7 +6078,13 @@ Minimum version required to store current data is: `+i+`.
       const rDari = getDashboardPeriodeRange('bulan').dari, rSampai = getDashboardPeriodeRange('bulan').sampai;
       const st = aiComputeSantriStats(santri.id, rDari, rSampai);
       const pen = penilaianData[santri.id + '_' + rSampai.slice(0,7)] || {};
-      const teks = generateEraportAiDeskripsi(santri, pen, st.persenFardhu, st.total, st.persenKegiatan, st.totalKeg, st.setoran.length, st.countJenis, 'Bulan Ini');
+      const teks = generateEraportAiDeskripsi(santri, pen, {
+        persenFardhu: st.persenFardhu, totalFardhu: st.total, sunnahRinci: erpHitungIbadahSunnahRinci(santri.id, rDari, rSampai),
+        persenKegiatan: st.persenKegiatan, totalKegiatan: st.totalKeg, hadirKegiatan: st.hadir, tidakHadirKegiatan: st.tidakHadir,
+        izinCount: st.countJenis('perizinan'), sakitCount: st.countJenis('sakit'),
+        jumlahSetoran: st.setoran.length, setoranList: st.setoran,
+        countJenis: st.countJenis, periodeLabel: 'Bulan Ini'
+      });
       return catatanNamaGanda
         + aiP(`Draf deskripsi E-Raport untuk <b>${escapeHtml(santri.nama)}</b> (Bulan Ini):`)
         + aiP(escapeHtml(teks))
