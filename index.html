@@ -254,6 +254,25 @@ Minimum version required to store current data is: `+i+`.
   .chk.gold:checked{background:var(--gold-500);border-color:var(--gold-500);}
   .chk.gold:checked::after{border-color:var(--teal-900);}
 
+  /* Tombol 3-status untuk Sholat Fardhu: Tidak Hadir / Hadir / Masbuk */
+  .tri-toggle{
+    appearance:none;width:26px;height:26px;border-radius:7px;
+    border:2px solid var(--sage-200);background:#fff;cursor:pointer;
+    position:relative;flex-shrink:0;transition:.12s;
+    display:inline-flex;align-items:center;justify-content:center;
+    font-size:11px;font-weight:800;color:transparent;padding:0;
+  }
+  .tri-toggle:hover{border-color:var(--gold-500);}
+  .tri-toggle[data-state="hadir"]{background:var(--teal-700);border-color:var(--teal-700);}
+  .tri-toggle[data-state="hadir"]::after{
+    content:"";position:absolute;left:8px;top:3px;
+    width:5px;height:11px;border:solid white;border-width:0 2px 2px 0;
+    transform:rotate(40deg);
+  }
+  .tri-toggle[data-state="masbuk"]{background:#F5A524;border-color:#F5A524;color:#4A2E00;}
+  .tri-toggle[data-state="masbuk"]::before{content:"M";}
+  .tri-toggle:disabled{opacity:.55;cursor:wait;}
+
   thead tr:first-child th{text-align:center;background:var(--paper-soft);}
   thead tr:nth-child(2) th{text-align:center;font-size:10px;padding-top:4px;padding-bottom:8px;}
 
@@ -1224,7 +1243,7 @@ Minimum version required to store current data is: `+i+`.
     <section class="panel" id="panel-absensi">
       <div class="card">
         <h2>Absensi Mutaba'ah</h2>
-        <p class="sub">Centang ibadah yang dilaksanakan santri pada tanggal terpilih. Tersimpan otomatis.</p>
+        <p class="sub">Centang ibadah yang dilaksanakan santri pada tanggal terpilih. Tersimpan otomatis. Khusus Sholat Fardhu: klik kotak untuk mengubah status — kosong (tidak hadir) → <b style="color:var(--teal-700);">hijau</b> (hadir) → <b style="color:#F5A524;">oranye "M"</b> (masbuk/telat masuk jamaah) → klik lagi untuk kosongkan.</p>
         <div class="row" style="align-items:flex-end;">
           <div class="field">
             <label>Tanggal</label>
@@ -1631,6 +1650,14 @@ Minimum version required to store current data is: `+i+`.
     {key:'puasa_senin', label:'Puasa Senin', group:'Puasa Sunnah'},
     {key:'puasa_kamis', label:'Puasa Kamis', group:'Puasa Sunnah'}
   ];
+
+  // Nilai poin kehadiran Sholat Fardhu untuk perhitungan persentase E-Raport/Dashboard:
+  // Hadir tepat waktu = 1 poin penuh, Masbuk (telat masuk jamaah) = 0.5 poin, Tidak hadir = 0.
+  function fardhuPoin(rec, key){
+    const v = rec ? rec[key] : undefined;
+    if(v === 'masbuk') return 0.5;
+    return v ? 1 : 0;
+  }
 
   const todayStr = () => new Date().toISOString().slice(0,10);
 
@@ -2994,12 +3021,15 @@ Minimum version required to store current data is: `+i+`.
         <td><strong>${escapeHtml(s.nama)}</strong><br><span style="font-size:11px;color:var(--ink-soft);">${escapeHtml(s.kelas||'')}</span></td>
         <td style="text-align:center;">${isPerempuan ? `<input type="checkbox" class="chk" data-santri="${s.id}" data-field="haid" data-haid-toggle="1" ${sedangHaid?'checked':''}>` : ''}</td>`;
 
-      // Sholat Fardhu
+      // Sholat Fardhu (3 status: kosong = tidak hadir, hijau = hadir, oranye "M" = masbuk)
       IBADAH_FARDHU.forEach(f=>{
         if(sedangHaid){
           html += `<td style="text-align:center;color:var(--ink-soft);font-size:11px;" title="Sedang haid">—</td>`;
         }else{
-          html += `<td><input type="checkbox" class="chk" data-santri="${s.id}" data-field="${f.key}" ${rec[f.key]?'checked':''}></td>`;
+          const val = rec[f.key];
+          const state = val === 'masbuk' ? 'masbuk' : (val ? 'hadir' : 'kosong');
+          const titleTxt = state==='masbuk' ? 'Masbuk (klik untuk kosongkan)' : (state==='hadir' ? 'Hadir (klik untuk tandai Masbuk)' : 'Tidak hadir (klik untuk tandai Hadir)');
+          html += `<td style="text-align:center;"><button type="button" class="tri-toggle" data-santri="${s.id}" data-field="${f.key}" data-state="${state}" title="${titleTxt}"></button></td>`;
         }
       });
 
@@ -3057,6 +3087,27 @@ Minimum version required to store current data is: `+i+`.
         if(cb.dataset.haidToggle || !ok){
           renderAbsensiTable();
         }
+      });
+    });
+    // Tombol 3-status Sholat Fardhu: kosong -> hadir -> masbuk -> kosong
+    table.querySelectorAll('.tri-toggle').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const sid = btn.dataset.santri, field = btn.dataset.field;
+        const key = sid + '_' + date;
+        if(!mutabaahData[key]) mutabaahData[key] = {};
+        const prevRec = Object.assign({}, mutabaahData[key]);
+        const cur = prevRec[field];
+        const nextVal = cur === 'masbuk' ? false : (cur ? 'masbuk' : true); // kosong->hadir->masbuk->kosong
+        mutabaahData[key][field] = nextVal;
+        mutabaahData[key].tanggal = date;
+        btn.disabled = true;
+        const ok = await dbSaveMutabaah(sid, date, mutabaahData[key]);
+        btn.disabled = false;
+        if(!ok){
+          mutabaahData[key] = prevRec;
+          showToast('Gagal menyimpan, coba lagi', true);
+        }
+        renderAbsensiTable();
       });
     });
   }
@@ -3136,10 +3187,11 @@ Minimum version required to store current data is: `+i+`.
       const isPerempuan = s.jenis_kelamin === 'P';
       const sedangHaid = isPerempuan && !!rec.haid;
       const tanda = (key)=> sedangHaid ? '—' : (rec[key] ? '✓' : '-');
+      const tandaFardhu = (key)=> sedangHaid ? '—' : (rec[key] === 'masbuk' ? 'M (Masbuk)' : (rec[key] ? '✓' : '-'));
       return [
         escapeHtml(s.nama) + (sedangHaid ? ' <span style="color:#B8860B;">(Haid)</span>' : ''),
         escapeHtml(s.kelas||'-'),
-        ...IBADAH_FARDHU.map(f=>tanda(f.key)),
+        ...IBADAH_FARDHU.map(f=>tandaFardhu(f.key)),
         ...IBADAH_SUNNAH.map(f=>tanda(f.key)),
         sedangHaid ? '—' : (rec.puasa_senin ? '✓' : '-'),
         sedangHaid ? '—' : (rec.puasa_kamis ? '✓' : '-')
@@ -3395,7 +3447,7 @@ Minimum version required to store current data is: `+i+`.
       const rec = mutabaahData[santriId+'_'+dayStr];
       if(!rec || rec.haid){ cur.setDate(cur.getDate()+1); continue; }
       let checked=0, total=0;
-      IBADAH_FARDHU.forEach(f=>{ total++; if(rec[f.key]) checked++; });
+      IBADAH_FARDHU.forEach(f=>{ total++; checked += fardhuPoin(rec, f.key); });
       if(total > 0){
         labels.push(String(cur.getDate()) + '/' + String(cur.getMonth()+1));
         values.push(Math.round((checked/total)*100));
@@ -3450,7 +3502,7 @@ Minimum version required to store current data is: `+i+`.
       if(!rec || rec.haid) return;
       IBADAH_FARDHU.forEach(f=>{
         hasil[f.key].total++;
-        if(rec[f.key]) hasil[f.key].checked++;
+        hasil[f.key].checked += fardhuPoin(rec, f.key);
       });
     });
     IBADAH_FARDHU.forEach(f=>{
@@ -3593,7 +3645,7 @@ Minimum version required to store current data is: `+i+`.
       if(tgl < dari || tgl > sampai) return;
       const rec = mutabaahData[key];
       if(!rec || rec.haid) return;
-      IBADAH_FARDHU.forEach(f=>{ total++; if(rec[f.key]) checked++; });
+      IBADAH_FARDHU.forEach(f=>{ total++; checked += fardhuPoin(rec, f.key); });
     });
     const persenFardhu = total > 0 ? Math.round((checked/total)*100) : 0;
 
@@ -3745,7 +3797,7 @@ Minimum version required to store current data is: `+i+`.
 
         <div class="erp-card">
           <h3>Ibadah Wajib</h3>
-          <p class="erp-card-sub">Dibaca dari data Mutaba'ah per tanggal (bukan nilai rekap akhir) — setiap aktivitas dihitung terpisah untuk periode ${escapeHtml(periodeLabel)}.${total>0 ? ' Rata-rata keseluruhan: <b>'+persenFardhu+'%</b> — '+escapeHtml(erpPredikatPersen(persenFardhu)||'-')+'.' : ''}</p>
+          <p class="erp-card-sub">Dibaca dari data Mutaba'ah per tanggal (bukan nilai rekap akhir) — setiap aktivitas dihitung terpisah untuk periode ${escapeHtml(periodeLabel)}. Hadir tepat waktu = poin penuh, Masbuk = setengah poin.${total>0 ? ' Rata-rata keseluruhan: <b>'+persenFardhu+'%</b> — '+escapeHtml(erpPredikatPersen(persenFardhu)||'-')+'.' : ''}</p>
           ${total === 0
             ? emptyState('Belum ada data ibadah wajib untuk periode ini.')
             : IBADAH_FARDHU.map(f=>persenRow(f.label, wajibRinci[f.key])).join('')}
@@ -5519,7 +5571,7 @@ Minimum version required to store current data is: `+i+`.
       santriList.forEach(s=>{
         const rec = mutabaahData[s.id + '_' + tgl];
         if(!rec || rec.haid) return;
-        IBADAH_FARDHU.forEach(f=>{ total++; if(rec[f.key]) checked++; });
+        IBADAH_FARDHU.forEach(f=>{ total++; checked += fardhuPoin(rec, f.key); });
       });
       mtChecked += checked; mtTotal += total;
       return { label: fmtTanggalPendek(tgl), pct: total > 0 ? Math.round((checked/total)*100) : null };
@@ -5892,7 +5944,7 @@ Minimum version required to store current data is: `+i+`.
       if(tgl < dari || tgl > sampai) return;
       const rec = mutabaahData[key];
       if(!rec || rec.haid) return;
-      IBADAH_FARDHU.forEach(f=>{ total++; if(rec[f.key]) checked++; });
+      IBADAH_FARDHU.forEach(f=>{ total++; checked += fardhuPoin(rec, f.key); });
     });
     const persenFardhu = total > 0 ? Math.round((checked/total)*100) : 0;
 
