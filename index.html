@@ -1236,6 +1236,14 @@ Minimum version required to store current data is: `+i+`.
               <option value="">Semua Kelas</option>
             </select>
           </div>
+          <div class="field" style="min-width:160px;">
+            <label>Jenis Kelamin</label>
+            <select id="absensi-filter-jk">
+              <option value="">Semua</option>
+              <option value="L">Laki-laki</option>
+              <option value="P">Perempuan</option>
+            </select>
+          </div>
           <button class="btn btn-gold" id="btn-scan-qr-mutabaah" type="button">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 012-2h2M3 17v2a2 2 0 002 2h2M21 7V5a2 2 0 00-2-2h-2M21 17v2a2 2 0 01-2 2h-2M7 12h10"/></svg>
             Scan QR
@@ -1267,6 +1275,14 @@ Minimum version required to store current data is: `+i+`.
             <label>Filter Kelas</label>
             <select id="kegiatan-filter-kelas">
               <option value="">Semua Kelas</option>
+            </select>
+          </div>
+          <div class="field" style="min-width:160px;">
+            <label>Jenis Kelamin</label>
+            <select id="kegiatan-filter-jk">
+              <option value="">Semua</option>
+              <option value="L">Laki-laki</option>
+              <option value="P">Perempuan</option>
             </select>
           </div>
           <button class="btn btn-gold" id="btn-scan-qr-kegiatan" type="button">
@@ -1569,6 +1585,8 @@ Minimum version required to store current data is: `+i+`.
   let eraportChartInstance = null; // instance Chart.js grafik mutaba'ah di E-Raport
   let absensiFilterKelas = '';  // filter kelas aktif di tab Absensi Mutaba'ah
   let kegiatanFilterKelas = ''; // filter kelas aktif di tab Absensi Kegiatan
+  let absensiFilterJk = '';     // filter jenis kelamin aktif di tab Absensi Mutaba'ah ('', 'L', 'P')
+  let kegiatanFilterJk = '';    // filter jenis kelamin aktif di tab Absensi Kegiatan ('', 'L', 'P')
 
   const IBADAH_FARDHU = [
     {key:"subuh", label:"Subuh"},
@@ -2906,6 +2924,11 @@ Minimum version required to store current data is: `+i+`.
     absensiFilterKelas = filterKelasEl.value;
     renderAbsensiTable();
   });
+  const filterJkEl = document.getElementById('absensi-filter-jk');
+  if(filterJkEl) filterJkEl.addEventListener('change', ()=>{
+    absensiFilterJk = filterJkEl.value;
+    renderAbsensiTable();
+  });
   const btnDownloadAbsensiPdf = document.getElementById('btn-download-absensi-pdf');
   if(btnDownloadAbsensiPdf) btnDownloadAbsensiPdf.addEventListener('click', downloadAbsensiMutabaahPdf);
   const btnScanQrMutabaah = document.getElementById('btn-scan-qr-mutabaah');
@@ -2922,6 +2945,11 @@ Minimum version required to store current data is: `+i+`.
     kegiatanFilterKelas = kegiatanFilterKelasEl.value;
     renderKegiatanTable();
   });
+  const kegiatanFilterJkEl = document.getElementById('kegiatan-filter-jk');
+  if(kegiatanFilterJkEl) kegiatanFilterJkEl.addEventListener('change', ()=>{
+    kegiatanFilterJk = kegiatanFilterJkEl.value;
+    renderKegiatanTable();
+  });
   const btnDownloadKegiatanPdf = document.getElementById('btn-download-kegiatan-pdf');
   if(btnDownloadKegiatanPdf) btnDownloadKegiatanPdf.addEventListener('click', downloadAbsensiKegiatanPdf);
   const btnScanQrKegiatan = document.getElementById('btn-scan-qr-kegiatan');
@@ -2932,8 +2960,9 @@ Minimum version required to store current data is: `+i+`.
     const date = dateInput.value || todayStr();
     let daftarSantri = sortSantriList(santriList);
     if(absensiFilterKelas) daftarSantri = daftarSantri.filter(s=>s.kelas === absensiFilterKelas);
+    if(absensiFilterJk) daftarSantri = daftarSantri.filter(s=>(s.jenis_kelamin || 'L') === absensiFilterJk);
     if(daftarSantri.length === 0){
-      wrap.innerHTML = emptyState(santriList.length===0 ? 'Belum ada santri. Tambahkan santri di tab "Data Santri".' : 'Tidak ada santri di kelas ini.');
+      wrap.innerHTML = emptyState(santriList.length===0 ? 'Belum ada santri. Tambahkan santri di tab "Data Santri".' : 'Tidak ada santri yang sesuai filter.');
       return;
     }
     if(!document.getElementById('absensi-table')){
@@ -3037,8 +3066,9 @@ Minimum version required to store current data is: `+i+`.
     const date = (kegiatanDateInput && kegiatanDateInput.value) || todayStr();
     let daftarSantri = sortSantriList(santriList);
     if(kegiatanFilterKelas) daftarSantri = daftarSantri.filter(s=>s.kelas === kegiatanFilterKelas);
+    if(kegiatanFilterJk) daftarSantri = daftarSantri.filter(s=>(s.jenis_kelamin || 'L') === kegiatanFilterJk);
     if(daftarSantri.length === 0){
-      wrap.innerHTML = emptyState(santriList.length===0 ? 'Belum ada santri. Tambahkan santri di tab "Data Santri".' : 'Tidak ada santri di kelas ini.');
+      wrap.innerHTML = emptyState(santriList.length===0 ? 'Belum ada santri. Tambahkan santri di tab "Data Santri".' : 'Tidak ada santri yang sesuai filter.');
       return;
     }
     if(kegiatanList.length === 0){
@@ -3098,6 +3128,7 @@ Minimum version required to store current data is: `+i+`.
     const date = dateInput.value || todayStr();
     let daftarSantri = sortSantriList(santriList);
     if(absensiFilterKelas) daftarSantri = daftarSantri.filter(s=>s.kelas === absensiFilterKelas);
+    if(absensiFilterJk) daftarSantri = daftarSantri.filter(s=>(s.jenis_kelamin || 'L') === absensiFilterJk);
     if(daftarSantri.length === 0){ showToast('Tidak ada data santri untuk diunduh', true); return; }
     const head = ['Nama', 'Kelas', ...IBADAH_FARDHU.map(f=>f.label), ...IBADAH_SUNNAH.map(f=>f.label), 'Puasa Senin', 'Puasa Kamis'];
     const rows = daftarSantri.map(s=>{
@@ -3115,7 +3146,7 @@ Minimum version required to store current data is: `+i+`.
       ];
     });
     const tableEl = buildExportTable(head, rows);
-    const subtitle = 'Tanggal: ' + fmtTanggalShort(date) + (absensiFilterKelas ? (' — Kelas ' + absensiFilterKelas) : ' — Semua Kelas');
+    const subtitle = 'Tanggal: ' + fmtTanggalShort(date) + (absensiFilterKelas ? (' — Kelas ' + absensiFilterKelas) : ' — Semua Kelas') + (absensiFilterJk ? (' — ' + jenisKelaminLabel(absensiFilterJk)) : '');
     await downloadHistoryPdf("Rekapan Absensi Mutaba'ah", subtitle, tableEl, `Absensi-Mutabaah-${date}.pdf`);
   }
 
@@ -3123,6 +3154,7 @@ Minimum version required to store current data is: `+i+`.
     const date = (kegiatanDateInput && kegiatanDateInput.value) || todayStr();
     let daftarSantri = sortSantriList(santriList);
     if(kegiatanFilterKelas) daftarSantri = daftarSantri.filter(s=>s.kelas === kegiatanFilterKelas);
+    if(kegiatanFilterJk) daftarSantri = daftarSantri.filter(s=>(s.jenis_kelamin || 'L') === kegiatanFilterJk);
     if(daftarSantri.length === 0 || kegiatanList.length === 0){ showToast('Tidak ada data untuk diunduh', true); return; }
     const head = ['Nama', 'Kelas', ...kegiatanList.map(f=>escapeHtml(f.nama))];
     const rows = daftarSantri.map(s=>{
@@ -3137,7 +3169,7 @@ Minimum version required to store current data is: `+i+`.
       ];
     });
     const tableEl = buildExportTable(head, rows);
-    const subtitle = 'Tanggal: ' + fmtTanggalShort(date) + (kegiatanFilterKelas ? (' — Kelas ' + kegiatanFilterKelas) : ' — Semua Kelas');
+    const subtitle = 'Tanggal: ' + fmtTanggalShort(date) + (kegiatanFilterKelas ? (' — Kelas ' + kegiatanFilterKelas) : ' — Semua Kelas') + (kegiatanFilterJk ? (' — ' + jenisKelaminLabel(kegiatanFilterJk)) : '');
     await downloadHistoryPdf('Rekapan Absensi Kegiatan', subtitle, tableEl, `Absensi-Kegiatan-${date}.pdf`);
   }
 
