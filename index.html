@@ -1871,7 +1871,7 @@ Minimum version required to store current data is: `+i+`.
       tabunganData = {};
       (data||[]).forEach(r=>{
         if(!tabunganData[r.santri_id]) tabunganData[r.santri_id] = [];
-        tabunganData[r.santri_id].push({id:r.id, tanggal:r.tanggal, jenis:r.jenis, jumlah:Number(r.jumlah), keterangan:r.keterangan});
+        tabunganData[r.santri_id].push({id:r.id, tanggal:String(r.tanggal).slice(0,10), jenis:r.jenis, jumlah:Number(r.jumlah), keterangan:r.keterangan});
       });
     }catch(e){ tabunganData = {}; showToast('Gagal memuat data tabungan', true); }
 
@@ -5349,7 +5349,7 @@ Minimum version required to store current data is: `+i+`.
       btn.disabled = false;
       if(!created) return;
       if(!tabunganData[sid]) tabunganData[sid] = [];
-      tabunganData[sid].unshift({id:created.id, tanggal:created.tanggal, jenis:created.jenis, jumlah:Number(created.jumlah), keterangan:created.keterangan});
+      tabunganData[sid].unshift({id:created.id, tanggal:String(created.tanggal).slice(0,10), jenis:created.jenis, jumlah:Number(created.jumlah), keterangan:created.keterangan});
       renderTabunganForm();
       renderTabunganHistory();
     });
@@ -5389,7 +5389,7 @@ Minimum version required to store current data is: `+i+`.
       b.addEventListener('click', async ()=>{
         const ok = await dbDeleteTabungan(b.dataset.delTabungan);
         if(!ok) return;
-        tabunganData[sid] = (tabunganData[sid]||[]).filter(e=>e.id!==b.dataset.delTabungan);
+        tabunganData[sid] = (tabunganData[sid]||[]).filter(e=>String(e.id)!==String(b.dataset.delTabungan));
         renderTabunganForm();
         renderTabunganHistory();
       });
