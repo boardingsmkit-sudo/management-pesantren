@@ -5633,18 +5633,30 @@ Minimum version required to store current data is: `+i+`.
     const jumlahSetoran = setoranPeriode.length;
     const setoranTerbaru = setoranPeriode.slice().sort((a,b)=> b.tanggal.localeCompare(a.tanggal)).slice(0,5);
 
-    /* -------- 7. Keuangan Santri: rekap global masuk vs keluar dalam periode -------- */
+    /* -------- 7. Keuangan Santri: rekap global masuk vs keluar dalam periode, dipisah per jenis kelamin -------- */
+    const jkSantriMap = {};
+    santriList.forEach(s=>{ jkSantriMap[s.id] = s.jenis_kelamin === 'P' ? 'P' : 'L'; });
     let totalMasuk = 0, totalKeluar = 0;
-    Object.values(tabunganData).forEach(list=>{
-      (list || []).forEach(e=>{
+    let totalMasukL = 0, totalKeluarL = 0, totalMasukP = 0, totalKeluarP = 0;
+    Object.keys(tabunganData).forEach(sidKey=>{
+      const list = tabunganData[sidKey] || [];
+      const jk = jkSantriMap[sidKey] || 'L';
+      list.forEach(e=>{
         if(!e || !e.tanggal) return;
         if(e.tanggal < dari || e.tanggal > sampai) return;
-        if(e.jenis === 'kredit') totalMasuk += (e.jumlah || 0);
-        else if(e.jenis === 'debit') totalKeluar += (e.jumlah || 0);
+        if(e.jenis === 'kredit'){
+          totalMasuk += (e.jumlah || 0);
+          if(jk === 'P') totalMasukP += (e.jumlah || 0); else totalMasukL += (e.jumlah || 0);
+        } else if(e.jenis === 'debit'){
+          totalKeluar += (e.jumlah || 0);
+          if(jk === 'P') totalKeluarP += (e.jumlah || 0); else totalKeluarL += (e.jumlah || 0);
+        }
       });
     });
     const saldoPeriode = totalMasuk - totalKeluar;
     const adaKeuangan = (totalMasuk > 0 || totalKeluar > 0);
+    const adaKeuanganL = (totalMasukL > 0 || totalKeluarL > 0);
+    const adaKeuanganP = (totalMasukP > 0 || totalKeluarP > 0);
 
     /* -------- 8. Ibadah Sunnah: perbandingan pelaksanaan Puasa Sunnah, Tahajud, Dhuha -------- */
     let puasaChecked = 0, puasaTotal = 0, tahajudChecked = 0, tahajudTotal = 0, dhuhaChecked = 0, dhuhaTotal = 0;
@@ -5672,6 +5684,8 @@ Minimum version required to store current data is: `+i+`.
       jenisCount,
       jumlahSetoran, setoranTerbaru,
       totalMasuk, totalKeluar, saldoPeriode, adaKeuangan,
+      totalMasukL, totalKeluarL, adaKeuanganL,
+      totalMasukP, totalKeluarP, adaKeuanganP,
       persenPuasaSunnah, persenTahajud, persenDhuha, adaIbadahSunnah
     };
   }
@@ -6331,15 +6345,29 @@ Minimum version required to store current data is: `+i+`.
       </div>
 
       <div class="dash-section dc-keuangan dash-grid-span2">
-        <h3 class="dash-section-title"><span class="ico">💰</span> Grafik Keuangan Santri</h3>
-        ${d.adaKeuangan ? `
+        <h3 class="dash-section-title"><span class="ico">💰</span> Grafik Keuangan Santri Putra</h3>
+        ${d.adaKeuanganL ? `
           <div class="dash-mini-grid cols-3">
-            ${dashMini('Rp ' + d.totalMasuk.toLocaleString('id-ID'), 'Total Uang Masuk')}
-            ${dashMini('Rp ' + d.totalKeluar.toLocaleString('id-ID'), 'Total Uang Keluar')}
-            ${dashMini('Rp ' + d.saldoPeriode.toLocaleString('id-ID'), 'Saldo')}
+            ${dashMini('Rp ' + d.totalMasukL.toLocaleString('id-ID'), 'Uang Masuk')}
+            ${dashMini('Rp ' + d.totalKeluarL.toLocaleString('id-ID'), 'Uang Keluar')}
+            ${dashMini('Rp ' + (d.totalMasukL - d.totalKeluarL).toLocaleString('id-ID'), 'Saldo')}
           </div>
           <div class="chart-wrap" style="margin-top:12px;padding:12px 10px 6px;">
-            <canvas id="dash-chart-keuangan" height="90"></canvas>
+            <canvas id="dash-chart-keuangan-l" height="90"></canvas>
+          </div>
+        ` : `<div class="dash-empty-inline">Belum ada data</div>`}
+      </div>
+
+      <div class="dash-section dc-keuangan dash-grid-span2">
+        <h3 class="dash-section-title"><span class="ico">💰</span> Grafik Keuangan Santri Putri</h3>
+        ${d.adaKeuanganP ? `
+          <div class="dash-mini-grid cols-3">
+            ${dashMini('Rp ' + d.totalMasukP.toLocaleString('id-ID'), 'Uang Masuk')}
+            ${dashMini('Rp ' + d.totalKeluarP.toLocaleString('id-ID'), 'Uang Keluar')}
+            ${dashMini('Rp ' + (d.totalMasukP - d.totalKeluarP).toLocaleString('id-ID'), 'Saldo')}
+          </div>
+          <div class="chart-wrap" style="margin-top:12px;padding:12px 10px 6px;">
+            <canvas id="dash-chart-keuangan-p" height="90"></canvas>
           </div>
         ` : `<div class="dash-empty-inline">Belum ada data</div>`}
       </div>
@@ -6376,12 +6404,29 @@ Minimum version required to store current data is: `+i+`.
       }));
     }
 
-    const cvKeuangan = document.getElementById('dash-chart-keuangan');
-    if(cvKeuangan){
-      dashboardCharts.push(new Chart(cvKeuangan.getContext('2d'), {
+    const cvKeuanganL = document.getElementById('dash-chart-keuangan-l');
+    if(cvKeuanganL){
+      dashboardCharts.push(new Chart(cvKeuanganL.getContext('2d'), {
         type: 'bar',
         data: { labels: ['Uang Masuk', 'Uang Keluar'], datasets: [{
-          data: [d.totalMasuk, d.totalKeluar],
+          data: [d.totalMasukL, d.totalKeluarL],
+          backgroundColor: ['#1E6E3C', '#B5443A'], borderRadius:6, maxBarThickness:60
+        }]},
+        options: {
+          indexAxis: 'y',
+          responsive:true, maintainAspectRatio:false,
+          plugins:{legend:{display:false}},
+          scales:{ x:{ beginAtZero:true, ticks:{callback:v=>'Rp '+Number(v).toLocaleString('id-ID'), maxTicksLimit:4, font:{size:10.5}}, grid:{color:'#EEF2F8'} }, y:{grid:{display:false}} }
+        }
+      }));
+    }
+
+    const cvKeuanganP = document.getElementById('dash-chart-keuangan-p');
+    if(cvKeuanganP){
+      dashboardCharts.push(new Chart(cvKeuanganP.getContext('2d'), {
+        type: 'bar',
+        data: { labels: ['Uang Masuk', 'Uang Keluar'], datasets: [{
+          data: [d.totalMasukP, d.totalKeluarP],
           backgroundColor: ['#1E6E3C', '#B5443A'], borderRadius:6, maxBarThickness:60
         }]},
         options: {
