@@ -1456,7 +1456,7 @@ Minimum version required to store current data is: `+i+`.
             Unduh PDF
           </button>
         </div>
-        <div class="table-wrap" style="margin-top:14px;">
+        <div class="table-wrap" id="tabungan-table-wrap" style="margin-top:14px;">
           <table id="tabungan-table"></table>
         </div>
       </div>
@@ -5356,15 +5356,15 @@ Minimum version required to store current data is: `+i+`.
   }
 
   function renderTabunganHistory(){
-    const table = document.getElementById('tabungan-table');
     const sid = document.getElementById('tabungan-santri').value;
+    const wrap = document.getElementById('tabungan-table-wrap');
     const entriesAsc = (tabunganData[sid] || []).slice().sort((a,b)=>a.tanggal.localeCompare(b.tanggal) || String(a.id).localeCompare(String(b.id)));
     if(!sid || entriesAsc.length === 0){
-      table.parentElement.innerHTML = emptyState('Belum ada transaksi jajan untuk santri ini.');
+      wrap.innerHTML = emptyState('Belum ada transaksi jajan untuk santri ini.');
       return;
     }
     if(!document.getElementById('tabungan-table')){
-      table.parentElement.innerHTML = '<table id="tabungan-table"></table>';
+      wrap.innerHTML = '<table id="tabungan-table"></table>';
     }
     let saldoBerjalan = 0;
     const withSaldo = entriesAsc.map(e=>{
