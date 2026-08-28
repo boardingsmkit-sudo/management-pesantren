@@ -5326,14 +5326,18 @@ Minimum version required to store current data is: `+i+`.
             <option value="debit">Debit (Uang Keluar/Jajan)</option>
           </select>
         </div>
-        <div class="field" style="min-width:140px;"><label>Jumlah (Rp)</label><input type="number" id="tb-jumlah" min="0" placeholder="0"></div>
+        <div class="field" style="min-width:140px;"><label>Jumlah (Rp)</label><input type="text" inputmode="numeric" id="tb-jumlah" placeholder="0"></div>
         <div class="field" style="flex:1;min-width:160px;"><label>Keterangan</label><input type="text" id="tb-keterangan" placeholder="Opsional"></div>
         <button class="btn btn-gold" id="btn-add-tabungan">Simpan</button>
       </div>
     `;
     document.getElementById('btn-add-tabungan').addEventListener('click', async ()=>{
-      const jumlah = parseFloat(document.getElementById('tb-jumlah').value);
-      if(!jumlah || jumlah<=0) return;
+      const jumlahRaw = document.getElementById('tb-jumlah').value.replace(/[^0-9]/g,'');
+      const jumlah = parseInt(jumlahRaw, 10);
+      if(!jumlah || jumlah<=0){
+        showToast('Isi jumlah transaksi dengan angka lebih dari 0', true);
+        return;
+      }
       const btn = document.getElementById('btn-add-tabungan');
       btn.disabled = true;
       const created = await dbAddTabungan({
