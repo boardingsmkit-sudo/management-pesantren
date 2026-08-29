@@ -5035,17 +5035,14 @@ Minimum version required to store current data is: `+i+`.
   }
 
   /* -------- Penilaian Santri: Kedisiplinan, Kerapian, Attitude/Adab -------- */
-  let ctPenilaianMode = 'bulanan'; // 'harian' | 'mingguan' | 'bulanan' — bulanan = nilai resmi (masuk ke E-Raport)
+  let ctPenilaianMode = 'bulanan'; // 'mingguan' | 'bulanan' — bulanan = nilai resmi (masuk ke E-Raport)
   let ctKarakterActiveTab = 'kedisiplinan';
   let ctKarakterWorking = { kedisiplinan:{}, kerapian:{}, attitude:{} }; // skor draft yang sedang diedit (belum tentu tersimpan)
 
-  // Tentukan kunci periode (untuk disimpan ke DB) & label tampilan, berdasarkan mode Hari Ini / Minggu Ini / Bulan Ini
+  // Tentukan kunci periode (untuk disimpan ke DB) & label tampilan, berdasarkan mode Minggu Ini / Bulan Ini
   function ctPenilaianRange(){
     const now = new Date();
     const today = todayStr();
-    if(ctPenilaianMode === 'harian'){
-      return { key: today, label: 'Hari Ini — ' + fmtTanggalShort(today) };
-    }
     if(ctPenilaianMode === 'mingguan'){
       const day = now.getDay(); // 0=Minggu
       const diffToMonday = (day === 0) ? 6 : day - 1;
@@ -5091,7 +5088,6 @@ Minimum version required to store current data is: `+i+`.
         <div class="field" style="margin-bottom:14px;max-width:420px;">
           <label>Periode Penilaian</label>
           <div class="subtabs" id="pen-periode-toggle" style="margin-bottom:0;">
-            <button type="button" data-periode="harian"${ctPenilaianMode==='harian'?' class="active"':''}>Hari Ini</button>
             <button type="button" data-periode="mingguan"${ctPenilaianMode==='mingguan'?' class="active"':''}>Minggu Ini</button>
             <button type="button" data-periode="bulanan"${ctPenilaianMode==='bulanan'?' class="active"':''}>Bulan Ini</button>
           </div>
