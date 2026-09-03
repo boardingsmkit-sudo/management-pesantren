@@ -400,6 +400,18 @@ Minimum version required to store current data is: `+i+`.
   }
   .dash-filter button:hover{color:var(--teal-900);}
   .dash-filter button.active{background:var(--teal-900);color:#FBF6E6;}
+  .dash-daterange{
+    display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    background:var(--paper-soft);border:1px solid var(--line);border-radius:11px;
+    padding:8px 12px;flex-shrink:0;
+  }
+  .dash-daterange-field{display:flex;align-items:center;gap:7px;}
+  .dash-daterange-field label{font-size:12px;font-weight:700;color:var(--ink-soft);}
+  .dash-daterange-field input[type="date"]{
+    border:1px solid var(--line);border-radius:8px;padding:6px 8px;
+    font-family:inherit;font-size:12.5px;font-weight:600;color:var(--ink);background:#fff;
+  }
+  @media (max-width:480px){ .dash-daterange{width:100%;} .dash-daterange-field{flex:1;min-width:130px;} .dash-daterange-field input[type="date"]{width:100%;} }
   .dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:16px;margin-top:18px;}
   .dash-grid.dash-grid-wide{grid-template-columns:repeat(auto-fit,minmax(420px,1fr));}
   .dash-section{
@@ -1194,10 +1206,15 @@ Minimum version required to store current data is: `+i+`.
             <h2>Dashboard</h2>
             <p class="sub" style="margin-bottom:0;">Ringkasan kondisi umum pesantren dalam satu halaman.</p>
           </div>
-          <div class="dash-filter" id="dash-periode-toggle">
-            <button type="button" data-dashperiode="hari">Hari Ini</button>
-            <button type="button" data-dashperiode="minggu" class="active">Minggu Ini</button>
-            <button type="button" data-dashperiode="bulan">Bulan Ini</button>
+          <div class="dash-daterange" id="dash-periode-toggle">
+            <div class="dash-daterange-field">
+              <label for="dash-dari-input">Dari</label>
+              <input type="date" id="dash-dari-input">
+            </div>
+            <div class="dash-daterange-field">
+              <label for="dash-sampai-input">Sampai</label>
+              <input type="date" id="dash-sampai-input">
+            </div>
           </div>
         </div>
       </div>
@@ -5519,7 +5536,10 @@ Minimum version required to store current data is: `+i+`.
 
   /* ---------------- Dashboard ---------------- */
   let dashboardCharts = [];
-  let dashboardFilterPeriode = 'minggu'; // 'hari' | 'minggu' | 'bulan'
+  const dashboardFilterPeriode = 'custom'; // Dashboard sekarang selalu memakai rentang tanggal bebas (dari - sampai)
+  // Rentang tanggal bebas untuk Dashboard. Default: awal bulan berjalan s.d. hari ini.
+  let dashboardCustomDari = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0,10);
+  let dashboardCustomSampai = todayStr();
 
   function fmtTanggalPendek(dateStr){
     const d = new Date(dateStr + 'T00:00:00');
@@ -5536,6 +5556,12 @@ Minimum version required to store current data is: `+i+`.
     if(periode === 'bulan'){
       const dari = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
       return { dari, sampai };
+    }
+    if(periode === 'custom'){
+      let dari = dashboardCustomDari || sampai;
+      let smp = dashboardCustomSampai || sampai;
+      if(dari > smp){ const t = dari; dari = smp; smp = t; } // jaga-jaga bila tanggal terbalik
+      return { dari, sampai: smp };
     }
     // minggu: Senin s.d. hari ini
     const hariKe = now.getDay(); // 0=Minggu..6=Sabtu
@@ -5699,6 +5725,12 @@ Minimum version required to store current data is: `+i+`.
   function dashPeriodeLabel(periode){
     if(periode === 'hari') return 'Hari Ini';
     if(periode === 'bulan') return 'Bulan Ini';
+    if(periode === 'custom'){
+      const fmt = (s)=> new Date(s + 'T00:00:00').toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'});
+      const dari = dashboardCustomDari || todayStr();
+      const smp = dashboardCustomSampai || todayStr();
+      return dari === smp ? fmt(dari) : (fmt(dari) + ' s/d ' + fmt(smp));
+    }
     return 'Minggu Ini';
   }
   function generateDashboardAiAnalysis(d, periodeLabel){
@@ -6451,15 +6483,21 @@ Minimum version required to store current data is: `+i+`.
     }
   }
 
-  document.querySelectorAll('#dash-periode-toggle button[data-dashperiode]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      if(btn.classList.contains('active')) return;
-      document.querySelectorAll('#dash-periode-toggle button').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      dashboardFilterPeriode = btn.dataset.dashperiode;
-      renderDashboard();
-    });
-  });
+  const dashDariInput = document.getElementById('dash-dari-input');
+  const dashSampaiInput = document.getElementById('dash-sampai-input');
+  if(dashDariInput) dashDariInput.value = dashboardCustomDari;
+  if(dashSampaiInput) dashSampaiInput.value = dashboardCustomSampai;
+
+  function handleDashDateRangeChange(){
+    if(!dashDariInput || !dashSampaiInput) return;
+    if(!dashDariInput.value || !dashSampaiInput.value) return; // tunggu sampai keduanya terisi
+    dashboardCustomDari = dashDariInput.value;
+    dashboardCustomSampai = dashSampaiInput.value;
+    renderDashboard();
+  }
+
+  if(dashDariInput) dashDariInput.addEventListener('change', handleDashDateRangeChange);
+  if(dashSampaiInput) dashSampaiInput.addEventListener('change', handleDashDateRangeChange);
 
   /* ---------------- Init ---------------- */
   async function init(){
