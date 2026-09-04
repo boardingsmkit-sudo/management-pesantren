@@ -1161,7 +1161,7 @@ Minimum version required to store current data is: `+i+`.
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6M9 9h1"/></svg>
         <span>Catatan Santri</span>
       </button>
-      <button data-tab="keuangan" data-role="musyrif">
+      <button data-tab="keuangan">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
         <span>Keuangan</span>
       </button>
@@ -1455,8 +1455,8 @@ Minimum version required to store current data is: `+i+`.
     <!-- KEUANGAN SANTRI -->
     <section class="panel" id="panel-keuangan">
       <div class="card">
-        <h2>Pencatatan Keuangan Jajan Santri</h2>
-        <p class="sub">Catat transaksi Debit (uang keluar/dipakai) dan Kredit (uang masuk) jajan santri, lengkap dengan saldo akhir.</p>
+        <h2 id="keuangan-card-title">Pencatatan Keuangan Jajan Santri</h2>
+        <p class="sub" id="keuangan-card-sub">Catat transaksi Debit (uang keluar/dipakai) dan Kredit (uang masuk) jajan santri, lengkap dengan saldo akhir.</p>
         <div class="row" style="margin-bottom:16px;">
           <div class="field" style="min-width:220px;">
             <label>Pilih Santri</label>
@@ -1467,7 +1467,7 @@ Minimum version required to store current data is: `+i+`.
       </div>
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:2px;">
-          <h2 style="font-size:16px;margin:0;">Riwayat Transaksi</h2>
+          <h2 style="font-size:16px;margin:0;" id="keuangan-riwayat-title">Riwayat Transaksi</h2>
           <button class="btn btn-primary" id="btn-download-tabungan-pdf">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>
             Unduh PDF
@@ -5311,6 +5311,13 @@ Minimum version required to store current data is: `+i+`.
   function populateTabunganSantriSelect(){
     const sel = document.getElementById('tabungan-santri');
     const prev = sel.value;
+    const isSantri = currentProfile && currentProfile.role === 'santri';
+    if(isSantri){
+      const s = santriList.find(x=>x.id === currentProfile.santri_id);
+      sel.innerHTML = s ? `<option value="${s.id}">${escapeHtml(s.nama)}${s.kelas ? ' — '+escapeHtml(s.kelas):''}</option>` : '';
+      if(s) sel.value = s.id;
+      return;
+    }
     sel.innerHTML = sortSantriList(santriList)
       .map(s=>`<option value="${s.id}">${escapeHtml(s.nama)}${s.kelas ? ' — '+escapeHtml(s.kelas):''}</option>`).join('');
     if(santriList.some(s=>s.id===prev)) sel.value = prev;
@@ -5326,6 +5333,15 @@ Minimum version required to store current data is: `+i+`.
     const sid = document.getElementById('tabungan-santri').value;
     const entries = tabunganData[sid] || [];
     const saldo = hitungSaldo(entries);
+    const isSantri = currentProfile && currentProfile.role === 'santri';
+    if(isSantri){
+      wrap.innerHTML = `
+        <div class="rekap-badges" style="margin-bottom:0;">
+          <span class="rbadge gold">Saldo Saat Ini: <b>Rp ${saldo.toLocaleString('id-ID')}</b></span>
+        </div>
+      `;
+      return;
+    }
     wrap.innerHTML = `
       <div class="rekap-badges" style="margin-bottom:14px;">
         <span class="rbadge gold">Saldo Saat Ini: <b>Rp ${saldo.toLocaleString('id-ID')}</b></span>
@@ -5371,6 +5387,7 @@ Minimum version required to store current data is: `+i+`.
   function renderTabunganHistory(){
     const sid = document.getElementById('tabungan-santri').value;
     const wrap = document.getElementById('tabungan-table-wrap');
+    const isSantri = currentProfile && currentProfile.role === 'santri';
     const entriesAsc = (tabunganData[sid] || []).slice().sort((a,b)=>a.tanggal.localeCompare(b.tanggal) || String(a.id).localeCompare(String(b.id)));
     if(!sid || entriesAsc.length === 0){
       wrap.innerHTML = emptyState('Belum ada transaksi jajan untuk santri ini.');
@@ -5385,7 +5402,7 @@ Minimum version required to store current data is: `+i+`.
       return Object.assign({}, e, {saldoSetelah: saldoBerjalan});
     });
     const entriesDesc = withSaldo.slice().reverse();
-    let html = `<thead><tr><th>Tanggal</th><th>Jenis</th><th>Jumlah</th><th>Saldo Akhir</th><th>Keterangan</th><th></th></tr></thead><tbody>`;
+    let html = `<thead><tr><th>Tanggal</th><th>Jenis</th><th>Jumlah</th><th>Saldo Akhir</th><th>Keterangan</th>${isSantri ? '' : '<th></th>'}</tr></thead><tbody>`;
     entriesDesc.forEach(e=>{
       html += `<tr>
         <td class="mono">${fmtTanggalShort(e.tanggal)}</td>
@@ -5393,7 +5410,7 @@ Minimum version required to store current data is: `+i+`.
         <td class="mono">Rp ${e.jumlah.toLocaleString('id-ID')}</td>
         <td class="mono">Rp ${e.saldoSetelah.toLocaleString('id-ID')}</td>
         <td style="color:var(--ink-soft);">${escapeHtml(e.keterangan||'-')}</td>
-        <td><button class="del-x" data-del-tabungan="${e.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6h16z"/></svg></button></td>
+        ${isSantri ? '' : `<td><button class="del-x" data-del-tabungan="${e.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6h16z"/></svg></button></td>`}
       </tr>`;
     });
     html += `</tbody>`;
@@ -5410,6 +5427,15 @@ Minimum version required to store current data is: `+i+`.
   }
 
   function renderTabunganTab(){
+    const isSantri = currentProfile && currentProfile.role === 'santri';
+    const titleEl = document.getElementById('keuangan-card-title');
+    const subEl = document.getElementById('keuangan-card-sub');
+    const riwayatTitleEl = document.getElementById('keuangan-riwayat-title');
+    if(titleEl) titleEl.textContent = isSantri ? 'Keuangan (Uang Jajan) Saya' : 'Pencatatan Keuangan Jajan Santri';
+    if(subEl) subEl.textContent = isSantri
+      ? 'Lihat saldo dan riwayat transaksi uang jajan Anda. Data ini dicatat oleh Musyrif dan hanya dapat dilihat, tidak dapat diubah.'
+      : 'Catat transaksi Debit (uang keluar/dipakai) dan Kredit (uang masuk) jajan santri, lengkap dengan saldo akhir.';
+    if(riwayatTitleEl) riwayatTitleEl.textContent = isSantri ? 'Riwayat Transaksi Saya' : 'Riwayat Transaksi';
     populateTabunganSantriSelect();
     renderTabunganForm();
     renderTabunganHistory();
@@ -5428,9 +5454,7 @@ Minimum version required to store current data is: `+i+`.
   });
 
   function renderKeuanganTab(){
-    populateTabunganSantriSelect();
-    renderTabunganForm();
-    renderTabunganHistory();
+    renderTabunganTab();
   }
 
   /* ================= PENGATURAN: Kelas & Kegiatan ================= */
@@ -6590,7 +6614,7 @@ Minimum version required to store current data is: `+i+`.
     }
     document.querySelectorAll('.side-nav button').forEach(b=>b.classList.remove('active'));
     document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-    ['absensi-filter-kelas','kegiatan-filter-kelas'].forEach(id=>{
+    ['absensi-filter-kelas','kegiatan-filter-kelas','tabungan-santri'].forEach(id=>{
       const el = document.getElementById(id);
       if(el && el.closest('.field')){
         el.closest('.field').style.display = (role === 'santri') ? 'none' : '';
