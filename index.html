@@ -5379,15 +5379,6 @@ Minimum version required to store current data is: `+i+`.
     const sid = document.getElementById('tabungan-santri').value;
     const entries = tabunganData[sid] || [];
     const saldo = hitungSaldo(entries);
-    const isSantri = currentProfile && currentProfile.role === 'santri';
-    if(isSantri){
-      wrap.innerHTML = `
-        <div class="rekap-badges" style="margin-bottom:0;">
-          <span class="rbadge gold">Saldo Saat Ini: <b>Rp ${saldo.toLocaleString('id-ID')}</b></span>
-        </div>
-      `;
-      return;
-    }
     wrap.innerHTML = `
       <div class="rekap-badges" style="margin-bottom:14px;">
         <span class="rbadge gold">Saldo Saat Ini: <b>Rp ${saldo.toLocaleString('id-ID')}</b></span>
@@ -5433,7 +5424,6 @@ Minimum version required to store current data is: `+i+`.
   function renderTabunganHistory(){
     const sid = document.getElementById('tabungan-santri').value;
     const wrap = document.getElementById('tabungan-table-wrap');
-    const isSantri = currentProfile && currentProfile.role === 'santri';
     const entriesAsc = (tabunganData[sid] || []).slice().sort((a,b)=>a.tanggal.localeCompare(b.tanggal) || String(a.id).localeCompare(String(b.id)));
     if(!sid || entriesAsc.length === 0){
       wrap.innerHTML = emptyState('Belum ada transaksi jajan untuk santri ini.');
@@ -5448,7 +5438,7 @@ Minimum version required to store current data is: `+i+`.
       return Object.assign({}, e, {saldoSetelah: saldoBerjalan});
     });
     const entriesDesc = withSaldo.slice().reverse();
-    let html = `<thead><tr><th>Tanggal</th><th>Jenis</th><th>Jumlah</th><th>Saldo Akhir</th><th>Keterangan</th>${isSantri ? '' : '<th></th>'}</tr></thead><tbody>`;
+    let html = `<thead><tr><th>Tanggal</th><th>Jenis</th><th>Jumlah</th><th>Saldo Akhir</th><th>Keterangan</th><th></th></tr></thead><tbody>`;
     entriesDesc.forEach(e=>{
       html += `<tr>
         <td class="mono">${fmtTanggalShort(e.tanggal)}</td>
@@ -5456,7 +5446,7 @@ Minimum version required to store current data is: `+i+`.
         <td class="mono">Rp ${e.jumlah.toLocaleString('id-ID')}</td>
         <td class="mono">Rp ${e.saldoSetelah.toLocaleString('id-ID')}</td>
         <td style="color:var(--ink-soft);">${escapeHtml(e.keterangan||'-')}</td>
-        ${isSantri ? '' : `<td><button class="del-x" data-del-tabungan="${e.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6h16z"/></svg></button></td>`}
+        <td><button class="del-x" data-del-tabungan="${e.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6h16z"/></svg></button></td>
       </tr>`;
     });
     html += `</tbody>`;
@@ -5473,15 +5463,12 @@ Minimum version required to store current data is: `+i+`.
   }
 
   function renderTabunganTab(){
-    const isSantri = currentProfile && currentProfile.role === 'santri';
     const titleEl = document.getElementById('keuangan-card-title');
     const subEl = document.getElementById('keuangan-card-sub');
     const riwayatTitleEl = document.getElementById('keuangan-riwayat-title');
-    if(titleEl) titleEl.textContent = isSantri ? 'Keuangan (Uang Jajan) Saya' : 'Pencatatan Keuangan Jajan Santri';
-    if(subEl) subEl.textContent = isSantri
-      ? 'Lihat saldo dan riwayat transaksi uang jajan Anda. Data ini dicatat oleh Musyrif dan hanya dapat dilihat, tidak dapat diubah.'
-      : 'Catat transaksi Debit (uang keluar/dipakai) dan Kredit (uang masuk) jajan santri, lengkap dengan saldo akhir.';
-    if(riwayatTitleEl) riwayatTitleEl.textContent = isSantri ? 'Riwayat Transaksi Saya' : 'Riwayat Transaksi';
+    if(titleEl) titleEl.textContent = 'Pencatatan Keuangan Jajan Santri';
+    if(subEl) subEl.textContent = 'Catat transaksi Debit (uang keluar/dipakai) dan Kredit (uang masuk) jajan santri, lengkap dengan saldo akhir.';
+    if(riwayatTitleEl) riwayatTitleEl.textContent = 'Riwayat Transaksi';
     populateTabunganSantriSelect();
     renderTabunganForm();
     renderTabunganHistory();
@@ -6660,7 +6647,7 @@ Minimum version required to store current data is: `+i+`.
     }
     document.querySelectorAll('.side-nav button').forEach(b=>b.classList.remove('active'));
     document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-    ['absensi-filter-kelas','kegiatan-filter-kelas','tabungan-santri','tahfidz-filter-jk'].forEach(id=>{
+    ['absensi-filter-kelas','kegiatan-filter-kelas','tahfidz-filter-jk'].forEach(id=>{
       const el = document.getElementById(id);
       if(el && el.closest('.field')){
         el.closest('.field').style.display = (role === 'santri') ? 'none' : '';
