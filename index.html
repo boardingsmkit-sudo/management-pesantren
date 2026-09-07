@@ -6310,10 +6310,18 @@ Minimum version required to store current data is: `+i+`.
     const m = q.match(/(alpa|tidak hadir|tidak ikut|kosong)\s*(\d+)\s*kali/);
     return m ? parseInt(m[2],10) : null;
   }
+  // Mengembalikan {value, assumed} atau null jika status tidak dapat ditentukan sama sekali.
+  // "assumed:true" dipakai ketika status tidak disebutkan eksplisit tapi Musyrif memakai kata
+  // perintah pencatatan seperti "catat/isi/masukkan/tandai" tanpa kata negasi — dalam hal ini
+  // AI mengasumsikan Hadir/checklist penuh, dan akan menandai asumsi ini secara jelas di preview
+  // supaya Musyrif tetap bisa memeriksa/membatalkan sebelum data tersimpan.
   function aiDetectStatusWord(q){
-    if(/\bmasbuk\b|\bterlambat\b/.test(q)) return 'masbuk';
-    if(/\bfull\b|full ceklis|semuanya ceklis|hadir semua|ikut semua|\blengkap\b/.test(q)) return true;
-    if(/\balpa\b|tidak ikut|tidak hadir|tidak melaksanakan|\bkosong\b|tidak sholat/.test(q)) return false;
+    if(/\bmasbuk\b|\bterlambat\b/.test(q)) return { value:'masbuk', assumed:false };
+    if(/\bfull\b|full ceklis|semuanya ceklis|hadir semua|ikut semua|\blengkap\b/.test(q)) return { value:true, assumed:false };
+    if(/\balpa\b|tidak ikut|tidak hadir|tidak melaksanakan|\bkosong\b|tidak sholat/.test(q)) return { value:false, assumed:false };
+    const adaKataNegasi = /\btidak\b|\bbelum\b|\bgak\b|\bnggak\b|\bga\b/.test(q);
+    const adaKataPerintahCatat = /\bcatat\b|\bcatatkan\b|\bisi\b|\bisikan\b|\bmasukkan\b|\binput\b|\btandai\b/.test(q);
+    if(adaKataPerintahCatat && !adaKataNegasi) return { value:true, assumed:true };
     return null;
   }
 
@@ -6321,7 +6329,7 @@ Minimum version required to store current data is: `+i+`.
   function aiLooksLikeUpdateCommand(q){
     const hasDateHint = /(tanggal|tgl)\s*\d|(\d{1,2}\s*(-|s\/d|sampai|hingga)\s*\d{1,2})/.test(q);
     const hasActivityHint = /sholat|fardhu|subuh|dzuhur|dhuhur|zuhur|ashar|asar|maghrib|isya|isha|tahajud|dhuha|puasa\s+(senin|kamis)|rawatib/.test(q);
-    const hasStatusHint = /\bfull\b|ceklis|hadir semua|ikut semua|\blengkap\b|\balpa\b|tidak ikut|tidak hadir|tidak melaksanakan|\bkosong\b|tidak sholat|masbuk|terlambat/.test(q);
+    const hasStatusHint = /\bfull\b|ceklis|hadir semua|ikut semua|\blengkap\b|\balpa\b|tidak ikut|tidak hadir|tidak melaksanakan|\bkosong\b|tidak sholat|masbuk|terlambat|\bcatat\b|\bcatatkan\b|\bisi\b|\bisikan\b|\bmasukkan\b|\binput\b|\btandai\b/.test(q);
     return hasDateHint && hasActivityHint && hasStatusHint;
   }
 
@@ -6389,10 +6397,11 @@ Minimum version required to store current data is: `+i+`.
           </div>`;
     }
 
-    const statusVal = aiDetectStatusWord(q);
-    if(statusVal === null){
+    const statusInfo = aiDetectStatusWord(q);
+    if(statusInfo === null){
       return aiP('Saya belum memahami status kehadirannya. Apakah dimaksud <i>full/hadir</i>, <i>alpa/tidak hadir</i>, atau <i>masbuk</i>?');
     }
+    const statusVal = statusInfo.value;
     if(statusVal === 'masbuk' && !activity.isFardhu){
       return aiP('Status "masbuk" hanya berlaku untuk Sholat Fardhu.');
     }
@@ -6403,13 +6412,14 @@ Minimum version required to store current data is: `+i+`.
     return aiBuildPreview({
       santriTarget: targetSantri, isBulkAll,
       dateList: dateInfo.dates, rangeText: dateInfo.rangeText,
-      fields: activity.fields, updatesFlat, activityLabel: activity.label
+      fields: activity.fields, updatesFlat, activityLabel: activity.label,
+      statusAssumed: statusInfo.assumed
     });
   }
 
   // Susun preview perubahan (menghormati status Haid), simpan ke aiPendingUpdate, kembalikan HTML
   function aiBuildPreview(cfg){
-    const { santriTarget, isBulkAll, dateList, rangeText, fields, updatesFlat, activityLabel } = cfg;
+    const { santriTarget, isBulkAll, dateList, rangeText, fields, updatesFlat, activityLabel, statusAssumed } = cfg;
     const perSantriChanges = [];
     const overwriteNotes = [];
 
@@ -6446,6 +6456,9 @@ Minimum version required to store current data is: `+i+`.
     aiPendingUpdate = { id: pendingId, stage: 'ready', changes: perSantriChanges, activityLabel, rangeText, isBulkAll };
 
     let html = '';
+    if(statusAssumed){
+      html += aiP('<i>Catatan: Anda tidak menyebutkan status kehadirannya secara spesifik, jadi saya asumsikan <b>Hadir (checklist penuh)</b>. Silakan periksa preview di bawah — batalkan jika status yang dimaksud berbeda.</i>');
+    }
     if(isBulkAll){
       html += aiP(`Anda akan mengubah Mutaba'ah <b>${escapeHtml(activityLabel)}</b> untuk <b>${perSantriChanges.length} santri</b> pada tanggal ${rangeText}. Lanjutkan?`);
     }else{
