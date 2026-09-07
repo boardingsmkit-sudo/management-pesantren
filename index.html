@@ -5898,12 +5898,18 @@ Minimum version required to store current data is: `+i+`.
      AI CHAT MUSYRIF — Asisten AI berbasis chat, berjalan lokal di browser
      -----------------------------------------------------------------------------
      Prinsip:
-     - AI HANYA MEMBACA & MENGANALISIS data yang sudah dimuat di aplikasi
+     - AI MEMBACA & MENGANALISIS data yang sudah dimuat di aplikasi
        (santriList, mutabaahData, absensiKegiatanData, tahfidzData, catatanData,
-       penilaianData, pelanggaranData, tabunganData). AI TIDAK PERNAH mengubah,
-       menghapus, atau menambah data secara otomatis ke database.
+       penilaianData, pelanggaranData, tabunganData) untuk menjawab pertanyaan.
+     - AI JUGA bisa memahami perintah untuk MENGISI/MENGUBAH data Mutaba'ah
+       (mis. "Tanggal 1 sampai 4 Bagas full sholat fardhu"), tapi SELALU lewat
+       alur: Parse -> Validasi -> Preview -> Konfirmasi Musyrif -> baru Simpan.
+       AI TIDAK PERNAH menyimpan ke database tanpa Musyrif menekan tombol
+       "Konfirmasi & Simpan" pada preview yang ditampilkan. Penyimpanan tetap
+       memakai dbSaveMutabaah() yang sudah ada — tidak ada mekanisme DB baru.
      - Jika data yang ditanyakan tidak tersedia, AI menjawab apa adanya bahwa
-       data belum tersedia — tidak mengarang jawaban.
+       data belum tersedia — tidak mengarang jawaban, tidak mengarang nama
+       santri/tanggal/status.
      - Ini tidak membuat tab/menu baru: AI Chat dibuka lewat tombol yang sudah
        ada di Dashboard ("Analisis dengan AI" sebelumnya), memakai komponen
        modal yang sudah ada di aplikasi (openModal / #modal-overlay).
@@ -5920,7 +5926,8 @@ Minimum version required to store current data is: `+i+`.
     "Bagaimana perkembangan Tahfidz Ihsan?",
     "Bagaimana nilai Ihsan?",
     "Buatkan deskripsi E-Raport Ihsan.",
-    "Berapa uang masuk dan keluar bulan ini?"
+    "Berapa uang masuk dan keluar bulan ini?",
+    "Tanggal 1 sampai 4 Bagas sholat jamaah fardhu full ceklis."
   ];
 
   function openAiChatModal(){
@@ -5934,7 +5941,7 @@ Minimum version required to store current data is: `+i+`.
           <input type="text" id="ai-chat-input" placeholder="Tulis pertanyaan, mis. 'Berapa jumlah santri sekarang?'" autocomplete="off" />
           <button type="submit" class="btn btn-primary">Kirim</button>
         </form>
-        <p class="sub" style="margin:10px 0 0;">AI hanya membaca &amp; menganalisis data yang sudah ada di aplikasi. Data tidak diubah, dihapus, atau ditambahkan secara otomatis.</p>
+        <p class="sub" style="margin:10px 0 0;">AI dapat membaca &amp; menganalisis data, serta memahami perintah pengisian Mutaba'ah. Data baru akan tersimpan hanya setelah Anda menekan tombol "Konfirmasi &amp; Simpan" pada preview yang ditampilkan.</p>
       </div>
     `;
     openModal('💬 Chat AI Musyrif', bodyHtml);
@@ -5959,11 +5966,21 @@ Minimum version required to store current data is: `+i+`.
       if(!btn) return;
       aiChatHandleUserMessage(btn.dataset.q || '');
     });
+    // Delegasi klik untuk tombol Preview Mutaba'ah (Konfirmasi/Batalkan/pilihan auto-tempat tanggal).
+    // Dipasang di wrapper pesan (bukan per-tombol) karena innerHTML pesan di-render ulang tiap kali.
+    document.getElementById('ai-chat-messages')?.addEventListener('click', (e)=>{
+      const confirmBtn = e.target.closest('[data-ai-confirm]');
+      const cancelBtn = e.target.closest('[data-ai-cancel]');
+      const autoBtn = e.target.closest('[data-ai-autoplace]');
+      if(confirmBtn){ aiExecutePendingUpdate(confirmBtn.dataset.aiPending); return; }
+      if(cancelBtn){ aiCancelPendingUpdate(cancelBtn.dataset.aiPending); return; }
+      if(autoBtn){ aiHandleAutoPlaceChoice(autoBtn.dataset.aiPending, autoBtn.dataset.aiAutoplace === 'yes'); return; }
+    });
     setTimeout(()=>{ document.getElementById('ai-chat-input')?.focus(); }, 60);
   }
 
   function aiChatWelcomeHtml(){
-    return `<p>Assalamu'alaikum, saya <b>Asisten AI Musyrif</b>. Saya bisa membantu membaca dan menganalisis data aplikasi: Santri, Mutaba'ah, Absensi Kegiatan, Tahfidz, Catatan Santri, Penilaian, E-Raport, dan Keuangan.</p><p>Silakan tanyakan sesuatu, atau pilih salah satu contoh pertanyaan di bawah ini.</p>`;
+    return `<p>Assalamu'alaikum, saya <b>Asisten AI Musyrif</b>. Saya bisa membantu membaca dan menganalisis data aplikasi: Santri, Mutaba'ah, Absensi Kegiatan, Tahfidz, Catatan Santri, Penilaian, E-Raport, dan Keuangan.</p><p>Saya juga bisa membantu <b>mengisikan Mutaba'ah</b> langsung dari perintah, misalnya <i>"Tanggal 1 sampai 4 Bagas full sholat fardhu."</i> — saya akan tampilkan preview dulu, dan data baru tersimpan setelah Anda menekan "Konfirmasi &amp; Simpan".</p><p>Silakan tanyakan atau perintahkan sesuatu, atau pilih salah satu contoh di bawah ini.</p>`;
   }
 
   function aiChatPush(role, html){
@@ -6140,12 +6157,395 @@ Minimum version required to store current data is: `+i+`.
   }
 
   /* -------- Mesin jawaban utama -------- */
+  /* =============================================================================
+     MODUL BARU: AI CHAT MENGISI MUTABA'AH (parse -> validasi -> preview -> confirm -> execute)
+     -----------------------------------------------------------------------------
+     - Tidak membuat sistem database baru: penyimpanan tetap lewat dbSaveMutabaah()
+       yang sudah ada, dan field yang dipakai adalah field yang sudah ada di
+       mutabaahData / IBADAH_FARDHU / IBADAH_SUNNAH / RAWATIB_STRUKTUR.
+     - AI tidak pernah menyimpan data langsung dari parsing; hasil parsing hanya
+       disimpan sementara di variabel aiPendingUpdate menunggu klik tombol
+       "Konfirmasi & Simpan" (lihat listener di openAiChatModal).
+     ============================================================================= */
+
+  let aiPendingUpdate = null; // command terstruktur yang menunggu konfirmasi Musyrif
+  let aiPendingSeq = 0;
+  let aiUpdateLog = [];       // log sederhana perubahan lewat AI Chat (di memori, reset saat refresh)
+
+  const AI_BULAN_NAMA = ['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  const AI_BULAN_MAP = {
+    januari:1, jan:1, februari:2, feb:2, maret:3, mar:3, april:4, apr:4, mei:5,
+    juni:6, jun:6, juli:7, jul:7, agustus:8, agu:8, ags:8, september:9, sep:9, sept:9,
+    oktober:10, okt:10, november:11, nov:11, desember:12, des:12
+  };
+
+  function aiPad2(n){ return String(n).padStart(2,'0'); }
+  function aiBulanNamaFromYm(ym){
+    const parts = String(ym).split('-');
+    const y = parseInt(parts[0],10), m = parseInt(parts[1],10);
+    return (AI_BULAN_NAMA[m] || '') + ' ' + y;
+  }
+  function aiContextYearMonth(){
+    const v = (typeof dateInput !== 'undefined' && dateInput && dateInput.value) || todayStr();
+    return v.slice(0,7);
+  }
+
+  // Label tampilan untuk sebuah field mutabaahData (dipakai di preview & log)
+  function aiFieldLabel(key){
+    const f1 = IBADAH_FARDHU.find(x=>x.key===key); if(f1) return f1.label;
+    const f2 = IBADAH_SUNNAH.find(x=>x.key===key); if(f2) return f2.label;
+    if(key==='puasa_senin') return 'Puasa Senin';
+    if(key==='puasa_kamis') return 'Puasa Kamis';
+    const r1 = RAWATIB_STRUKTUR.find(x=>x.qobliyah===key); if(r1) return 'Rawatib Qobliyah '+r1.label;
+    const r2 = RAWATIB_STRUKTUR.find(x=>x.baediyah===key); if(r2) return "Rawatib Ba'diyah "+r2.label;
+    return key;
+  }
+  function aiStatusLabel(v){ return v === 'masbuk' ? 'Masbuk' : (v ? 'Hadir' : 'Alpa'); }
+  function aiStatusTanda(v){ return v === 'masbuk' ? 'M' : (v ? '✓' : '✕'); }
+
+  // ---- Parsing tanggal: "tanggal 1 sampai 4", "tgl 1-4", "1 s/d 4", "1 hingga 4",
+  //      "tanggal 1 sampai tanggal 4", "tanggal 1, 2, 3, 4", "tanggal 5" ----
+  function aiParseDateList(q){
+    let yearMonth = null;
+    const bulanKeys = Object.keys(AI_BULAN_MAP).sort((a,b)=>b.length-a.length).join('|');
+    const bulanRegex = new RegExp('\\b('+bulanKeys+')\\b(?:\\s+(\\d{4}))?');
+    const bulanMatch = q.match(bulanRegex);
+    if(bulanMatch){
+      const bln = AI_BULAN_MAP[bulanMatch[1]];
+      const thn = bulanMatch[2] ? parseInt(bulanMatch[2],10) : parseInt(aiContextYearMonth().slice(0,4),10);
+      yearMonth = thn + '-' + aiPad2(bln);
+    }
+    if(!yearMonth) yearMonth = aiContextYearMonth();
+
+    let m = q.match(/(?:tanggal|tgl)?\s*(\d{1,2})\s*(?:-|s\/d|\bsd\b|sampai(?:\s+(?:tanggal|tgl))?|hingga)\s*(?:(?:tanggal|tgl)\s*)?(\d{1,2})\b/);
+    if(m){
+      const d1 = parseInt(m[1],10), d2 = parseInt(m[2],10);
+      const lo = Math.min(d1,d2), hi = Math.max(d1,d2);
+      const dates = [];
+      for(let d=lo; d<=hi; d++) dates.push(yearMonth+'-'+aiPad2(d));
+      return { dates, rangeText: lo+'\u2013'+hi+' '+aiBulanNamaFromYm(yearMonth) };
+    }
+
+    m = q.match(/(?:tanggal|tgl)\s*((?:\d{1,2}\s*,\s*)+\d{1,2})\b/);
+    if(m){
+      const nums = m[1].split(',').map(s=>parseInt(s.trim(),10));
+      const dates = nums.map(d=>yearMonth+'-'+aiPad2(d));
+      return { dates, rangeText: nums.join(', ')+' '+aiBulanNamaFromYm(yearMonth) };
+    }
+
+    m = q.match(/(?:tanggal|tgl)\s*(\d{1,2})\b/);
+    if(m){
+      const d = parseInt(m[1],10);
+      return { dates: [yearMonth+'-'+aiPad2(d)], rangeText: d+' '+aiBulanNamaFromYm(yearMonth) };
+    }
+
+    return { dates: [], error: 'no_date' };
+  }
+
+  // ---- Deteksi aktivitas & field yang dimaksud ----
+  const AI_FARDHU_ALIASES = {
+    subuh: ['subuh'],
+    dzuhur: ['dzuhur','dhuhur','zuhur'],
+    ashar: ['ashar','asar'],
+    maghrib: ['maghrib'],
+    isya: ['isya','isha']
+  };
+  function aiDetectFardhuFields(q){
+    const found = [];
+    Object.keys(AI_FARDHU_ALIASES).forEach(key=>{
+      const re = new RegExp('\\b(' + AI_FARDHU_ALIASES[key].join('|') + ')\\b');
+      if(re.test(q)) found.push(key);
+    });
+    return found;
+  }
+  function aiIsGenericFardhu(q){
+    return /sholat fardhu|jamaah fardhu|sholat jamaah|\bfardhu\b|\bsholat\b/.test(q);
+  }
+  function aiDetectActivity(q){
+    const puasaFields = [];
+    if(/puasa\s+senin/.test(q)) puasaFields.push('puasa_senin');
+    if(/puasa\s+kamis/.test(q)) puasaFields.push('puasa_kamis');
+    if(puasaFields.length) return { fields: puasaFields, label: puasaFields.map(aiFieldLabel).join(' & '), isFardhu:false };
+
+    const sunnahFields = [];
+    if(/\btahajud\b/.test(q)) sunnahFields.push('tahajud');
+    if(/\bdhuha\b/.test(q)) sunnahFields.push('dhuha');
+    if(sunnahFields.length) return { fields: sunnahFields, label: sunnahFields.map(aiFieldLabel).join(' & '), isFardhu:false };
+
+    const specificFardhu = aiDetectFardhuFields(q);
+    if(specificFardhu.length) return { fields: specificFardhu, label: specificFardhu.map(aiFieldLabel).join(', '), isFardhu:true };
+
+    if(aiIsGenericFardhu(q)) return { fields: IBADAH_FARDHU.map(f=>f.key), label: 'Sholat Fardhu', isFardhu:true };
+
+    return null;
+  }
+
+  // ---- Deteksi status kehadiran / pola hitungan ("alpa 3 kali") ----
+  function aiDetectCountPattern(q){
+    const m = q.match(/(alpa|tidak hadir|tidak ikut|kosong)\s*(\d+)\s*kali/);
+    return m ? parseInt(m[2],10) : null;
+  }
+  function aiDetectStatusWord(q){
+    if(/\bmasbuk\b|\bterlambat\b/.test(q)) return 'masbuk';
+    if(/\bfull\b|full ceklis|semuanya ceklis|hadir semua|ikut semua|\blengkap\b/.test(q)) return true;
+    if(/\balpa\b|tidak ikut|tidak hadir|tidak melaksanakan|\bkosong\b|tidak sholat/.test(q)) return false;
+    return null;
+  }
+
+  // ---- Apakah pesan ini kemungkinan besar perintah UPDATE, bukan pertanyaan analitik? ----
+  function aiLooksLikeUpdateCommand(q){
+    const hasDateHint = /(tanggal|tgl)\s*\d|(\d{1,2}\s*(-|s\/d|sampai|hingga)\s*\d{1,2})/.test(q);
+    const hasActivityHint = /sholat|fardhu|subuh|dzuhur|dhuhur|zuhur|ashar|asar|maghrib|isya|isha|tahajud|dhuha|puasa\s+(senin|kamis)|rawatib/.test(q);
+    const hasStatusHint = /\bfull\b|ceklis|hadir semua|ikut semua|\blengkap\b|\balpa\b|tidak ikut|tidak hadir|tidak melaksanakan|\bkosong\b|tidak sholat|masbuk|terlambat/.test(q);
+    return hasDateHint && hasActivityHint && hasStatusHint;
+  }
+
+  // Tombol aksi HTML untuk preview (Konfirmasi/Batalkan)
+  function aiActionButtonsConfirm(pendingId, isOverwrite){
+    return `<div class="ai-chat-actions" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+        <button type="button" class="btn btn-ghost" data-ai-cancel="1" data-ai-pending="${pendingId}" style="color:var(--ink-soft);border-color:var(--line);">Batalkan</button>
+        <button type="button" class="btn btn-primary" data-ai-confirm="1" data-ai-pending="${pendingId}">${isOverwrite ? 'Ubah & Simpan' : 'Konfirmasi & Simpan'}</button>
+      </div>`;
+  }
+
+  // Titik masuk utama: parse perintah -> validasi -> preview (atau pesan error/klarifikasi)
+  function aiHandleUpdateCommand(q, rawText){
+    const isBulkAll = /semua santri|seluruh santri/.test(q);
+    let targetSantri = [];
+    if(isBulkAll){
+      targetSantri = sortSantriList(santriList).filter(s=>s.aktif !== false);
+      if(targetSantri.length === 0){
+        return aiP('Belum ada data santri aktif untuk diproses.');
+      }
+    }else{
+      const matches = aiFindSantriInQuery(q);
+      if(matches.length === 0){
+        return aiP('Saya belum menemukan santri yang dimaksud dalam kalimat Anda. Mohon sebutkan nama santri dengan jelas, contoh: <i>"Tanggal 1 sampai 4 Bagas full sholat fardhu."</i>');
+      }
+      if(matches.length > 1){
+        return aiP('Ada beberapa santri dengan nama serupa, saya belum berani memilih sendiri:')
+          + aiUl(matches.map(s=>`<b>${escapeHtml(s.nama)}</b>${s.kelas ? ' (kelas '+escapeHtml(s.kelas)+')' : ''}`))
+          + aiP('Mohon sebutkan nama lengkap santri yang dimaksud.');
+      }
+      targetSantri = [matches[0]];
+    }
+
+    const activity = aiDetectActivity(q);
+    if(!activity){
+      return aiP('Saya belum memahami aktivitas yang ingin dicatat. Apakah yang dimaksud Sholat Fardhu, Tahajud, Dhuha, Puasa Senin/Kamis, atau aktivitas Mutaba\'ah lainnya?');
+    }
+
+    const dateInfo = aiParseDateList(q);
+    if(dateInfo.error === 'no_date' || dateInfo.dates.length === 0){
+      return aiP('Mohon sebutkan tanggal atau rentang tanggalnya, contoh: <i>"tanggal 1 sampai 4"</i>.');
+    }
+
+    const countNeed = aiDetectCountPattern(q);
+    if(countNeed !== null){
+      if(countNeed > dateInfo.dates.length){
+        return aiP(`Rentang tanggal ${dateInfo.rangeText} hanya terdiri dari ${dateInfo.dates.length} hari, sedangkan Anda meminta ${countNeed} kali alpa ${escapeHtml(activity.label)}. Mohon periksa kembali jumlah hari atau jumlah alpa.`);
+      }
+      if(targetSantri.length !== 1){
+        return aiP('Perintah dengan jumlah "alpa sekian kali" hanya dapat diproses untuk satu santri sekaligus. Mohon sebutkan nama santri secara spesifik.');
+      }
+      aiPendingSeq++;
+      const pendingId = 'ap'+aiPendingSeq;
+      aiPendingUpdate = {
+        id: pendingId, stage: 'need_autoplace',
+        santriIds: [targetSantri[0].id],
+        fields: activity.fields, activityLabel: activity.label,
+        dateListFull: dateInfo.dates, rangeText: dateInfo.rangeText, need: countNeed
+      };
+      return aiP(`Anda menyebutkan <b>${escapeHtml(activity.label)}</b> alpa <b>${countNeed} kali</b> untuk <b>${escapeHtml(targetSantri[0].nama)}</b> pada rentang tanggal ${dateInfo.rangeText}, tetapi belum menentukan tanggalnya.`)
+        + aiP(`Apakah saya boleh menempatkannya pada ${countNeed} tanggal kosong secara otomatis dalam rentang tersebut?`)
+        + `<div class="ai-chat-actions" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+            <button type="button" class="btn btn-ghost" data-ai-autoplace="no" data-ai-pending="${pendingId}" style="color:var(--ink-soft);border-color:var(--line);">Tidak, saya tentukan tanggalnya</button>
+            <button type="button" class="btn btn-primary" data-ai-autoplace="yes" data-ai-pending="${pendingId}">Ya, boleh</button>
+          </div>`;
+    }
+
+    const statusVal = aiDetectStatusWord(q);
+    if(statusVal === null){
+      return aiP('Saya belum memahami status kehadirannya. Apakah dimaksud <i>full/hadir</i>, <i>alpa/tidak hadir</i>, atau <i>masbuk</i>?');
+    }
+    if(statusVal === 'masbuk' && !activity.isFardhu){
+      return aiP('Status "masbuk" hanya berlaku untuk Sholat Fardhu.');
+    }
+
+    const updatesFlat = {};
+    activity.fields.forEach(f=>{ updatesFlat[f] = statusVal; });
+
+    return aiBuildPreview({
+      santriTarget: targetSantri, isBulkAll,
+      dateList: dateInfo.dates, rangeText: dateInfo.rangeText,
+      fields: activity.fields, updatesFlat, activityLabel: activity.label
+    });
+  }
+
+  // Susun preview perubahan (menghormati status Haid), simpan ke aiPendingUpdate, kembalikan HTML
+  function aiBuildPreview(cfg){
+    const { santriTarget, isBulkAll, dateList, rangeText, fields, updatesFlat, activityLabel } = cfg;
+    const perSantriChanges = [];
+    const overwriteNotes = [];
+
+    santriTarget.forEach(s=>{
+      const perDate = [];
+      const skippedHaid = [];
+      dateList.forEach(date=>{
+        const key = s.id+'_'+date;
+        const rec = mutabaahData[key] || {};
+        const sedangHaid = s.jenis_kelamin === 'P' && !!rec.haid;
+        const relevantFields = fields.filter(f=> !(sedangHaid && FIELD_NONAKTIF_SAAT_HAID.includes(f)) );
+        if(sedangHaid && relevantFields.length < fields.length) skippedHaid.push(date);
+        if(relevantFields.length === 0) return;
+        const before = {}, after = {};
+        relevantFields.forEach(f=>{
+          before[f] = rec[f];
+          after[f] = updatesFlat[f];
+          const beforeTruthy = (before[f] === true || before[f] === 'masbuk');
+          if(beforeTruthy && before[f] !== after[f]){
+            overwriteNotes.push(`Data ${escapeHtml(aiFieldLabel(f))} ${escapeHtml(s.nama)} tanggal ${date.slice(8,10)} sebelumnya <b>${aiStatusLabel(before[f])}</b>, akan diubah menjadi <b>${aiStatusLabel(after[f])}</b>.`);
+          }
+        });
+        perDate.push({ date, fields: relevantFields, before, after });
+      });
+      if(perDate.length > 0) perSantriChanges.push({ santriId: s.id, nama: s.nama, kelas: s.kelas, perDate, skippedHaid });
+    });
+
+    if(perSantriChanges.length === 0){
+      return aiP('Tidak ada perubahan yang dapat dilakukan — kemungkinan seluruh tanggal/field yang dimaksud sedang dinonaktifkan karena status Haid.');
+    }
+
+    aiPendingSeq++;
+    const pendingId = 'pu'+aiPendingSeq;
+    aiPendingUpdate = { id: pendingId, stage: 'ready', changes: perSantriChanges, activityLabel, rangeText, isBulkAll };
+
+    let html = '';
+    if(isBulkAll){
+      html += aiP(`Anda akan mengubah Mutaba'ah <b>${escapeHtml(activityLabel)}</b> untuk <b>${perSantriChanges.length} santri</b> pada tanggal ${rangeText}. Lanjutkan?`);
+    }else{
+      const s = perSantriChanges[0];
+      html += aiP('Saya memahami perintah Anda sebagai berikut:')
+        + aiUl([
+            `<b>Santri:</b> ${escapeHtml(s.nama)}${s.kelas ? ' (kelas '+escapeHtml(s.kelas)+')' : ''}`,
+            `<b>Tanggal:</b> ${rangeText}`,
+            `<b>Aktivitas:</b> ${escapeHtml(activityLabel)}`
+          ]);
+      const fieldLabels = fields.map(aiFieldLabel);
+      let table = '<table style="border-collapse:collapse;margin-top:8px;font-size:13px;"><thead><tr><th style="border:1px solid var(--line);padding:4px 8px;">Tanggal</th>'
+        + fieldLabels.map(l=>`<th style="border:1px solid var(--line);padding:4px 8px;">${escapeHtml(l)}</th>`).join('') + '</tr></thead><tbody>';
+      s.perDate.forEach(d=>{
+        table += `<tr><td style="border:1px solid var(--line);padding:4px 8px;">${d.date.slice(8,10)}</td>`
+          + fields.map(f=>{
+              if(!d.fields.includes(f)) return `<td style="border:1px solid var(--line);padding:4px 8px;text-align:center;color:var(--ink-soft);">—</td>`;
+              return `<td style="border:1px solid var(--line);padding:4px 8px;text-align:center;">${aiStatusTanda(d.after[f])}</td>`;
+            }).join('')
+          + '</tr>';
+      });
+      table += '</tbody></table>';
+      html += table;
+      if(s.skippedHaid.length){
+        html += aiP(`<i>Catatan: tanggal ${s.skippedHaid.map(d=>d.slice(8,10)).join(', ')} dilewati karena santri sedang Haid pada tanggal tersebut.</i>`);
+      }
+    }
+    if(overwriteNotes.length){
+      html += aiP('Perhatian, beberapa data akan menimpa data yang sudah ada:') + aiUl(overwriteNotes.slice(0,10));
+      if(overwriteNotes.length > 10) html += aiP(`...dan ${overwriteNotes.length-10} perubahan lainnya.`);
+    }
+    const totalDataCount = perSantriChanges.reduce((acc,c)=>acc + c.perDate.reduce((a2,d)=>a2+d.fields.length,0), 0);
+    html += aiP(`Saya akan mengubah <b>${totalDataCount} data Mutaba'ah</b>. Apakah Anda ingin melanjutkan?`);
+    html += aiActionButtonsConfirm(pendingId, overwriteNotes.length > 0);
+    return html;
+  }
+
+  // Klarifikasi "alpa N kali" tanpa tanggal spesifik: pilih tanggal kosong otomatis
+  function aiHandleAutoPlaceChoice(pendingId, yes){
+    if(!aiPendingUpdate || aiPendingUpdate.id !== pendingId || aiPendingUpdate.stage !== 'need_autoplace'){
+      aiChatPush('ai', aiP('Permintaan ini sudah tidak berlaku. Silakan ulangi perintah Anda.'));
+      return;
+    }
+    const pu = aiPendingUpdate;
+    aiPendingUpdate = null;
+    if(!yes){
+      aiChatPush('ai', aiP('Baik, mohon sebutkan tanggal pastinya, contoh: <i>"tanggal 2, 5, 8 alpa tahajud."</i>'));
+      return;
+    }
+    const santri = santriList.find(x=>x.id === pu.santriIds[0]);
+    if(!santri){ aiChatPush('ai', aiP('Santri tidak ditemukan.')); return; }
+    const field = pu.fields[0];
+    const empty = pu.dateListFull.filter(date=>{
+      const rec = mutabaahData[santri.id+'_'+date];
+      return !rec || rec[field] === undefined || rec[field] === null;
+    });
+    let chosen = empty.slice(0, pu.need);
+    if(chosen.length < pu.need){
+      const remaining = pu.dateListFull.filter(d=>!chosen.includes(d));
+      chosen = chosen.concat(remaining.slice(0, pu.need - chosen.length));
+    }
+    chosen.sort();
+    const updatesFlat = {}; pu.fields.forEach(f=>{ updatesFlat[f] = false; });
+    const html = aiBuildPreview({
+      santriTarget: [santri], isBulkAll: false,
+      dateList: chosen,
+      rangeText: chosen.map(d=>d.slice(8,10)).join(', ')+' '+aiBulanNamaFromYm(chosen[0].slice(0,7)),
+      fields: pu.fields, updatesFlat, activityLabel: pu.activityLabel
+    });
+    aiChatPush('ai', html);
+  }
+
+  // Eksekutor: hanya berjalan setelah Musyrif klik "Konfirmasi & Simpan". Memakai dbSaveMutabaah() yang sudah ada.
+  async function aiExecutePendingUpdate(pendingId){
+    if(!aiPendingUpdate || aiPendingUpdate.id !== pendingId || aiPendingUpdate.stage !== 'ready'){
+      aiChatPush('ai', aiP('Permintaan ini sudah tidak berlaku. Silakan ulangi perintah Anda.'));
+      return;
+    }
+    const pu = aiPendingUpdate;
+    aiPendingUpdate = null;
+    let successCount = 0, failCount = 0;
+    for(const c of pu.changes){
+      for(const d of c.perDate){
+        const key = c.santriId + '_' + d.date;
+        if(!mutabaahData[key]) mutabaahData[key] = {};
+        const prevRec = Object.assign({}, mutabaahData[key]);
+        d.fields.forEach(f=>{ mutabaahData[key][f] = d.after[f]; });
+        mutabaahData[key].tanggal = d.date;
+        const ok = await dbSaveMutabaah(c.santriId, d.date, mutabaahData[key]);
+        if(ok){ successCount += d.fields.length; }
+        else { mutabaahData[key] = prevRec; failCount += d.fields.length; }
+      }
+    }
+    // Refresh tampilan yang bergantung pada mutabaahData — checkbox, dashboard, E-Raport
+    try{ if(document.getElementById('absensi-table-wrap')) renderAbsensiTable(); }catch(e){}
+    try{ if(document.getElementById('dash-content')) renderDashboard(); }catch(e){}
+    try{ if(document.getElementById('eraport-content')) renderEraportTab(); }catch(e){}
+
+    const waktu = new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    const namaLabel = pu.isBulkAll ? (pu.changes.length+' santri') : pu.changes.map(c=>c.nama).join(', ');
+    aiUpdateLog.unshift({ waktu, teks: `${waktu} — ${namaLabel} — ${pu.rangeText} — ${pu.activityLabel} — ${failCount>0 ? 'sebagian gagal disimpan' : 'berhasil diperbarui'}.` });
+
+    const resultHtml = aiP(failCount>0
+      ? `Perubahan tersimpan sebagian: ${successCount} data berhasil, ${failCount} data gagal disimpan (kemungkinan koneksi database bermasalah). Silakan coba lagi untuk data yang gagal.`
+      : `✅ Berhasil! ${successCount} data Mutaba'ah telah diperbarui untuk ${escapeHtml(namaLabel)}. Checkbox pada tab Absensi Mutaba'ah, rekap, E-Raport, dan Dashboard sudah otomatis mengikuti data terbaru.`);
+    aiChatPush('ai', resultHtml);
+  }
+
+  function aiCancelPendingUpdate(pendingId){
+    if(!aiPendingUpdate || aiPendingUpdate.id !== pendingId) return;
+    aiPendingUpdate = null;
+    aiChatPush('ai', aiP('Baik, perintah dibatalkan. Tidak ada data yang diubah.'));
+  }
+
   function aiAnswerQuery(rawText){
     const q = String(rawText || '').toLowerCase().replace(/['".,!?;:()]/g, ' ').replace(/\s+/g, ' ').trim();
     if(!q) return aiP('Silakan tulis pertanyaan Anda, atau pilih salah satu contoh pertanyaan di atas.');
 
     if(/^(hai|halo|hi|hello|assalamu|selamat (pagi|siang|sore|malam))/.test(q) && q.length < 25){
       return aiP("Wa'alaikumsalam, ada yang bisa saya bantu terkait data santri, mutaba'ah, absensi, tahfidz, catatan, penilaian, E-Raport, atau keuangan?");
+    }
+
+    /* --- 0. Perintah pengisian/pengubahan Mutaba'ah (parse -> validasi -> preview) --- */
+    if(aiLooksLikeUpdateCommand(q)){
+      return aiHandleUpdateCommand(q, rawText);
     }
 
     const periode = aiDetectPeriode(q);
