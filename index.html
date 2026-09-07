@@ -2126,14 +2126,20 @@ Minimum version required to store current data is: `+i+`.
     }catch(e){ showToast('Gagal menghapus', true); return false; }
   }
 
+  // Field fardhu (subuh/dzuhur/ashar/maghrib/isya) punya 3 kemungkinan nilai: true (Hadir),
+  // false (Alpa), atau string "masbuk". Jangan gunakan !! di sini — itu akan memaksa "masbuk"
+  // menjadi true (Hadir) sebelum sempat tersimpan. Kolom di Supabase HARUS bertipe text/varchar
+  // (bukan boolean) agar nilai "masbuk" bisa tersimpan apa adanya. Lihat migrasi SQL terkait.
+  function fardhuValForSave(v){ return v === 'masbuk' ? 'masbuk' : !!v; }
+
   async function dbSaveMutabaah(santriId, tanggal, rec){
     if(!db){ showBanner('Tidak bisa menyimpan — database belum terhubung'); return false; }
     try{
       const { error } = await db.from('mutabaah').upsert({
         santri_id: santriId,
         tanggal: tanggal,
-        subuh: !!rec.subuh, dzuhur: !!rec.dzuhur, ashar: !!rec.ashar,
-        maghrib: !!rec.maghrib, isya: !!rec.isya,
+        subuh: fardhuValForSave(rec.subuh), dzuhur: fardhuValForSave(rec.dzuhur), ashar: fardhuValForSave(rec.ashar),
+        maghrib: fardhuValForSave(rec.maghrib), isya: fardhuValForSave(rec.isya),
         rawatib_qobliyah_subuh: !!rec.rawatib_qobliyah_subuh,
         rawatib_qobliyah_dzuhur: !!rec.rawatib_qobliyah_dzuhur, rawatib_baediyah_dzuhur: !!rec.rawatib_baediyah_dzuhur,
         rawatib_qobliyah_ashar: !!rec.rawatib_qobliyah_ashar,
@@ -5597,6 +5603,18 @@ Minimum version required to store current data is: `+i+`.
   // Rentang tanggal bebas untuk Dashboard. Default: awal bulan berjalan s.d. hari ini.
   let dashboardCustomDari = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0,10);
   let dashboardCustomSampai = todayStr();
+  let dashboardFilterKelasL = 'ALL'; // filter kelas untuk kartu "Grafik Keuangan Santri Putra"
+  let dashboardFilterKelasP = 'ALL'; // filter kelas untuk kartu "Grafik Keuangan Santri Putri"
+
+  // Daftar kelas unik (terurut) dari santri berjenis kelamin tertentu, untuk isi dropdown filter
+  function dashDaftarKelas(jk){
+    const set = new Set();
+    santriList.forEach(s=>{
+      const sjk = s.jenis_kelamin === 'P' ? 'P' : 'L';
+      if(sjk === jk && s.kelas) set.add(s.kelas);
+    });
+    return Array.from(set).sort((a,b)=>a.localeCompare(b, 'id', {numeric:true}));
+  }
 
   function fmtTanggalPendek(dateStr){
     const d = new Date(dateStr + 'T00:00:00');
@@ -5713,22 +5731,29 @@ Minimum version required to store current data is: `+i+`.
     const setoranTerbaru = setoranPeriode.slice().sort((a,b)=> b.tanggal.localeCompare(a.tanggal)).slice(0,5);
 
     /* -------- 7. Keuangan Santri: rekap global masuk vs keluar dalam periode, dipisah per jenis kelamin -------- */
+    /*            + bisa difilter per kelas (dashboardFilterKelasL / dashboardFilterKelasP) untuk kartu Putra/Putri -------- */
     const jkSantriMap = {};
-    santriList.forEach(s=>{ jkSantriMap[s.id] = s.jenis_kelamin === 'P' ? 'P' : 'L'; });
+    const kelasSantriMap = {};
+    santriList.forEach(s=>{ jkSantriMap[s.id] = s.jenis_kelamin === 'P' ? 'P' : 'L'; kelasSantriMap[s.id] = s.kelas || ''; });
     let totalMasuk = 0, totalKeluar = 0;
     let totalMasukL = 0, totalKeluarL = 0, totalMasukP = 0, totalKeluarP = 0;
     Object.keys(tabunganData).forEach(sidKey=>{
       const list = tabunganData[sidKey] || [];
       const jk = jkSantriMap[sidKey] || 'L';
+      const kelas = kelasSantriMap[sidKey] || '';
+      const lolosFilterL = (dashboardFilterKelasL === 'ALL' || kelas === dashboardFilterKelasL);
+      const lolosFilterP = (dashboardFilterKelasP === 'ALL' || kelas === dashboardFilterKelasP);
       list.forEach(e=>{
         if(!e || !e.tanggal) return;
         if(e.tanggal < dari || e.tanggal > sampai) return;
         if(e.jenis === 'kredit'){
           totalMasuk += (e.jumlah || 0);
-          if(jk === 'P') totalMasukP += (e.jumlah || 0); else totalMasukL += (e.jumlah || 0);
+          if(jk === 'P'){ if(lolosFilterP) totalMasukP += (e.jumlah || 0); }
+          else { if(lolosFilterL) totalMasukL += (e.jumlah || 0); }
         } else if(e.jenis === 'debit'){
           totalKeluar += (e.jumlah || 0);
-          if(jk === 'P') totalKeluarP += (e.jumlah || 0); else totalKeluarL += (e.jumlah || 0);
+          if(jk === 'P'){ if(lolosFilterP) totalKeluarP += (e.jumlah || 0); }
+          else { if(lolosFilterL) totalKeluarL += (e.jumlah || 0); }
         }
       });
     });
@@ -6831,6 +6856,13 @@ Minimum version required to store current data is: `+i+`.
 
       <div class="dash-section dc-keuangan dash-grid-span2">
         <h3 class="dash-section-title"><span class="ico">💰</span> Grafik Keuangan Santri Putra</h3>
+        <div style="margin:-6px 0 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <label for="dash-kelas-l-select" style="font-size:11.5px;color:var(--ink-soft);">Filter Kelas:</label>
+          <select id="dash-kelas-l-select" style="width:auto;min-width:140px;padding:6px 10px;font-size:12.5px;">
+            <option value="ALL"${dashboardFilterKelasL==='ALL'?' selected':''}>Semua Kelas</option>
+            ${dashDaftarKelas('L').map(k=>`<option value="${escapeHtml(k)}"${dashboardFilterKelasL===k?' selected':''}>${escapeHtml(k)}</option>`).join('')}
+          </select>
+        </div>
         ${d.adaKeuanganL ? `
           <div class="dash-mini-grid cols-3">
             ${dashMini('Rp ' + d.totalMasukL.toLocaleString('id-ID'), 'Uang Masuk')}
@@ -6840,11 +6872,18 @@ Minimum version required to store current data is: `+i+`.
           <div class="chart-wrap" style="margin-top:12px;padding:12px 10px 6px;">
             <canvas id="dash-chart-keuangan-l" height="90"></canvas>
           </div>
-        ` : `<div class="dash-empty-inline">Belum ada data</div>`}
+        ` : `<div class="dash-empty-inline">Belum ada data${dashboardFilterKelasL!=='ALL' ? ' untuk kelas '+escapeHtml(dashboardFilterKelasL) : ''}</div>`}
       </div>
 
       <div class="dash-section dc-keuangan dash-grid-span2">
         <h3 class="dash-section-title"><span class="ico">💰</span> Grafik Keuangan Santri Putri</h3>
+        <div style="margin:-6px 0 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <label for="dash-kelas-p-select" style="font-size:11.5px;color:var(--ink-soft);">Filter Kelas:</label>
+          <select id="dash-kelas-p-select" style="width:auto;min-width:140px;padding:6px 10px;font-size:12.5px;">
+            <option value="ALL"${dashboardFilterKelasP==='ALL'?' selected':''}>Semua Kelas</option>
+            ${dashDaftarKelas('P').map(k=>`<option value="${escapeHtml(k)}"${dashboardFilterKelasP===k?' selected':''}>${escapeHtml(k)}</option>`).join('')}
+          </select>
+        </div>
         ${d.adaKeuanganP ? `
           <div class="dash-mini-grid cols-3">
             ${dashMini('Rp ' + d.totalMasukP.toLocaleString('id-ID'), 'Uang Masuk')}
@@ -6854,7 +6893,7 @@ Minimum version required to store current data is: `+i+`.
           <div class="chart-wrap" style="margin-top:12px;padding:12px 10px 6px;">
             <canvas id="dash-chart-keuangan-p" height="90"></canvas>
           </div>
-        ` : `<div class="dash-empty-inline">Belum ada data</div>`}
+        ` : `<div class="dash-empty-inline">Belum ada data${dashboardFilterKelasP!=='ALL' ? ' untuk kelas '+escapeHtml(dashboardFilterKelasP) : ''}</div>`}
       </div>
 
       <div class="dash-section dc-ibadah-sunnah dash-grid-span2">
@@ -6938,6 +6977,19 @@ Minimum version required to store current data is: `+i+`.
         }
       }));
     }
+
+    // Dropdown filter kelas untuk kartu Keuangan Putra/Putri dibuat ulang setiap render,
+    // jadi listener-nya dipasang ulang di sini (bukan sekali saja seperti input tanggal dashboard).
+    const dashKelasLSelect = document.getElementById('dash-kelas-l-select');
+    if(dashKelasLSelect) dashKelasLSelect.addEventListener('change', ()=>{
+      dashboardFilterKelasL = dashKelasLSelect.value;
+      renderDashboard();
+    });
+    const dashKelasPSelect = document.getElementById('dash-kelas-p-select');
+    if(dashKelasPSelect) dashKelasPSelect.addEventListener('change', ()=>{
+      dashboardFilterKelasP = dashKelasPSelect.value;
+      renderDashboard();
+    });
   }
 
   const dashDariInput = document.getElementById('dash-dari-input');
