@@ -6070,11 +6070,16 @@ Minimum version required to store current data is: `+i+`.
       return re.test(q);
     });
     if(full.length > 0) return full;
+    // Cocokkan berdasarkan salah satu kata dalam nama lengkap (bukan cuma kata pertama),
+    // supaya nama tengah/panggilan seperti "Dzaki" tetap ditemukan meski nama lengkapnya
+    // "Ahmad Dzaki Muradani Ihsan" (kata pertamanya "Ahmad", bukan "Dzaki").
     const partial = santriList.filter(s=>{
-      const first = (s.nama || '').toLowerCase().trim().split(/\s+/)[0];
-      if(!first || first.length < 3) return false;
-      const re = new RegExp('\\b' + aiEscapeRegex(first) + '\\b');
-      return re.test(q);
+      const words = (s.nama || '').toLowerCase().trim().split(/\s+/).filter(w=>w.length >= 3);
+      if(words.length === 0) return false;
+      return words.some(w=>{
+        const re = new RegExp('\\b' + aiEscapeRegex(w) + '\\b');
+        return re.test(q);
+      });
     });
     return partial;
   }
