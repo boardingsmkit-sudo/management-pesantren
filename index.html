@@ -5997,15 +5997,19 @@ Minimum version required to store current data is: `+i+`.
       const confirmBtn = e.target.closest('[data-ai-confirm]');
       const cancelBtn = e.target.closest('[data-ai-cancel]');
       const autoBtn = e.target.closest('[data-ai-autoplace]');
+      const kgConfirmBtn = e.target.closest('[data-ai-kg-confirm]');
+      const kgCancelBtn = e.target.closest('[data-ai-kg-cancel]');
       if(confirmBtn){ aiExecutePendingUpdate(confirmBtn.dataset.aiPending); return; }
       if(cancelBtn){ aiCancelPendingUpdate(cancelBtn.dataset.aiPending); return; }
       if(autoBtn){ aiHandleAutoPlaceChoice(autoBtn.dataset.aiPending, autoBtn.dataset.aiAutoplace === 'yes'); return; }
+      if(kgConfirmBtn){ aiExecutePendingKegiatanUpdate(kgConfirmBtn.dataset.aiPending); return; }
+      if(kgCancelBtn){ aiCancelPendingKegiatanUpdate(kgCancelBtn.dataset.aiPending); return; }
     });
     setTimeout(()=>{ document.getElementById('ai-chat-input')?.focus(); }, 60);
   }
 
   function aiChatWelcomeHtml(){
-    return `<p>Assalamu'alaikum, saya <b>Asisten AI Musyrif</b>. Saya bisa membantu membaca dan menganalisis data aplikasi: Santri, Mutaba'ah, Absensi Kegiatan, Tahfidz, Catatan Santri, Penilaian, E-Raport, dan Keuangan.</p><p>Saya juga bisa membantu <b>mengisikan Mutaba'ah</b> langsung dari perintah, misalnya <i>"Tanggal 1 sampai 4 Bagas full sholat fardhu."</i> — saya akan tampilkan preview dulu, dan data baru tersimpan setelah Anda menekan "Konfirmasi &amp; Simpan".</p><p>Silakan tanyakan atau perintahkan sesuatu, atau pilih salah satu contoh di bawah ini.</p>`;
+    return `<p>Assalamu'alaikum, saya <b>Asisten AI Musyrif</b>. Saya bisa membantu membaca dan menganalisis data aplikasi: Santri, Mutaba'ah, Absensi Kegiatan, Tahfidz, Catatan Santri, Penilaian, E-Raport, dan Keuangan.</p><p>Saya juga bisa membantu <b>mengisikan Mutaba'ah</b> langsung dari perintah, misalnya <i>"Tanggal 1 sampai 4 Bagas full sholat fardhu."</i>, maupun <b>mengisikan Absensi Kegiatan</b>, misalnya <i>"Bagas dari tanggal 1 sampai 5 kajian ikut, catat."</i> — saya akan tampilkan preview dulu, dan data baru tersimpan setelah Anda menekan "Konfirmasi &amp; Simpan".</p><p>Silakan tanyakan atau perintahkan sesuatu, atau pilih salah satu contoh di bawah ini.</p>`;
   }
 
   function aiChatPush(role, html){
@@ -6578,6 +6582,199 @@ Minimum version required to store current data is: `+i+`.
     aiChatPush('ai', aiP('Baik, perintah dibatalkan. Tidak ada data yang diubah.'));
   }
 
+  /* =============================================================================
+     MODUL BARU: AI CHAT MENGISI ABSENSI KEGIATAN (parse -> validasi -> preview -> confirm -> execute)
+     -----------------------------------------------------------------------------
+     Meniru pola modul Mutaba'ah di atas secara persis. Tidak membuat sistem
+     database baru: penyimpanan tetap lewat dbSaveAbsensiKegiatan() yang sudah
+     ada, field yang dipakai adalah field yang sudah ada di absensiKegiatanData.
+     AI tidak pernah menyimpan data langsung dari parsing; hasil parsing hanya
+     disimpan sementara di aiPendingKegiatanUpdate menunggu klik tombol
+     "Konfirmasi & Simpan".
+     ============================================================================= */
+  let aiPendingKegiatanUpdate = null;
+
+  // Cari kegiatan (dari master_kegiatan) yang namanya disebut di pertanyaan.
+  function aiFindKegiatanInQuery(q){
+    return kegiatanList.filter(k=>{
+      const nama = (k.nama || '').toLowerCase().trim();
+      if(!nama) return false;
+      const re = new RegExp('\\b' + aiEscapeRegex(nama) + '\\b');
+      return re.test(q);
+    });
+  }
+
+  // Status kehadiran kegiatan: ikut/hadir vs tidak ikut/alpa. Sama seperti
+  // aiDetectStatusWord tapi tanpa opsi "masbuk" (khusus sholat fardhu).
+  function aiDetectKegiatanStatusWord(q){
+    if(/\bfull\b|hadir semua|ikut semua|\blengkap\b|\bikut\b|\bhadir\b|\bmasuk\b/.test(q)) return { value:true, assumed:false };
+    if(/\balpa\b|tidak ikut|tidak hadir|tidak masuk|\bbolos\b|\bkosong\b|absen(?!si)/.test(q)) return { value:false, assumed:false };
+    const adaKataNegasi = /\btidak\b|\bbelum\b|\bgak\b|\bnggak\b|\bga\b/.test(q);
+    const adaKataPerintahCatat = /\bcatat\b|\bcatatkan\b|\bisi\b|\bisikan\b|\bmasukkan\b|\binput\b|\btandai\b/.test(q);
+    if(adaKataPerintahCatat && !adaKataNegasi) return { value:true, assumed:true };
+    return null;
+  }
+
+  // Apakah pesan ini kemungkinan besar perintah UPDATE Absensi Kegiatan?
+  // Butuh: petunjuk tanggal + nama kegiatan yang cocok dengan master_kegiatan + petunjuk status.
+  function aiLooksLikeKegiatanCommand(q){
+    const hasDateHint = /(tanggal|tgl)\s*\d|(\d{1,2}\s*(-|s\/d|sampai|hingga)\s*\d{1,2})/.test(q);
+    if(!hasDateHint) return false;
+    if(aiFindKegiatanInQuery(q).length === 0) return false;
+    const hasStatusHint = /\bfull\b|hadir semua|ikut semua|\blengkap\b|\bikut\b|\bhadir\b|\bmasuk\b|\balpa\b|tidak ikut|tidak hadir|tidak masuk|\bbolos\b|\bkosong\b|absen(?!si)|\bcatat\b|\bcatatkan\b|\bisi\b|\bisikan\b|\bmasukkan\b|\binput\b|\btandai\b/.test(q);
+    return hasStatusHint;
+  }
+
+  function aiKgActionButtonsConfirm(pendingId, isOverwrite){
+    return `<div class="ai-chat-actions" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+        <button type="button" class="btn btn-ghost" data-ai-kg-cancel="1" data-ai-pending="${pendingId}" style="color:var(--ink-soft);border-color:var(--line);">Batalkan</button>
+        <button type="button" class="btn btn-primary" data-ai-kg-confirm="1" data-ai-pending="${pendingId}">${isOverwrite ? 'Ubah & Simpan' : 'Konfirmasi & Simpan'}</button>
+      </div>`;
+  }
+
+  // Titik masuk utama untuk perintah Absensi Kegiatan.
+  function aiHandleKegiatanUpdateCommand(q, rawText){
+    const isBulkAll = /semua santri|seluruh santri/.test(q);
+    let targetSantri = [];
+    if(isBulkAll){
+      targetSantri = sortSantriList(santriList).filter(s=>s.aktif !== false);
+      if(targetSantri.length === 0){
+        return aiP('Belum ada data santri aktif untuk diproses.');
+      }
+    }else{
+      const matches = aiFindSantriInQuery(q);
+      if(matches.length === 0){
+        return aiP('Saya belum menemukan santri yang dimaksud dalam kalimat Anda. Mohon sebutkan nama santri dengan jelas, contoh: <i>"Bagas dari tanggal 1 sampai 5 kajian ikut, catat."</i>');
+      }
+      if(matches.length > 1){
+        return aiP('Ada beberapa santri dengan nama serupa, saya belum berani memilih sendiri:')
+          + aiUl(matches.map(s=>`<b>${escapeHtml(s.nama)}</b>${s.kelas ? ' (kelas '+escapeHtml(s.kelas)+')' : ''}`))
+          + aiP('Mohon sebutkan nama lengkap santri yang dimaksud.');
+      }
+      targetSantri = [matches[0]];
+    }
+
+    const kegiatanMatches = aiFindKegiatanInQuery(q);
+    if(kegiatanMatches.length === 0){
+      return aiP('Saya belum mengenali nama kegiatan yang dimaksud. Kegiatan yang tersedia:')
+        + aiUl(kegiatanList.map(k=>escapeHtml(k.nama)));
+    }
+    if(kegiatanMatches.length > 1){
+      return aiP('Ada beberapa nama kegiatan yang cocok, mohon sebutkan salah satu secara spesifik:')
+        + aiUl(kegiatanMatches.map(k=>`<b>${escapeHtml(k.nama)}</b>`));
+    }
+    const kegiatanObj = kegiatanMatches[0];
+
+    const dateInfo = aiParseDateList(q);
+    if(dateInfo.error === 'no_date' || dateInfo.dates.length === 0){
+      return aiP('Mohon sebutkan tanggal atau rentang tanggalnya, contoh: <i>"tanggal 1 sampai 5"</i>.');
+    }
+
+    const statusInfo = aiDetectKegiatanStatusWord(q);
+    if(statusInfo === null){
+      return aiP('Saya belum memahami status kehadirannya. Apakah dimaksud <i>ikut/hadir</i> atau <i>alpa/tidak ikut</i>?');
+    }
+
+    return aiBuildKegiatanPreview({
+      santriTarget: targetSantri, isBulkAll,
+      dateList: dateInfo.dates, rangeText: dateInfo.rangeText,
+      kegiatanObj, statusVal: statusInfo.value, statusAssumed: statusInfo.assumed
+    });
+  }
+
+  // Susun preview perubahan Absensi Kegiatan, simpan ke aiPendingKegiatanUpdate, kembalikan HTML.
+  function aiBuildKegiatanPreview(cfg){
+    const { santriTarget, isBulkAll, dateList, rangeText, kegiatanObj, statusVal, statusAssumed } = cfg;
+    const perSantriChanges = [];
+    const overwriteNotes = [];
+
+    santriTarget.forEach(s=>{
+      const perDate = dateList.map(date=>{
+        const key = s.id + '_' + kegiatanObj.id + '_' + date;
+        const rec = absensiKegiatanData[key];
+        const before = rec ? rec.hadir : undefined;
+        if(before !== undefined && before !== statusVal){
+          overwriteNotes.push(`Data ${escapeHtml(kegiatanObj.nama)} ${escapeHtml(s.nama)} tanggal ${date.slice(8,10)} sebelumnya <b>${before ? 'Hadir' : 'Alpa'}</b>, akan diubah menjadi <b>${statusVal ? 'Hadir' : 'Alpa'}</b>.`);
+        }
+        return { date, before, after: statusVal };
+      });
+      perSantriChanges.push({ santriId: s.id, nama: s.nama, kelas: s.kelas, perDate });
+    });
+
+    aiPendingSeq++;
+    const pendingId = 'kgpu'+aiPendingSeq;
+    aiPendingKegiatanUpdate = { id: pendingId, stage:'ready', changes: perSantriChanges, kegiatanObj, rangeText, isBulkAll };
+
+    let html = '';
+    if(statusAssumed){
+      html += aiP('<i>Catatan: Anda tidak menyebutkan status kehadirannya secara spesifik, jadi saya asumsikan <b>Hadir</b>. Silakan periksa preview di bawah — batalkan jika status yang dimaksud berbeda.</i>');
+    }
+    if(isBulkAll){
+      html += aiP(`Anda akan mengubah Absensi Kegiatan <b>${escapeHtml(kegiatanObj.nama)}</b> untuk <b>${perSantriChanges.length} santri</b> pada tanggal ${rangeText}. Lanjutkan?`);
+    }else{
+      const s = perSantriChanges[0];
+      html += aiP('Saya memahami perintah Anda sebagai berikut:')
+        + aiUl([
+            `<b>Santri:</b> ${escapeHtml(s.nama)}${s.kelas ? ' (kelas '+escapeHtml(s.kelas)+')' : ''}`,
+            `<b>Tanggal:</b> ${rangeText}`,
+            `<b>Kegiatan:</b> ${escapeHtml(kegiatanObj.nama)}`
+          ]);
+      let table = '<table style="border-collapse:collapse;margin-top:8px;font-size:13px;"><thead><tr><th style="border:1px solid var(--line);padding:4px 8px;">Tanggal</th><th style="border:1px solid var(--line);padding:4px 8px;">Status</th></tr></thead><tbody>';
+      s.perDate.forEach(d=>{
+        table += `<tr><td style="border:1px solid var(--line);padding:4px 8px;">${d.date.slice(8,10)}</td><td style="border:1px solid var(--line);padding:4px 8px;text-align:center;">${d.after ? '✓ Hadir' : '✕ Alpa'}</td></tr>`;
+      });
+      table += '</tbody></table>';
+      html += table;
+    }
+    if(overwriteNotes.length){
+      html += aiP('Perhatian, beberapa data akan menimpa data yang sudah ada:') + aiUl(overwriteNotes.slice(0,10));
+      if(overwriteNotes.length > 10) html += aiP(`...dan ${overwriteNotes.length-10} perubahan lainnya.`);
+    }
+    const totalDataCount = perSantriChanges.reduce((acc,c)=>acc + c.perDate.length, 0);
+    html += aiP(`Saya akan mengubah <b>${totalDataCount} data Absensi Kegiatan</b>. Apakah Anda ingin melanjutkan?`);
+    html += aiKgActionButtonsConfirm(pendingId, overwriteNotes.length > 0);
+    return html;
+  }
+
+  // Eksekutor: hanya berjalan setelah Musyrif klik "Konfirmasi & Simpan". Memakai dbSaveAbsensiKegiatan() yang sudah ada.
+  async function aiExecutePendingKegiatanUpdate(pendingId){
+    if(!aiPendingKegiatanUpdate || aiPendingKegiatanUpdate.id !== pendingId || aiPendingKegiatanUpdate.stage !== 'ready'){
+      aiChatPush('ai', aiP('Permintaan ini sudah tidak berlaku. Silakan ulangi perintah Anda.'));
+      return;
+    }
+    const pu = aiPendingKegiatanUpdate;
+    aiPendingKegiatanUpdate = null;
+    let successCount = 0, failCount = 0;
+    for(const c of pu.changes){
+      for(const d of c.perDate){
+        const key = c.santriId + '_' + pu.kegiatanObj.id + '_' + d.date;
+        const prevRec = absensiKegiatanData[key];
+        const saved = await dbSaveAbsensiKegiatan(c.santriId, pu.kegiatanObj.id, d.date, d.after);
+        if(saved){ absensiKegiatanData[key] = { id: saved.id, hadir: d.after }; successCount++; }
+        else { if(prevRec) absensiKegiatanData[key] = prevRec; failCount++; }
+      }
+    }
+    // Refresh tampilan yang bergantung pada absensiKegiatanData — tabel kegiatan, dashboard, E-Raport
+    try{ if(document.getElementById('kegiatan-table-wrap')) renderKegiatanTable(); }catch(e){}
+    try{ if(document.getElementById('dash-content')) renderDashboard(); }catch(e){}
+    try{ if(document.getElementById('eraport-content')) renderEraportTab(); }catch(e){}
+
+    const waktu = new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    const namaLabel = pu.isBulkAll ? (pu.changes.length+' santri') : pu.changes.map(c=>c.nama).join(', ');
+    aiUpdateLog.unshift({ waktu, teks: `${waktu} — ${namaLabel} — ${pu.rangeText} — ${pu.kegiatanObj.nama} — ${failCount>0 ? 'sebagian gagal disimpan' : 'berhasil diperbarui'}.` });
+
+    const resultHtml = aiP(failCount>0
+      ? `Perubahan tersimpan sebagian: ${successCount} data berhasil, ${failCount} data gagal disimpan (kemungkinan koneksi database bermasalah). Silakan coba lagi untuk data yang gagal.`
+      : `✅ Berhasil! ${successCount} data Absensi Kegiatan telah diperbarui untuk ${escapeHtml(namaLabel)}. Tabel pada tab Absensi Kegiatan, rekap, E-Raport, dan Dashboard sudah otomatis mengikuti data terbaru.`);
+    aiChatPush('ai', resultHtml);
+  }
+
+  function aiCancelPendingKegiatanUpdate(pendingId){
+    if(!aiPendingKegiatanUpdate || aiPendingKegiatanUpdate.id !== pendingId) return;
+    aiPendingKegiatanUpdate = null;
+    aiChatPush('ai', aiP('Baik, perintah dibatalkan. Tidak ada data yang diubah.'));
+  }
+
   function aiAnswerQuery(rawText){
     const q = String(rawText || '').toLowerCase().replace(/['".,!?;:()]/g, ' ').replace(/\s+/g, ' ').trim();
     if(!q) return aiP('Silakan tulis pertanyaan Anda, atau pilih salah satu contoh pertanyaan di atas.');
@@ -6586,7 +6783,12 @@ Minimum version required to store current data is: `+i+`.
       return aiP("Wa'alaikumsalam, ada yang bisa saya bantu terkait data santri, mutaba'ah, absensi, tahfidz, catatan, penilaian, E-Raport, atau keuangan?");
     }
 
-    /* --- 0. Perintah pengisian/pengubahan Mutaba'ah (parse -> validasi -> preview) --- */
+    /* --- 0. Perintah pengisian/pengubahan Absensi Kegiatan (parse -> validasi -> preview) --- */
+    if(aiLooksLikeKegiatanCommand(q)){
+      return aiHandleKegiatanUpdateCommand(q, rawText);
+    }
+
+    /* --- 0b. Perintah pengisian/pengubahan Mutaba'ah (parse -> validasi -> preview) --- */
     if(aiLooksLikeUpdateCommand(q)){
       return aiHandleUpdateCommand(q, rawText);
     }
