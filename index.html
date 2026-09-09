@@ -271,6 +271,8 @@ Minimum version required to store current data is: `+i+`.
   }
   .tri-toggle[data-state="masbuk"]{background:#F5A524;border-color:#F5A524;color:#4A2E00;}
   .tri-toggle[data-state="masbuk"]::before{content:"M";}
+  .tri-toggle[data-state="alpa"]{background:#E5484D;border-color:#E5484D;color:#fff;}
+  .tri-toggle[data-state="alpa"]::before{content:"✕";}
   .tri-toggle:disabled{opacity:.55;cursor:wait;}
 
   thead tr:first-child th{text-align:center;background:var(--paper-soft);}
@@ -1038,6 +1040,35 @@ Minimum version required to store current data is: `+i+`.
   .erp-analisis-col ul{ margin:0; padding-left:18px; }
   .erp-analisis-col li{ margin-bottom:6px; font-size:13px; line-height:1.5; color:var(--ink); }
 
+  /* -------- E-Raport: layout satu lembar terpadu (erp-sheet) -------- */
+  .erp-sheet{
+    background:#fff; border-radius:18px; padding:24px;
+    box-shadow:0 4px 26px rgba(15,42,74,.08); border:1px solid var(--line);
+  }
+  .erp-grid-2col{ display:grid; grid-template-columns:1fr 1fr; gap:18px; margin:18px 0; align-items:start; }
+  .erp-grid-2col .erp-card{ margin-bottom:0; }
+  @media (max-width:760px){ .erp-grid-2col{ grid-template-columns:1fr; } }
+
+  .erp-catatan-ringkas-list{ display:flex; flex-direction:column; gap:10px; }
+  .erp-catatan-ringkas-item{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .erp-catatan-ringkas-item .badge{ flex-shrink:0; white-space:nowrap; }
+  .erp-catatan-ringkas-text{ font-size:12.5px; color:var(--ink-soft); }
+
+  .erp-mini-table{ width:100%; border-collapse:collapse; margin-top:12px; font-size:12px; }
+  .erp-mini-table th{ text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.3px; color:var(--ink-soft); padding:0 6px 6px; border-bottom:1px solid var(--line); }
+  .erp-mini-table td{ padding:6px; border-bottom:1px dashed var(--paper-soft); }
+
+  .erp-ttd-row{ display:flex; justify-content:space-around; gap:24px; margin-top:28px; padding-top:20px; flex-wrap:wrap; }
+  .erp-ttd-col{ text-align:center; min-width:180px; }
+  .erp-ttd-line{ height:50px; }
+  .erp-ttd-label{ font-size:12.5px; color:var(--ink-soft); border-top:1px solid var(--ink); padding-top:6px; }
+  .erp-ttd-nama{ font-size:13px; font-weight:700; color:var(--teal-900); margin-top:2px; }
+
+  @media print{
+    .erp-header-controls, .side-nav, .topbar{ display:none !important; }
+    .erp-sheet{ box-shadow:none; border:none; padding:0; }
+  }
+
   @media(max-width:640px){
     .erp-header{ flex-direction:column; }
     .erp-header-controls{ width:100%; }
@@ -1237,14 +1268,13 @@ Minimum version required to store current data is: `+i+`.
                 <option value="">Pilih santri...</option>
               </select>
             </div>
-            <div class="field" style="min-width:220px;">
-              <label>Periode</label>
-              <div class="subtabs" id="eraport-periode-toggle" style="margin-bottom:0;">
-                <button type="button" data-periode="hari">Hari Ini</button>
-                <button type="button" data-periode="minggu">Minggu Ini</button>
-                <button type="button" data-periode="bulan" class="active">Bulan Ini</button>
-                <button type="button" data-periode="semester">Semester</button>
-              </div>
+            <div class="field" style="min-width:150px;">
+              <label>Dari</label>
+              <input type="date" id="eraport-dari-input">
+            </div>
+            <div class="field" style="min-width:150px;">
+              <label>Sampai</label>
+              <input type="date" id="eraport-sampai-input">
             </div>
             <button type="button" class="btn-erp-print" id="btn-print-eraport">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z"/></svg>
@@ -1677,6 +1707,7 @@ Minimum version required to store current data is: `+i+`.
   let absensiKegiatanData = {}; // { "santriId_masterKegiatanId_YYYY-MM-DD": {id, hadir} }
   let penilaianData = {};       // { "santriId_YYYY-MM": {id, kedisiplinan, kerapian, attitude, catatan} }
   let eraportChartInstance = null; // instance Chart.js grafik mutaba'ah di E-Raport
+  let eraportCurrentData = null;   // snapshot data E-Raport yang sedang tampil, dipakai untuk export PDF 1 lembar
   let absensiFilterKelas = '';  // filter kelas aktif di tab Absensi Mutaba'ah
   let kegiatanFilterKelas = ''; // filter kelas aktif di tab Absensi Kegiatan
   let absensiFilterJk = '';     // filter jenis kelamin aktif di tab Absensi Mutaba'ah ('', 'L', 'P')
@@ -2196,6 +2227,20 @@ Minimum version required to store current data is: `+i+`.
       showToast('Gagal menyimpan kegiatan', true);
       showBanner('Gagal menyimpan absensi kegiatan', (e && e.message) || JSON.stringify(e));
       return null;
+    }
+  }
+
+  // Menghapus record absensi kegiatan (mengembalikan status ke "belum diisi").
+  async function dbDeleteAbsensiKegiatan(id){
+    if(!db) return false;
+    try{
+      const { error } = await db.from('absensi_kegiatan').delete().eq('id', id);
+      if(error) throw error;
+      clearBanner();
+      return true;
+    }catch(e){
+      showToast('Gagal menghapus absensi', true);
+      return false;
     }
   }
 
@@ -3222,27 +3267,40 @@ Minimum version required to store current data is: `+i+`.
         <td><strong>${escapeHtml(s.nama)}</strong><br><span style="font-size:11px;color:var(--ink-soft);">${escapeHtml(s.kelas||'')}</span></td>`;
       kegiatanList.forEach(f=>{
         const key = s.id + '_' + f.id + '_' + date;
-        const hadir = absensiKegiatanData[key] && absensiKegiatanData[key].hadir;
-        html += `<td><input type="checkbox" class="chk gold" data-santri="${s.id}" data-kegiatan="${f.id}" ${hadir?'checked':''}></td>`;
+        const rec = absensiKegiatanData[key];
+        const state = !rec ? 'kosong' : (rec.hadir ? 'hadir' : 'alpa');
+        const titleTxt = state==='hadir' ? 'Hadir (klik untuk tandai Alpa)' : (state==='alpa' ? 'Alpa (klik untuk kosongkan)' : 'Belum diisi (klik untuk tandai Hadir)');
+        html += `<td style="text-align:center;"><button type="button" class="tri-toggle" data-santri="${s.id}" data-kegiatan="${f.id}" data-state="${state}" title="${titleTxt}"></button></td>`;
       });
       html += `</tr>`;
     });
     html += `</tbody>`;
     table.innerHTML = html;
-    table.querySelectorAll('input[type=checkbox]').forEach(cb=>{
-      cb.addEventListener('change', async ()=>{
-        const sid = cb.dataset.santri, kegiatanId = cb.dataset.kegiatan;
+    // Tombol 3-status Kegiatan: kosong -> hadir -> alpa -> kosong
+    table.querySelectorAll('.tri-toggle').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const sid = btn.dataset.santri, kegiatanId = btn.dataset.kegiatan;
         const key = sid + '_' + kegiatanId + '_' + date;
         const prev = absensiKegiatanData[key];
-        cb.disabled = true;
-        const saved = await dbSaveAbsensiKegiatan(sid, kegiatanId, date, cb.checked);
-        cb.disabled = false;
-        if(saved){
-          absensiKegiatanData[key] = {id: saved.id, hadir: cb.checked};
-        }else{
-          absensiKegiatanData[key] = prev;
-          cb.checked = !!(prev && prev.hadir);
+        const curState = !prev ? 'kosong' : (prev.hadir ? 'hadir' : 'alpa');
+        btn.disabled = true;
+        if(curState === 'kosong'){
+          const saved = await dbSaveAbsensiKegiatan(sid, kegiatanId, date, true);
+          btn.disabled = false;
+          if(saved){ absensiKegiatanData[key] = {id: saved.id, hadir:true}; }
+          else { showToast('Gagal menyimpan, coba lagi', true); }
+        }else if(curState === 'hadir'){
+          const saved = await dbSaveAbsensiKegiatan(sid, kegiatanId, date, false);
+          btn.disabled = false;
+          if(saved){ absensiKegiatanData[key] = {id: saved.id, hadir:false}; }
+          else { showToast('Gagal menyimpan, coba lagi', true); }
+        }else{ // alpa -> kosong
+          const ok = await dbDeleteAbsensiKegiatan(prev.id);
+          btn.disabled = false;
+          if(ok){ delete absensiKegiatanData[key]; }
+          else { showToast('Gagal menghapus, coba lagi', true); }
         }
+        renderKegiatanTable();
       });
     });
   }
@@ -3601,37 +3659,30 @@ Minimum version required to store current data is: `+i+`.
     });
     return hasil;
   }
-  /* -------- Filter periode E-Raport: Hari Ini / Minggu Ini / Bulan Ini -------- */
-  let erpPeriodeMode = 'bulan';
+  /* -------- Filter periode E-Raport: rentang tanggal bebas (Dari - Sampai), sama seperti Dashboard -------- */
+  let erpCustomDari = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0,10);
+  let erpCustomSampai = todayStr();
   function erpGetRange(){
-    const now = new Date();
-    const today = todayStr();
-    if(erpPeriodeMode === 'hari'){
-      return { dari: today, sampai: today, label: 'Hari Ini' };
-    }
-    if(erpPeriodeMode === 'minggu'){
-      const day = now.getDay(); // 0=Minggu, 1=Senin, ...
-      const diffToMonday = (day === 0) ? 6 : day - 1;
-      const monday = new Date(now); monday.setDate(now.getDate() - diffToMonday);
-      return { dari: monday.toISOString().slice(0,10), sampai: today, label: 'Minggu Ini' };
-    }
-    if(erpPeriodeMode === 'semester'){
-      const d = new Date(now); d.setMonth(d.getMonth()-6);
-      return { dari: d.toISOString().slice(0,10), sampai: today, label: 'Semester Ini (6 Bulan Terakhir)' };
-    }
-    // bulan (default)
-    const first = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
-    const last = new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().slice(0,10);
-    return { dari: first, sampai: last, label: 'Bulan Ini' };
+    const fmt = (s)=> new Date(s + 'T00:00:00').toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'});
+    let dari = erpCustomDari || todayStr();
+    let sampai = erpCustomSampai || todayStr();
+    if(dari > sampai){ const tmp = dari; dari = sampai; sampai = tmp; } // jaga-jaga kalau terbalik
+    const label = dari === sampai ? fmt(dari) : (fmt(dari) + ' s/d ' + fmt(sampai));
+    return { dari, sampai, label };
   }
-  document.querySelectorAll('#eraport-periode-toggle button[data-periode]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      document.querySelectorAll('#eraport-periode-toggle button').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      erpPeriodeMode = btn.dataset.periode;
-      renderEraportTab();
-    });
-  });
+  const erpDariInput = document.getElementById('eraport-dari-input');
+  const erpSampaiInput = document.getElementById('eraport-sampai-input');
+  if(erpDariInput) erpDariInput.value = erpCustomDari;
+  if(erpSampaiInput) erpSampaiInput.value = erpCustomSampai;
+  function handleErpDateRangeChange(){
+    if(!erpDariInput || !erpSampaiInput) return;
+    if(!erpDariInput.value || !erpSampaiInput.value) return; // tunggu sampai keduanya terisi
+    erpCustomDari = erpDariInput.value;
+    erpCustomSampai = erpSampaiInput.value;
+    renderEraportTab();
+  }
+  if(erpDariInput) erpDariInput.addEventListener('change', handleErpDateRangeChange);
+  if(erpSampaiInput) erpSampaiInput.addEventListener('change', handleErpDateRangeChange);
   // Analisis Perkembangan Santri — BUKAN data mentah, melainkan kesimpulan yang
   // disusun dari 4 sumber yang sudah ditampilkan sebelumnya (Absensi Mutaba'ah +
   // Absensi Kegiatan + Tahfidz + Catatan Santri). Kedisiplinan/Adab/Ibadah/
@@ -3834,219 +3885,254 @@ Minimum version required to store current data is: `+i+`.
         </div>`;
     };
 
+    // Ringkasan Catatan Santri per kategori (1 baris per kategori, entri terbaru pada
+    // periode ini) — dipakai untuk kartu "Catatan Santri" versi ringkas di dashboard
+    // terpadu maupun PDF. Tidak menambah data baru, hanya membaca ulang catatanBulan.
+    const catatanRingkasPerJenis = catatanJenisList.map(j=>{
+      const items = catatanBulan.filter(c=>c.jenis===j).slice().sort((a,b)=>(b.tanggal||'').localeCompare(a.tanggal||''));
+      const meta = JENIS_META[j];
+      if(items.length === 0) return { jenis:j, meta, text:'Tidak ada catatan', count:0 };
+      const c0 = items[0];
+      const parsed = ctParseKeterangan(c0.keterangan);
+      const title = ctEntryTitle(Object.assign({}, c0, { ctText: parsed.text, ctMeta: parsed.meta })) || parsed.text || '-';
+      return { jenis:j, meta, text: title, count: items.length };
+    });
+
+    // Keuangan Santri (Uang Jajan) — dari data tabunganData yang sudah ada, difilter periode
+    const tabunganEntries = tabunganData[santriId] || [];
+    const tabunganPeriode = tabunganEntries.filter(e=>e.tanggal && e.tanggal >= dari && e.tanggal <= sampai);
+    const totalMasuk = tabunganPeriode.filter(e=>e.jenis==='kredit').reduce((a,e)=>a+e.jumlah,0);
+    const totalKeluar = tabunganPeriode.filter(e=>e.jenis==='debit').reduce((a,e)=>a+e.jumlah,0);
+    const saldoSaatIni = hitungSaldo(tabunganEntries);
+    const tabunganTerbaru = tabunganPeriode.slice().sort((a,b)=>(b.tanggal||'').localeCompare(a.tanggal||'')).slice(0,3);
+    const jumlahTransaksi = tabunganPeriode.length;
+
+    // Nama Musyrif pembimbing — memakai nama Musyrif yang sedang login (tidak ada
+    // field "musyrif pembimbing" terpisah di skema Santri, jadi memakai profil
+    // Musyrif yang aktif membuat/melihat laporan ini, tanpa migrasi database).
+    const musyrifNama = (currentProfile && currentProfile.role === 'musyrif' && currentProfile.nama) ? currentProfile.nama : '-';
+
     const erpAvatarHtml = s.foto_url
       ? `<img src="${escapeHtml(s.foto_url)}" alt="">`
       : escapeHtml((s.nama||'?').trim().charAt(0).toUpperCase());
+
+    // Simpan snapshot data untuk export PDF 1 lembar (lihat downloadEraportPdf / buildEraportOnePageHtml)
+    eraportCurrentData = {
+      s, periodeLabel, musyrifNama,
+      persenFardhu, totalFardhu: total, wajibRinci,
+      sunnahRinci,
+      hadirKegiatan, izinKegiatan, sakitKegiatan, tidakHadirKegiatan, totalKegiatan, persenKegiatan,
+      setoranTahfidz, setoranTerbaru,
+      catatanJenisList, catatanCounts: Object.fromEntries(catatanJenisList.map(j=>[j, countJenis(j)])),
+      catatanRingkasPerJenis,
+      totalMasuk, totalKeluar, saldoSaatIni, jumlahTransaksi: tabunganPeriode.length, tabunganTerbaru,
+      pen, erpDeskripsiTersimpan,
+      erpAnalisis
+    };
+
     content.innerHTML = `
       <div id="eraport-print-area">
-        <div class="erp-profile-card">
-          <div class="erp-profile-avatar">${erpAvatarHtml}</div>
-          <div class="erp-profile-info">
-            <div class="erp-profile-info-top">
-              <h3>${escapeHtml(s.nama)}</h3>
-              <span class="badge ${s.aktif===false ? 'nonaktif' : 'aktif'}">${s.aktif===false ? 'Tidak Aktif' : 'Aktif'}</span>
-            </div>
-            <div class="erp-profile-meta">
-              <span>NIS: <b>${escapeHtml(s.nis || '-')}</b></span>
-              <span>Kelas: <b>${escapeHtml(s.kelas || '-')}</b></span>
-              <span>Kamar: <b>${escapeHtml(s.no_kamar || '-')}</b></span>
-              <span>Jenis Kelamin: <b>${jenisKelaminLabel(s.jenis_kelamin)}</b></span>
-              <span>Tempat, Tanggal Lahir: <b>${escapeHtml(fmtTempatTanggalLahir(s.tempat_lahir, s.tanggal_lahir))}</b></span>
-              <span>Wali/Orang Tua: <b>${escapeHtml(s.nama_wali || '-')}</b></span>
-              <span>Alamat: <b>${escapeHtml(s.alamat || '-')}</b></span>
-              <span>Periode Raport: <b>${escapeHtml(periodeLabel)}</b></span>
-            </div>
-          </div>
-        </div>
-
-        <div class="erp-summary-grid">
-          <div class="erp-summary-card">
-            <div class="erp-sc-icon">🕌</div>
-            <div class="erp-sc-value">${total > 0 ? persenFardhu+'%' : '-'}</div>
-            <div class="erp-sc-label">Ibadah Wajib</div>
-          </div>
-          <div class="erp-summary-card">
-            <div class="erp-sc-icon">📋</div>
-            <div class="erp-sc-value">${persenKegiatan!==null ? persenKegiatan+'%' : '-'}</div>
-            <div class="erp-sc-label">Kehadiran</div>
-          </div>
-          <div class="erp-summary-card">
-            <div class="erp-sc-icon">📖</div>
-            <div class="erp-sc-value">${setoranTahfidz.length}</div>
-            <div class="erp-sc-label">Tahfidz</div>
-          </div>
-          <div class="erp-summary-card">
-            <div class="erp-sc-icon">📝</div>
-            <div class="erp-sc-value">${catatanBulan.length}</div>
-            <div class="erp-sc-label">Catatan Santri</div>
-          </div>
-        </div>
-
-        <div class="erp-section-title"><span class="erp-st-icon">🕌</span><h2>Absensi Mutaba'ah</h2><span class="erp-st-line"></span></div>
-
-        <div class="erp-card">
-          <h3>Ibadah Wajib</h3>
-          <p class="erp-card-sub">Dibaca dari data Mutaba'ah per tanggal (bukan nilai rekap akhir) — setiap aktivitas dihitung terpisah untuk periode ${escapeHtml(periodeLabel)}. Hadir tepat waktu = poin penuh, Masbuk = setengah poin.${total>0 ? ' Rata-rata keseluruhan: <b>'+persenFardhu+'%</b> — '+escapeHtml(erpPredikatPersen(persenFardhu)||'-')+'.' : ''}</p>
-          ${total === 0
-            ? emptyState('Belum ada data ibadah wajib untuk periode ini.')
-            : IBADAH_FARDHU.map(f=>persenRow(f.label, wajibRinci[f.key])).join('')}
-        </div>
-
-        <div class="erp-card">
-          <h3>Ibadah Sunnah</h3>
-          <p class="erp-card-sub">Setiap aktivitas sunnah dihitung terpisah (tidak digabung menjadi satu nilai) untuk periode ${escapeHtml(periodeLabel)}.</p>
-          ${(sunnahRinci.tahajud.total + sunnahRinci.dhuha.total + sunnahRinci.puasa.total) === 0
-            ? emptyState('Belum ada data ibadah sunnah untuk periode ini.')
-            : `
-              ${persenRow('Tahajud', sunnahRinci.tahajud)}
-              ${persenRow('Dhuha', sunnahRinci.dhuha)}
-              ${persenRow('Puasa Senin-Kamis', sunnahRinci.puasa)}
-            `}
-        </div>
-
-        <div class="erp-card erp-chart-card">
-          <h3>Grafik Perkembangan Mutaba'ah</h3>
-          <p class="erp-card-sub">Persentase kepatuhan ibadah fardhu harian pada periode ${escapeHtml(periodeLabel)}.</p>
-          ${mutabaahSeries.labels.length === 0
-            ? emptyState('Belum ada data mutaba\'ah untuk periode ini.')
-            : '<div class="chart-wrap"><canvas id="erp-chart-mutabaah"></canvas></div>'}
-        </div>
-
-        <div class="erp-section-title"><span class="erp-st-icon">📋</span><h2>Absensi Kegiatan</h2><span class="erp-st-line"></span></div>
-
-        <div class="erp-card">
-          <h3>Absensi Kegiatan</h3>
-          <p class="erp-card-sub">Kehadiran kegiatan periode ${escapeHtml(periodeLabel)}, dari data kegiatan yang tercatat untuk santri ini. Izin &amp; Sakit diambil dari data Catatan Santri.</p>
-          <div class="erp-absensi-stat-grid">
-            <div class="erp-absensi-stat"><div class="num">${totalKegiatan > 0 ? hadirKegiatan : '-'}</div><div class="lbl">Hadir</div></div>
-            <div class="erp-absensi-stat"><div class="num">${izinKegiatan || '-'}</div><div class="lbl">Izin</div></div>
-            <div class="erp-absensi-stat"><div class="num">${sakitKegiatan || '-'}</div><div class="lbl">Sakit</div></div>
-            <div class="erp-absensi-stat"><div class="num">${totalKegiatan > 0 ? tidakHadirKegiatan : '-'}</div><div class="lbl">Tidak Hadir</div></div>
-          </div>
-          ${totalKegiatan > 0
-            ? persenRow('Total Kegiatan', { persen: persenKegiatan, total: totalKegiatan })
-            : emptyState('Belum ada data absensi kegiatan untuk periode ini.')}
-        </div>
-
-        <div class="erp-section-title"><span class="erp-st-icon">📖</span><h2>Tahfidz</h2><span class="erp-st-line"></span></div>
-
-        <div class="erp-card">
-          <h3>Tahfidz</h3>
-          <p class="erp-card-sub">Ringkasan setoran hafalan dari data Tahfidz periode ${escapeHtml(periodeLabel)}.</p>
-          <div class="erp-tahfidz-grid">
-            <div class="erp-tahfidz-item">
-              <div class="erp-t-label">Jumlah Setoran</div>
-              <div class="erp-t-value">${setoranTahfidz.length}</div>
-            </div>
-            <div class="erp-tahfidz-item">
-              <div class="erp-t-label">Surat Terbaru</div>
-              <div class="erp-t-value">${setoranTerbaru ? escapeHtml((setoranTerbaru.surat||'-') + (setoranTerbaru.juz? ' (Juz '+escapeHtml(String(setoranTerbaru.juz))+')':'')) : '-'}</div>
-            </div>
-            <div class="erp-tahfidz-item">
-              <div class="erp-t-label">Ayat</div>
-              <div class="erp-t-value">${setoranTerbaru && (setoranTerbaru.ayatDari || setoranTerbaru.ayatSampai) ? escapeHtml(String(setoranTerbaru.ayatDari ?? '-') + ' - ' + String(setoranTerbaru.ayatSampai ?? '-')) : '-'}</div>
-            </div>
-            <div class="erp-tahfidz-item">
-              <div class="erp-t-label">Tanggal Setoran</div>
-              <div class="erp-t-value">${setoranTerbaru ? escapeHtml(fmtTanggalShort(setoranTerbaru.tanggal)) : '-'}</div>
+        <div class="erp-sheet">
+          <div class="erp-profile-card">
+            <div class="erp-profile-avatar">${erpAvatarHtml}</div>
+            <div class="erp-profile-info">
+              <div class="erp-profile-info-top">
+                <h3>${escapeHtml(s.nama)}</h3>
+                <span class="badge ${s.aktif===false ? 'nonaktif' : 'aktif'}">${s.aktif===false ? 'Tidak Aktif' : 'Aktif'}</span>
+              </div>
+              <div class="erp-profile-meta">
+                <span>NIS: <b>${escapeHtml(s.nis || '-')}</b></span>
+                <span>Kelas: <b>${escapeHtml(s.kelas || '-')}</b></span>
+                <span>Kamar: <b>${escapeHtml(s.no_kamar || '-')}</b></span>
+                <span>Jenis Kelamin: <b>${jenisKelaminLabel(s.jenis_kelamin)}</b></span>
+                <span>Wali/Orang Tua: <b>${escapeHtml(s.nama_wali || '-')}</b></span>
+                <span>Musyrif: <b>${escapeHtml(musyrifNama)}</b></span>
+                <span>Periode Raport: <b>${escapeHtml(periodeLabel)}</b></span>
+              </div>
             </div>
           </div>
-          ${setoranTahfidz.length > 0 ? `
-            <div class="erp-tahfidz-riwayat">
-              <div class="erp-tahfidz-riwayat-title">Perkembangan Hafalan (Riwayat Setoran)</div>
-              ${setoranTahfidz.slice(0,5).map(t=>`
-                <div class="erp-tahfidz-riwayat-item">
-                  <span>${escapeHtml((t.surat||'-') + (t.juz ? ' (Juz '+escapeHtml(String(t.juz))+')' : '') + ((t.ayatDari||t.ayatSampai) ? ' — Ayat ' + escapeHtml(String(t.ayatDari ?? '-')) + '-' + escapeHtml(String(t.ayatSampai ?? '-')) : ''))}</span>
-                  <span class="tgl">${escapeHtml(fmtTanggalShort(t.tanggal))}</span>
-                </div>`).join('')}
-            </div>` : ''}
-        </div>
 
-        <div class="erp-section-title"><span class="erp-st-icon">📝</span><h2>Catatan Santri</h2><span class="erp-st-line"></span></div>
-
-        <div class="erp-card">
-          <h3>Catatan Santri</h3>
-          <p class="erp-card-sub">Ringkasan catatan (prestasi, pelanggaran, konseling, perizinan, sakit) periode ${escapeHtml(periodeLabel)}.</p>
-          <div class="erp-catatan-grid">
-            ${catatanJenisList.map(j=>{
-              const meta = JENIS_META[j];
-              return `<span class="erp-catatan-badge badge ${meta.badge}">${meta.icon} ${meta.label} <span class="num">${countJenis(j)}</span></span>`;
-            }).join('')}
+          <div class="erp-summary-grid">
+            <div class="erp-summary-card">
+              <div class="erp-sc-icon">🕌</div>
+              <div class="erp-sc-value">${total > 0 ? persenFardhu+'%' : '-'}</div>
+              <div class="erp-sc-label">Ibadah Wajib</div>
+            </div>
+            <div class="erp-summary-card">
+              <div class="erp-sc-icon">📋</div>
+              <div class="erp-sc-value">${persenKegiatan!==null ? persenKegiatan+'%' : '-'}</div>
+              <div class="erp-sc-label">Absensi Kegiatan</div>
+            </div>
+            <div class="erp-summary-card">
+              <div class="erp-sc-icon">📖</div>
+              <div class="erp-sc-value">${setoranTahfidz.length}</div>
+              <div class="erp-sc-label">Setoran Tahfidz</div>
+            </div>
+            <div class="erp-summary-card">
+              <div class="erp-sc-icon">💰</div>
+              <div class="erp-sc-value">Rp ${saldoSaatIni.toLocaleString('id-ID')}</div>
+              <div class="erp-sc-label">Saldo Jajan</div>
+            </div>
           </div>
-          ${catatanRingkas.length > 0 ? `
-            <div class="erp-tahfidz-riwayat">
-              <div class="erp-tahfidz-riwayat-title">Catatan Pembinaan &amp; Perkembangan Terbaru</div>
-              ${catatanRingkas.map(c=>{
-                const meta = JENIS_META[c.jenis] || { label:c.jenis, icon:'📝' };
-                return `
-                <div class="erp-catatan-riwayat-item">
-                  <div class="erp-catatan-riwayat-left">
-                    <div class="erp-catatan-riwayat-title">${meta.icon} ${escapeHtml(meta.label)} — ${escapeHtml(c.title || '-')}</div>
-                    ${c.text ? `<div class="erp-catatan-riwayat-text">${escapeHtml(c.text.slice(0,140))}${c.text.length>140?'…':''}</div>` : ''}
+
+          <div class="erp-grid-2col">
+            <div class="erp-card">
+              <h3>Mutaba'ah Ibadah</h3>
+              <p class="erp-card-sub">Rekap kepatuhan ibadah periode ${escapeHtml(periodeLabel)}.</p>
+              <div style="font-size:11.5px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.3px;margin-bottom:8px;">Ibadah Wajib</div>
+              ${total === 0
+                ? emptyState('Belum ada data ibadah wajib untuk periode ini.')
+                : IBADAH_FARDHU.map(f=>persenRow(f.label, wajibRinci[f.key])).join('')}
+              <div style="font-size:11.5px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.3px;margin:16px 0 8px;">Ibadah Sunnah</div>
+              ${(sunnahRinci.tahajud.total + sunnahRinci.dhuha.total + sunnahRinci.puasa.total) === 0
+                ? emptyState('Belum ada data ibadah sunnah untuk periode ini.')
+                : `
+                  ${persenRow('Tahajud', sunnahRinci.tahajud)}
+                  ${persenRow('Dhuha', sunnahRinci.dhuha)}
+                  ${persenRow('Puasa Senin-Kamis', sunnahRinci.puasa)}
+                `}
+              ${mutabaahSeries.labels.length > 0 ? `
+                <div class="chart-wrap" style="height:140px;margin-top:14px;"><canvas id="erp-chart-mutabaah"></canvas></div>
+              ` : ''}
+            </div>
+
+            <div class="erp-card">
+              <h3>Penilaian Karakter</h3>
+              <p class="erp-card-sub">Kedisiplinan, kerapian &amp; attitude periode ${escapeHtml(periodeLabel)}.</p>
+              <div class="erp-progress-grid">
+                ${progressRow('Kedisiplinan', pen.kedisiplinan)}
+                ${progressRow('Kerapian', pen.kerapian)}
+                ${progressRow('Attitude', pen.attitude)}
+              </div>
+            </div>
+
+            <div class="erp-card">
+              <h3>Absensi Kegiatan</h3>
+              <p class="erp-card-sub">Kehadiran kegiatan periode ${escapeHtml(periodeLabel)}. Izin &amp; Sakit diambil dari data Catatan Santri.</p>
+              <div class="erp-absensi-stat-grid">
+                <div class="erp-absensi-stat"><div class="num">${totalKegiatan > 0 ? hadirKegiatan : '-'}</div><div class="lbl">Hadir</div></div>
+                <div class="erp-absensi-stat"><div class="num">${izinKegiatan || '-'}</div><div class="lbl">Izin</div></div>
+                <div class="erp-absensi-stat"><div class="num">${sakitKegiatan || '-'}</div><div class="lbl">Sakit</div></div>
+                <div class="erp-absensi-stat"><div class="num">${totalKegiatan > 0 ? tidakHadirKegiatan : '-'}</div><div class="lbl">Alpa</div></div>
+              </div>
+              ${totalKegiatan > 0
+                ? persenRow('Total Kegiatan', { persen: persenKegiatan, total: totalKegiatan })
+                : emptyState('Belum ada data absensi kegiatan untuk periode ini.')}
+            </div>
+
+            <div class="erp-card">
+              <h3>Tahfidz</h3>
+              <p class="erp-card-sub">Ringkasan setoran hafalan periode ${escapeHtml(periodeLabel)}.</p>
+              <div class="erp-tahfidz-grid">
+                <div class="erp-tahfidz-item">
+                  <div class="erp-t-label">Jumlah Setoran</div>
+                  <div class="erp-t-value">${setoranTahfidz.length}</div>
+                </div>
+                <div class="erp-tahfidz-item">
+                  <div class="erp-t-label">Surat Terakhir</div>
+                  <div class="erp-t-value">${setoranTerbaru ? escapeHtml(setoranTerbaru.surat||'-') : '-'}</div>
+                </div>
+                <div class="erp-tahfidz-item">
+                  <div class="erp-t-label">Juz Terakhir</div>
+                  <div class="erp-t-value">${setoranTerbaru && setoranTerbaru.juz ? escapeHtml(String(setoranTerbaru.juz)) : '-'}</div>
+                </div>
+                <div class="erp-tahfidz-item">
+                  <div class="erp-t-label">Tanggal Setoran</div>
+                  <div class="erp-t-value">${setoranTerbaru ? escapeHtml(fmtTanggalShort(setoranTerbaru.tanggal)) : '-'}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="erp-card">
+              <h3>Catatan Santri</h3>
+              <p class="erp-card-sub">Ringkasan catatan perkembangan periode ${escapeHtml(periodeLabel)}.</p>
+              <div class="erp-catatan-ringkas-list">
+                ${catatanRingkasPerJenis.map(c=>`
+                  <div class="erp-catatan-ringkas-item">
+                    <span class="badge ${c.meta.badge}">${c.meta.icon} ${escapeHtml(c.meta.label)}${c.count>1 ? ' ('+c.count+')' : ''}</span>
+                    <span class="erp-catatan-ringkas-text">${escapeHtml(c.text)}</span>
                   </div>
-                  <div class="erp-catatan-riwayat-tgl">${escapeHtml(fmtTanggalShort(c.tanggal))}</div>
-                </div>`;
-              }).join('')}
-            </div>` : ''}
-        </div>
-
-        <div class="erp-card">
-          <h3>Penilaian Karakter</h3>
-          <p class="erp-card-sub">Kedisiplinan, kerapian &amp; attitude santri periode ${escapeHtml(periodeLabel)} (diisi di menu Catatan Santri).</p>
-          <div class="erp-progress-grid">
-            ${progressRow('Kedisiplinan', pen.kedisiplinan)}
-            ${progressRow('Kerapian', pen.kerapian)}
-            ${progressRow('Attitude', pen.attitude)}
-          </div>
-        </div>
-
-        <div class="erp-section-title"><span class="erp-st-icon">⭐</span><h2>Analisis Perkembangan Santri</h2><span class="erp-st-line"></span></div>
-
-        <div class="erp-card erp-kesimpulan-card">
-          <h3>Analisis Perkembangan</h3>
-          <p class="erp-card-sub">Hasil analisis dari Absensi Mutaba'ah, Absensi Kegiatan, Tahfidz &amp; Catatan Santri di atas — bukan data baru.</p>
-          <ul class="erp-analisis-list">
-            <li><b>Kedisiplinan:</b> ${escapeHtml(erpAnalisis.kedisiplinanTeks)}</li>
-            <li><b>Adab/Attitude:</b> ${escapeHtml(erpAnalisis.adabTeks)}</li>
-            <li><b>Konsistensi Ibadah:</b> ${escapeHtml(erpAnalisis.konsistensiTeks)}</li>
-            <li><b>Keaktifan Kegiatan:</b> ${escapeHtml(erpAnalisis.keaktifanTeks)}</li>
-            <li><b>Perkembangan Tahfidz:</b> ${escapeHtml(erpAnalisis.tahfidzTeks)}</li>
-          </ul>
-          <div class="erp-analisis-cols">
-            <div class="erp-analisis-col dipertahankan">
-              <h4>Hal yang Perlu Dipertahankan</h4>
-              ${erpAnalisis.dipertahankan.length > 0
-                ? `<ul>${erpAnalisis.dipertahankan.map(it=>`<li>${escapeHtml(it)}</li>`).join('')}</ul>`
-                : '<p class="erp-card-sub" style="margin:0;">Belum ada data yang cukup untuk periode ini.</p>'}
+                `).join('')}
+              </div>
             </div>
-            <div class="erp-analisis-col ditingkatkan">
-              <h4>Hal yang Perlu Ditingkatkan</h4>
-              ${erpAnalisis.ditingkatkan.length > 0
-                ? `<ul>${erpAnalisis.ditingkatkan.map(it=>`<li>${escapeHtml(it)}</li>`).join('')}</ul>`
-                : '<p class="erp-card-sub" style="margin:0;">Belum ada data yang cukup untuk periode ini.</p>'}
+
+            <div class="erp-card">
+              <h3>Keuangan Santri</h3>
+              <p class="erp-card-sub">Rekap uang jajan periode ${escapeHtml(periodeLabel)}.</p>
+              <div class="erp-absensi-stat-grid">
+                <div class="erp-absensi-stat"><div class="num">Rp ${totalMasuk.toLocaleString('id-ID')}</div><div class="lbl">Masuk</div></div>
+                <div class="erp-absensi-stat"><div class="num">Rp ${totalKeluar.toLocaleString('id-ID')}</div><div class="lbl">Keluar</div></div>
+                <div class="erp-absensi-stat"><div class="num">Rp ${saldoSaatIni.toLocaleString('id-ID')}</div><div class="lbl">Saldo</div></div>
+                <div class="erp-absensi-stat"><div class="num">${jumlahTransaksi}</div><div class="lbl">Transaksi</div></div>
+              </div>
+              ${tabunganTerbaru.length > 0 ? `
+                <table class="erp-mini-table">
+                  <thead><tr><th>Tanggal</th><th>Keterangan</th><th>Masuk</th><th>Keluar</th></tr></thead>
+                  <tbody>
+                    ${tabunganTerbaru.map(t=>`
+                      <tr>
+                        <td>${escapeHtml(fmtTanggalShort(t.tanggal))}</td>
+                        <td>${escapeHtml(t.keterangan||'-')}</td>
+                        <td>${t.jenis==='kredit' ? 'Rp '+t.jumlah.toLocaleString('id-ID') : '-'}</td>
+                        <td>${t.jenis==='debit' ? 'Rp '+t.jumlah.toLocaleString('id-ID') : '-'}</td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              ` : `<div style="font-size:12.5px;color:var(--ink-soft);">Belum ada transaksi pada periode ini.</div>`}
             </div>
           </div>
-        </div>
 
-        <div class="erp-section-title"><span class="erp-st-icon">📄</span><h2>Deskripsi E-Raport</h2><span class="erp-st-line"></span></div>
-
-        <div class="erp-card erp-deskripsi-ai-card">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;">
-            <div>
-              <h3 style="margin:0;">Deskripsi E-Raport</h3>
-              <p class="erp-card-sub" style="margin:4px 0 0;">Deskripsi naratif singkat berdasarkan seluruh data di atas. Buat draf otomatis lalu edit sesuai kebutuhan sebelum disimpan.</p>
+          <div class="erp-card erp-kesimpulan-card">
+            <h3>Analisis Perkembangan</h3>
+            <div class="erp-analisis-cols">
+              <div class="erp-analisis-col dipertahankan">
+                <h4>Perlu Dipertahankan</h4>
+                ${erpAnalisis.dipertahankan.length > 0
+                  ? `<ul>${erpAnalisis.dipertahankan.slice(0,4).map(it=>`<li>${escapeHtml(it)}</li>`).join('')}</ul>`
+                  : '<p class="erp-card-sub" style="margin:0;">Belum ada data yang cukup untuk periode ini.</p>'}
+              </div>
+              <div class="erp-analisis-col ditingkatkan">
+                <h4>Perlu Ditingkatkan</h4>
+                ${erpAnalisis.ditingkatkan.length > 0
+                  ? `<ul>${erpAnalisis.ditingkatkan.slice(0,4).map(it=>`<li>${escapeHtml(it)}</li>`).join('')}</ul>`
+                  : '<p class="erp-card-sub" style="margin:0;">Belum ada data yang cukup untuk periode ini.</p>'}
+              </div>
             </div>
-            <button type="button" class="btn btn-gold" id="btn-erp-ai-generate" style="white-space:nowrap;">✨ Buat Deskripsi dengan AI</button>
           </div>
-          <div class="field" style="margin-top:12px;">
-            <textarea id="erp-ai-deskripsi-text" style="min-height:110px;" placeholder="Klik &quot;Buat Deskripsi dengan AI&quot; untuk membuat draf otomatis, atau tulis deskripsi sendiri di sini.">${escapeHtml(erpDeskripsiTersimpan)}</textarea>
+
+          <div class="erp-card erp-deskripsi-ai-card">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;">
+              <div>
+                <h3 style="margin:0;">Deskripsi E-Raport</h3>
+                <p class="erp-card-sub" style="margin:4px 0 0;">Deskripsi naratif singkat berdasarkan seluruh data di atas. Buat draf otomatis lalu edit sesuai kebutuhan sebelum disimpan.</p>
+              </div>
+              <button type="button" class="btn btn-gold" id="btn-erp-ai-generate" style="white-space:nowrap;">✨ Buat Deskripsi dengan AI</button>
+            </div>
+            <div class="field" style="margin-top:12px;">
+              <textarea id="erp-ai-deskripsi-text" style="min-height:110px;" placeholder="Klik &quot;Buat Deskripsi dengan AI&quot; untuk membuat draf otomatis, atau tulis deskripsi sendiri di sini.">${escapeHtml(erpDeskripsiTersimpan)}</textarea>
+            </div>
+            <div style="margin-top:10px;display:flex;justify-content:flex-end;">
+              <button type="button" class="btn btn-primary" id="btn-erp-ai-simpan">Simpan Deskripsi</button>
+            </div>
           </div>
-          <div style="margin-top:10px;display:flex;justify-content:flex-end;">
-            <button type="button" class="btn btn-primary" id="btn-erp-ai-simpan">Simpan Deskripsi</button>
+
+          <div class="erp-ttd-row">
+            <div class="erp-ttd-col">
+              <div class="erp-ttd-line"></div>
+              <div class="erp-ttd-label">Musyrif</div>
+              <div class="erp-ttd-nama">${escapeHtml(musyrifNama)}</div>
+            </div>
+            <div class="erp-ttd-col">
+              <div class="erp-ttd-line"></div>
+              <div class="erp-ttd-label">Orang Tua/Wali</div>
+              <div class="erp-ttd-nama">${escapeHtml(s.nama_wali || '-')}</div>
+            </div>
           </div>
         </div>
       </div>
     `;
+
 
     if(mutabaahSeries.labels.length > 0 && typeof Chart !== 'undefined'){
       const cv = document.getElementById('erp-chart-mutabaah');
@@ -4086,6 +4172,7 @@ Minimum version required to store current data is: `+i+`.
       const labelAwal = btn.textContent;
       btn.textContent = 'Menyimpan...';
       await erpSimpanDeskripsi(santriId, sampai.slice(0,7), teks);
+      if(eraportCurrentData) eraportCurrentData.erpDeskripsiTersimpan = teks;
       btn.disabled = false;
       btn.textContent = labelAwal;
     });
@@ -4227,39 +4314,179 @@ Minimum version required to store current data is: `+i+`.
   }
 
   /* -------- Cetak / Unduh PDF E-Raport -------- */
-  async function downloadEraportPdf(){
-    const selSantri = document.getElementById('eraport-filter-santri');
-    const printArea = document.getElementById('eraport-print-area');
-    if(!selSantri || !selSantri.value || !printArea){
-      showToast('Pilih santri terlebih dahulu untuk mencetak E-Raport', true);
-      return;
-    }
-    const s = santriList.find(x=>x.id===selSantri.value);
-    if(!s) return;
-    const periode = erpGetRange().label;
+  // Susun HTML E-Raport versi ringkas 1 halaman (untuk export PDF saja — tampilan
+  // di layar/tab E-Raport tetap lengkap seperti sebelumnya, tidak diubah).
+  // Semua rekap tetap disertakan, hanya dipadatkan (tabel ringkas, tanpa daftar
+  // riwayat panjang) supaya muat dalam satu lembar kertas A4.
+  function buildEraportOnePageHtml(d){
+    const s = d.s;
+    const erpAvatarHtml = s.foto_url
+      ? `<img src="${escapeHtml(s.foto_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+      : escapeHtml((s.nama||'?').trim().charAt(0).toUpperCase());
 
-    const {clip, wrapper} = createOffscreenHost();
-    wrapper.innerHTML = `
-      <div style="display:flex;align-items:center;gap:14px;border-bottom:2px solid #043F7B;padding-bottom:14px;margin-bottom:16px;">
-        <img src="${LOGO_DATA_URI}" style="height:48px;">
-        <div>
-          <div style="font-weight:700;font-size:18px;color:#043F7B;">Alhidayah Boarding School</div>
-          <div style="font-size:12px;color:#5C6B7D;">E-Raport Santri — ${escapeHtml(s.nama)}${s.kelas ? ' — '+escapeHtml(s.kelas):''} — Periode ${escapeHtml(periode)}</div>
+    const pctCell = (label, item) => {
+      const persen = item ? item.persen : null;
+      return `<td style="text-align:center;">${persen!==null && persen!==undefined ? persen+'%' : '-'}</td>`;
+    };
+    const wajibHead = IBADAH_FARDHU.map(f=>`<th>${escapeHtml(f.label)}</th>`).join('');
+    const wajibVals = IBADAH_FARDHU.map(f=>pctCell(f.label, d.wajibRinci[f.key])).join('');
+
+    const nilaiCell = v => (v!==null && v!==undefined && v!=='') ? Number(v) : null;
+    const kd = nilaiCell(d.pen.kedisiplinan), kr = nilaiCell(d.pen.kerapian), at = nilaiCell(d.pen.attitude);
+
+    const catatanRingkas = (d.catatanRingkasPerJenis || []).map(c=>
+      `<span style="display:inline-block;margin:0 6px 4px 0;padding:2px 8px;border-radius:999px;background:#F1F4F8;font-size:9px;">${c.meta.icon} ${escapeHtml(c.meta.label)}: <b>${c.count===0 ? 'Tidak ada' : escapeHtml(c.text.slice(0,28))+(c.text.length>28?'…':'')}</b></span>`
+    ).join('');
+
+    const dipertahankan = (d.erpAnalisis.dipertahankan||[]).slice(0,3);
+    const ditingkatkan = (d.erpAnalisis.ditingkatkan||[]).slice(0,3);
+
+    const deskripsi = (d.erpDeskripsiTersimpan || '').trim();
+    const deskripsiHtml = deskripsi
+      ? escapeHtml(deskripsi.length > 380 ? deskripsi.slice(0,380)+'…' : deskripsi)
+      : '<i style="color:#8A93A0;">Belum ada deskripsi raport untuk periode ini.</i>';
+
+    return `
+      <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:10.5px;color:#22303F;line-height:1.32;">
+        <div style="display:flex;align-items:center;gap:12px;border-bottom:2px solid #043F7B;padding-bottom:10px;margin-bottom:10px;">
+          <img src="${LOGO_DATA_URI}" style="height:42px;">
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:16px;color:#043F7B;">Alhidayah Boarding School</div>
+            <div style="font-size:11px;color:#5C6B7D;">E-RAPORT SANTRI — Periode ${escapeHtml(d.periodeLabel)}</div>
+          </div>
+          <div style="width:46px;height:46px;border-radius:50%;background:#EAF0F8;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:#043F7B;overflow:hidden;">${erpAvatarHtml}</div>
+        </div>
+
+        <table style="width:100%;border-collapse:collapse;margin-bottom:8px;font-size:9.5px;">
+          <tr>
+            <td style="padding:1px 0;"><b>Nama:</b> ${escapeHtml(s.nama)}</td>
+            <td style="padding:1px 0;"><b>NIS:</b> ${escapeHtml(s.nis||'-')}</td>
+            <td style="padding:1px 0;"><b>Kelas:</b> ${escapeHtml(s.kelas||'-')}</td>
+            <td style="padding:1px 0;"><b>Kamar:</b> ${escapeHtml(s.no_kamar||'-')}</td>
+          </tr>
+          <tr>
+            <td style="padding:1px 0;"><b>Jenis Kelamin:</b> ${jenisKelaminLabel(s.jenis_kelamin)}</td>
+            <td colspan="2" style="padding:1px 0;"><b>Wali/Orang Tua:</b> ${escapeHtml(s.nama_wali||'-')}</td>
+            <td style="padding:1px 0;"><b>Musyrif:</b> ${escapeHtml(d.musyrifNama||'-')}</td>
+          </tr>
+        </table>
+
+        <div style="display:flex;gap:6px;margin-bottom:8px;">
+          <div style="flex:1;text-align:center;background:#F1F4F8;border-radius:8px;padding:5px 4px;">
+            <div style="font-size:14px;font-weight:700;color:#043F7B;">${d.totalFardhu>0 ? d.persenFardhu+'%':'-'}</div>
+            <div style="font-size:8.5px;color:#5C6B7D;">Ibadah Wajib</div>
+          </div>
+          <div style="flex:1;text-align:center;background:#F1F4F8;border-radius:8px;padding:5px 4px;">
+            <div style="font-size:14px;font-weight:700;color:#043F7B;">${d.persenKegiatan!==null ? d.persenKegiatan+'%':'-'}</div>
+            <div style="font-size:8.5px;color:#5C6B7D;">Absensi Kegiatan</div>
+          </div>
+          <div style="flex:1;text-align:center;background:#F1F4F8;border-radius:8px;padding:5px 4px;">
+            <div style="font-size:14px;font-weight:700;color:#043F7B;">${d.setoranTahfidz.length}</div>
+            <div style="font-size:8.5px;color:#5C6B7D;">Setoran Tahfidz</div>
+          </div>
+          <div style="flex:1;text-align:center;background:#F1F4F8;border-radius:8px;padding:5px 4px;">
+            <div style="font-size:14px;font-weight:700;color:#043F7B;">Rp ${d.saldoSaatIni.toLocaleString('id-ID')}</div>
+            <div style="font-size:8.5px;color:#5C6B7D;">Saldo Jajan</div>
+          </div>
+        </div>
+
+        <div style="font-weight:700;color:#043F7B;font-size:10.5px;margin:6px 0 3px;">Ibadah Wajib (Mutaba'ah)</div>
+        <table style="width:100%;border-collapse:collapse;font-size:9px;">
+          <thead><tr style="background:#F1F4F8;">${wajibHead}</tr></thead>
+          <tbody><tr>${wajibVals}</tr></tbody>
+        </table>
+
+        <div style="display:flex;gap:14px;margin-top:7px;">
+          <div style="flex:1;">
+            <div style="font-weight:700;color:#043F7B;font-size:10.5px;margin-bottom:3px;">Ibadah Sunnah</div>
+            <table style="width:100%;border-collapse:collapse;font-size:9px;">
+              <tr><td>Tahajud</td>${pctCell('',d.sunnahRinci.tahajud)}</tr>
+              <tr><td>Dhuha</td>${pctCell('',d.sunnahRinci.dhuha)}</tr>
+              <tr><td>Puasa Sen-Kam</td>${pctCell('',d.sunnahRinci.puasa)}</tr>
+            </table>
+          </div>
+          <div style="flex:1;">
+            <div style="font-weight:700;color:#043F7B;font-size:10.5px;margin-bottom:3px;">Absensi Kegiatan</div>
+            <table style="width:100%;border-collapse:collapse;font-size:9px;">
+              <tr><td>Hadir</td><td style="text-align:center;">${d.totalKegiatan>0 ? d.hadirKegiatan : '-'}</td>
+                  <td>Izin</td><td style="text-align:center;">${d.izinKegiatan||'-'}</td></tr>
+              <tr><td>Sakit</td><td style="text-align:center;">${d.sakitKegiatan||'-'}</td>
+                  <td>Alpa</td><td style="text-align:center;">${d.totalKegiatan>0 ? d.tidakHadirKegiatan : '-'}</td></tr>
+            </table>
+          </div>
+          <div style="flex:1;">
+            <div style="font-weight:700;color:#043F7B;font-size:10.5px;margin-bottom:3px;">Penilaian Karakter</div>
+            <table style="width:100%;border-collapse:collapse;font-size:9px;">
+              <tr><td>Kedisiplinan</td><td style="text-align:center;">${kd!==null?kd:'-'}</td></tr>
+              <tr><td>Kerapian</td><td style="text-align:center;">${kr!==null?kr:'-'}</td></tr>
+              <tr><td>Attitude</td><td style="text-align:center;">${at!==null?at:'-'}</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:14px;margin-top:7px;">
+          <div style="flex:1;">
+            <div style="font-weight:700;color:#043F7B;font-size:10.5px;margin-bottom:3px;">Tahfidz</div>
+            <div style="font-size:9px;">Setoran: <b>${d.setoranTahfidz.length}</b>${d.setoranTerbaru ? ` — <b>${escapeHtml((d.setoranTerbaru.surat||'-')+(d.setoranTerbaru.juz?' (Juz '+escapeHtml(String(d.setoranTerbaru.juz))+')':''))}</b> (${escapeHtml(fmtTanggalShort(d.setoranTerbaru.tanggal))})` : ''}</div>
+          </div>
+          <div style="flex:1;">
+            <div style="font-weight:700;color:#043F7B;font-size:10.5px;margin-bottom:3px;">Keuangan Santri</div>
+            <div style="font-size:9px;">Masuk: <b>Rp ${d.totalMasuk.toLocaleString('id-ID')}</b> • Keluar: <b>Rp ${d.totalKeluar.toLocaleString('id-ID')}</b> • Transaksi: <b>${d.jumlahTransaksi}</b></div>
+          </div>
+        </div>
+
+        <div style="margin-top:7px;">
+          <div style="font-weight:700;color:#043F7B;font-size:10.5px;margin-bottom:3px;">Catatan Santri</div>
+          <div>${catatanRingkas}</div>
+        </div>
+
+        <div style="display:flex;gap:14px;margin-top:7px;">
+          <div style="flex:1;">
+            <div style="font-weight:700;color:#1E6E3C;font-size:10px;margin-bottom:3px;">Perlu Dipertahankan</div>
+            <ul style="margin:0;padding-left:14px;font-size:9px;">
+              ${dipertahankan.length ? dipertahankan.map(it=>`<li>${escapeHtml(it)}</li>`).join('') : '<li style="color:#8A93A0;">Belum ada data.</li>'}
+            </ul>
+          </div>
+          <div style="flex:1;">
+            <div style="font-weight:700;color:#B5443A;font-size:10px;margin-bottom:3px;">Perlu Ditingkatkan</div>
+            <ul style="margin:0;padding-left:14px;font-size:9px;">
+              ${ditingkatkan.length ? ditingkatkan.map(it=>`<li>${escapeHtml(it)}</li>`).join('') : '<li style="color:#8A93A0;">Belum ada data.</li>'}
+            </ul>
+          </div>
+        </div>
+
+        <div style="margin-top:7px;">
+          <div style="font-weight:700;color:#043F7B;font-size:10.5px;margin-bottom:3px;">Deskripsi E-Raport</div>
+          <div style="font-size:9px;text-align:justify;">${deskripsiHtml}</div>
+        </div>
+
+        <div style="display:flex;justify-content:space-around;gap:20px;margin-top:20px;">
+          <div style="text-align:center;min-width:150px;">
+            <div style="height:34px;"></div>
+            <div style="border-top:1px solid #22303F;padding-top:4px;font-size:9px;color:#5C6B7D;">Musyrif</div>
+            <div style="font-size:9.5px;font-weight:700;color:#043F7B;">${escapeHtml(d.musyrifNama||'-')}</div>
+          </div>
+          <div style="text-align:center;min-width:150px;">
+            <div style="height:34px;"></div>
+            <div style="border-top:1px solid #22303F;padding-top:4px;font-size:9px;color:#5C6B7D;">Orang Tua/Wali</div>
+            <div style="font-size:9.5px;font-weight:700;color:#043F7B;">${escapeHtml(s.nama_wali||'-')}</div>
+          </div>
         </div>
       </div>
     `;
-    const clone = printArea.cloneNode(true);
-    // Ganti canvas chart dengan gambar statis agar tersalin dengan benar ke PDF
-    const chartCanvas = clone.querySelector('#erp-chart-mutabaah');
-    if(chartCanvas && eraportChartInstance){
-      try{
-        const img = document.createElement('img');
-        img.src = eraportChartInstance.toBase64Image();
-        img.style.width = '100%';
-        chartCanvas.replaceWith(img);
-      }catch(e){}
+  }
+
+  async function downloadEraportPdf(){
+    const selSantri = document.getElementById('eraport-filter-santri');
+    if(!selSantri || !selSantri.value || !eraportCurrentData){
+      showToast('Pilih santri terlebih dahulu untuk mencetak E-Raport', true);
+      return;
     }
-    wrapper.appendChild(clone);
+    const s = eraportCurrentData.s;
+    const periode = eraportCurrentData.periodeLabel;
+
+    const {clip, wrapper} = createOffscreenHost();
+    wrapper.innerHTML = buildEraportOnePageHtml(eraportCurrentData);
     try{
       const ok = await renderWrapperToPdf(wrapper, clip, `E-Raport-${s.nama.replace(/\s+/g,'-')}-${periode.replace(/\s+/g,'-')}-${todayStr()}.pdf`);
       if(ok) showToast('E-Raport berhasil diunduh');
