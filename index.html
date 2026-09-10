@@ -893,43 +893,74 @@ Minimum version required to store current data is: `+i+`.
     main{padding:20px 16px 60px;}
   }
 
-  /* ================= E-RAPORT (redesign) ================= */
-  .erp-wrap{ background:#F5F8FC; border-radius:var(--radius); padding:20px; margin-bottom:18px; }
+  /* ================= E-RAPORT (modern redesign) ================= */
+  .erp-wrap{
+    position:relative; background:linear-gradient(180deg,#F7FAFF 0%,#F3F6FB 100%);
+    border-radius:20px; padding:22px; margin-bottom:18px;
+  }
   .erp-header{
     display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;
-    margin-bottom:16px;
+    margin-bottom:18px; position:relative;
+  }
+  .erp-header-title{ position:relative; padding-left:16px; }
+  .erp-header-title::before{
+    content:''; position:absolute; left:0; top:2px; bottom:2px; width:4px; border-radius:4px;
+    background:linear-gradient(180deg,var(--gold-500),var(--teal-700));
   }
   .erp-header-title h2{
-    margin:0 0 2px; font-size:22px; font-family:'Amiri',serif; font-weight:700; color:var(--teal-900);
-    letter-spacing:.3px;
+    margin:0 0 3px; font-size:23px; font-family:'Amiri',serif; font-weight:700;
+    background:linear-gradient(90deg,var(--teal-900),var(--teal-500));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    letter-spacing:.3px; display:flex; align-items:center; gap:9px;
   }
+  .erp-header-title h2 .erp-title-emoji{ -webkit-text-fill-color:initial; font-size:20px; }
   .erp-header-title p{ margin:0; font-size:13px; color:var(--ink-soft); }
-  .erp-header-controls{ display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; }
-  .erp-header-controls .field{ min-width:170px; }
-  .btn-erp-print{
-    background:var(--teal-900); color:#FBF6E6; border:none; border-radius:9px;
-    padding:9px 16px; font-weight:700; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:8px;
-    box-shadow:var(--shadow); transition:.15s; white-space:nowrap;
+  .erp-header-controls{
+    display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;
+    background:#fff; padding:12px; border-radius:16px; border:1px solid var(--line);
+    box-shadow:var(--shadow);
   }
-  .btn-erp-print:hover{ background:var(--teal-700); }
+  .erp-header-controls .field{ min-width:170px; }
+  .erp-header-controls .field label{ font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; color:var(--ink-soft); }
+  .erp-header-controls select, .erp-header-controls input{ border-radius:10px; }
+  .btn-erp-print{
+    background:linear-gradient(135deg,var(--teal-900),var(--teal-500)); color:#FBF6E6; border:none; border-radius:11px;
+    padding:10px 18px; font-weight:700; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:8px;
+    box-shadow:0 4px 14px rgba(4,63,123,.28); transition:.18s ease; white-space:nowrap;
+  }
+  .btn-erp-print:hover{ transform:translateY(-2px); box-shadow:0 8px 20px rgba(4,63,123,.34); }
+  .btn-erp-print:active{ transform:translateY(0); }
   .btn-erp-print svg{ width:15px; height:15px; }
 
   .erp-profile-card{
-    background:#fff; border:1px solid var(--line); border-radius:var(--radius);
-    box-shadow:var(--shadow); padding:20px 22px; display:flex; align-items:flex-start; gap:18px; flex-wrap:wrap;
-    margin-bottom:16px;
+    position:relative; overflow:hidden;
+    background:linear-gradient(180deg,#fff,#FCFDFF);
+    border:1px solid var(--line); border-radius:20px;
+    box-shadow:0 2px 4px rgba(4,63,123,.05), 0 14px 30px -12px rgba(4,63,123,.18);
+    padding:22px 24px; display:flex; align-items:flex-start; gap:20px; flex-wrap:wrap;
+    margin-bottom:18px;
+  }
+  .erp-profile-card::before{
+    content:''; position:absolute; inset:0 0 auto 0; height:5px;
+    background:linear-gradient(90deg,var(--gold-500),var(--teal-500) 50%,var(--gold-500));
+    background-size:200% 100%;
   }
   .erp-profile-avatar{
-    width:72px; height:72px; border-radius:50%; background:linear-gradient(135deg,var(--teal-900),var(--teal-500));
-    color:#FBF6E6; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:700;
-    flex-shrink:0; box-shadow:0 4px 14px rgba(4,63,123,.25); overflow:hidden;
+    width:76px; height:76px; border-radius:50%;
+    background:linear-gradient(135deg,var(--teal-900),var(--teal-500));
+    color:#FBF6E6; display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:700;
+    flex-shrink:0; box-shadow:0 0 0 4px #fff, 0 0 0 6px var(--gold-300), 0 6px 18px rgba(4,63,123,.28); overflow:hidden;
   }
   .erp-profile-avatar img{ width:100%; height:100%; object-fit:cover; }
   .erp-profile-info{ flex:1; min-width:220px; }
-  .erp-profile-info-top{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
-  .erp-profile-info h3{ margin:0; font-size:18px; color:var(--teal-900); font-weight:700; }
-  .erp-profile-meta{ display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px 22px; font-size:13px; color:var(--ink-soft); }
-  .erp-profile-meta b{ color:var(--ink); font-weight:600; }
+  .erp-profile-info-top{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+  .erp-profile-info h3{ margin:0; font-size:19px; color:var(--teal-900); font-weight:700; font-family:'Amiri',serif; }
+  .erp-profile-meta{ display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:9px 12px; }
+  .erp-profile-meta span{
+    font-size:12.5px; color:var(--ink-soft); background:var(--paper-soft);
+    border-radius:10px; padding:7px 11px; display:block;
+  }
+  .erp-profile-meta b{ color:var(--teal-900); font-weight:700; }
 
   .erp-mapel-table{ width:100%; border-collapse:collapse; margin-top:4px; }
   .erp-mapel-table th{ text-align:left; font-size:11.5px; text-transform:uppercase; letter-spacing:.3px; color:var(--ink-soft); padding:0 8px 8px; border-bottom:1px solid var(--line); }
@@ -943,30 +974,50 @@ Minimum version required to store current data is: `+i+`.
   .erp-mapel-empty{ font-size:13px; color:var(--ink-soft); padding:10px 0; }
 
   .erp-summary-grid{
-    display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-bottom:16px;
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin-bottom:18px;
   }
   .erp-summary-card{
-    background:#fff; border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow);
-    padding:16px; text-align:center; transition:.15s;
+    position:relative; overflow:hidden;
+    background:#fff; border:1px solid var(--line); border-radius:16px;
+    box-shadow:0 2px 4px rgba(4,63,123,.05), 0 10px 22px -10px rgba(4,63,123,.18);
+    padding:18px 16px; text-align:center; transition:.2s ease;
   }
-  .erp-summary-card .erp-sc-icon{ font-size:22px; margin-bottom:6px; }
-  .erp-summary-card .erp-sc-value{ font-family:'JetBrains Mono',monospace; font-size:20px; font-weight:700; color:var(--teal-900); }
-  .erp-summary-card .erp-sc-label{ font-size:11.5px; color:var(--ink-soft); margin-top:3px; text-transform:uppercase; letter-spacing:.3px; }
+  .erp-summary-card::before{
+    content:''; position:absolute; inset:0 0 auto 0; height:3px;
+    background:linear-gradient(90deg,var(--teal-500),var(--gold-500));
+  }
+  .erp-summary-card:hover{ transform:translateY(-3px); box-shadow:0 4px 8px rgba(4,63,123,.08), 0 16px 30px -10px rgba(4,63,123,.24); }
+  .erp-summary-card .erp-sc-icon{
+    width:44px; height:44px; margin:0 auto 10px; border-radius:13px;
+    background:linear-gradient(135deg,var(--gold-050),var(--paper-soft));
+    display:flex; align-items:center; justify-content:center; font-size:21px;
+  }
+  .erp-summary-card .erp-sc-value{ font-family:'JetBrains Mono',monospace; font-size:19px; font-weight:700; color:var(--teal-900); }
+  .erp-summary-card .erp-sc-label{ font-size:11px; color:var(--ink-soft); margin-top:4px; text-transform:uppercase; letter-spacing:.3px; }
 
   .erp-card{
-    background:#fff; border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow);
-    padding:20px 22px; margin-bottom:16px;
+    position:relative; overflow:hidden;
+    background:#fff; border:1px solid var(--line); border-radius:18px;
+    box-shadow:0 2px 4px rgba(4,63,123,.05), 0 10px 24px -12px rgba(4,63,123,.16);
+    padding:22px 22px 20px; margin-bottom:16px; transition:box-shadow .2s ease;
   }
-  .erp-card h3{ margin:0 0 4px; font-size:16px; font-family:'Amiri',serif; font-weight:700; color:var(--teal-900); }
+  .erp-card:hover{ box-shadow:0 4px 10px rgba(4,63,123,.07), 0 16px 30px -12px rgba(4,63,123,.2); }
+  .erp-card::before{
+    content:''; position:absolute; inset:0 0 auto 0; height:3px;
+    background:linear-gradient(90deg,var(--teal-900),var(--teal-500),var(--gold-500));
+    opacity:.85;
+  }
+  .erp-card h3{ margin:0 0 4px; font-size:16.5px; font-family:'Amiri',serif; font-weight:700; color:var(--teal-900); display:flex; align-items:center; gap:8px; }
   .erp-card .erp-card-sub{ margin:0 0 16px; font-size:12.5px; color:var(--ink-soft); }
 
   .erp-progress-grid{ display:flex; flex-direction:column; gap:14px; }
   .erp-progress-row{ display:flex; align-items:center; gap:14px; }
   .erp-progress-label{ width:110px; font-size:13px; font-weight:600; color:var(--ink); flex-shrink:0; }
   .erp-progress-track{
-    flex:1; height:12px; border-radius:999px; background:var(--paper-soft); overflow:hidden; position:relative;
+    flex:1; height:13px; border-radius:999px; background:var(--paper-soft); overflow:hidden; position:relative;
+    box-shadow:inset 0 1px 3px rgba(4,63,123,.12);
   }
-  .erp-progress-fill{ height:100%; border-radius:999px; transition:width .4s ease; }
+  .erp-progress-fill{ height:100%; border-radius:999px; transition:width .5s ease; box-shadow:0 0 8px rgba(0,0,0,.08) inset; }
   .erp-progress-fill.baik{ background:linear-gradient(90deg,#2FA157,#1E6E3C); }
   .erp-progress-fill.cukup{ background:linear-gradient(90deg,#E9CB78,#D9A73B); }
   .erp-progress-fill.kurang{ background:linear-gradient(90deg,#E28B82,#D9564A); }
@@ -976,7 +1027,11 @@ Minimum version required to store current data is: `+i+`.
   .erp-chart-card .chart-wrap{ position:relative; height:220px; }
 
   .erp-tahfidz-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; }
-  .erp-tahfidz-item{ background:var(--paper-soft); border-radius:12px; padding:14px; }
+  .erp-tahfidz-item{
+    background:linear-gradient(180deg,var(--paper-soft),#fff); border:1px solid var(--line); border-radius:14px; padding:14px;
+    transition:.18s ease;
+  }
+  .erp-tahfidz-item:hover{ border-color:var(--teal-500); }
   .erp-tahfidz-item .erp-t-label{ font-size:11px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.3px; margin-bottom:4px; }
   .erp-tahfidz-item .erp-t-value{ font-size:14px; font-weight:700; color:var(--teal-900); }
 
@@ -991,8 +1046,11 @@ Minimum version required to store current data is: `+i+`.
   .erp-persen-row{ display:flex; align-items:center; gap:14px; margin-bottom:14px; }
   .erp-persen-row:last-child{ margin-bottom:0; }
   .erp-persen-label{ width:130px; font-size:13px; font-weight:600; color:var(--ink); flex-shrink:0; }
-  .erp-persen-track{ flex:1; height:9px; border-radius:999px; background:var(--sage-200); overflow:hidden; }
-  .erp-persen-fill{ height:100%; border-radius:999px; transition:width .4s ease; }
+  .erp-persen-track{
+    flex:1; height:10px; border-radius:999px; background:var(--sage-200); overflow:hidden;
+    box-shadow:inset 0 1px 3px rgba(4,63,123,.1);
+  }
+  .erp-persen-fill{ height:100%; border-radius:999px; transition:width .5s ease; }
   .erp-persen-fill.baik{ background:linear-gradient(90deg,#2FA157,#1E6E3C); }
   .erp-persen-fill.cukup{ background:linear-gradient(90deg,#E9CB78,#D9A73B); }
   .erp-persen-fill.kurang{ background:linear-gradient(90deg,#E28B82,#D9564A); }
@@ -1003,7 +1061,11 @@ Minimum version required to store current data is: `+i+`.
 
   /* Grid statistik Absensi Kegiatan (Hadir / Izin / Sakit / Tidak Hadir) */
   .erp-absensi-stat-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:12px; margin-bottom:14px; }
-  .erp-absensi-stat{ background:var(--paper-soft); border-radius:12px; padding:12px 14px; text-align:center; }
+  .erp-absensi-stat{
+    background:linear-gradient(180deg,var(--paper-soft),#fff); border:1px solid var(--line);
+    border-radius:14px; padding:13px 14px; text-align:center; transition:.18s ease;
+  }
+  .erp-absensi-stat:hover{ border-color:var(--teal-500); transform:translateY(-2px); }
   .erp-absensi-stat .num{ font-family:'JetBrains Mono',monospace; font-size:20px; font-weight:700; color:var(--teal-900); }
   .erp-absensi-stat .lbl{ font-size:11px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.3px; margin-top:2px; }
 
@@ -1014,15 +1076,23 @@ Minimum version required to store current data is: `+i+`.
   .erp-tahfidz-riwayat-item:last-child{ border-bottom:none; }
   .erp-tahfidz-riwayat-item .tgl{ color:var(--ink-soft); font-size:11.5px; flex-shrink:0; }
 
-  .erp-kesimpulan-card{ border-left:4px solid var(--gold-500); }
+  .erp-kesimpulan-card{
+    border:1px solid var(--gold-300);
+    background:linear-gradient(180deg,var(--gold-050) 0%,#fff 70px);
+  }
+  .erp-kesimpulan-card::before{ background:linear-gradient(90deg,var(--gold-500),var(--gold-300),var(--gold-500)); }
   .erp-kesimpulan-card ul{ margin:0; padding-left:18px; }
   .erp-kesimpulan-card li{ margin-bottom:8px; font-size:13.5px; line-height:1.55; color:var(--ink); }
 
   .erp-section-title{ display:flex; align-items:center; gap:10px; margin:26px 0 12px; }
   .erp-section-title:first-of-type{ margin-top:4px; }
-  .erp-section-title .erp-st-icon{ font-size:20px; }
+  .erp-section-title .erp-st-icon{
+    font-size:16px; width:32px; height:32px; border-radius:10px; flex-shrink:0;
+    background:linear-gradient(135deg,var(--teal-900),var(--teal-500)); color:#FBF6E6;
+    display:flex; align-items:center; justify-content:center;
+  }
   .erp-section-title h2{ margin:0; font-size:16px; font-family:'Amiri',serif; font-weight:700; color:var(--teal-900); letter-spacing:.3px; }
-  .erp-section-title .erp-st-line{ flex:1; height:1px; background:var(--line); }
+  .erp-section-title .erp-st-line{ flex:1; height:1px; background:linear-gradient(90deg,var(--line),transparent); }
 
   .erp-catatan-riwayat-item{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; padding:9px 0; border-bottom:1px dashed var(--line); }
   .erp-catatan-riwayat-item:last-child{ border-bottom:none; }
@@ -1033,40 +1103,112 @@ Minimum version required to store current data is: `+i+`.
 
   .erp-analisis-list{ margin:0 0 16px; padding-left:18px; }
   .erp-analisis-list li{ margin-bottom:8px; font-size:13.5px; line-height:1.55; color:var(--ink); }
-  .erp-analisis-cols{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; margin-top:6px; padding-top:16px; border-top:1px solid var(--line); }
-  .erp-analisis-col h4{ margin:0 0 8px; font-size:12.5px; text-transform:uppercase; letter-spacing:.3px; color:var(--ink-soft); }
+  .erp-analisis-cols{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; margin-top:6px; padding-top:16px; border-top:1px solid var(--gold-300); }
+  .erp-analisis-col h4{ margin:0 0 8px; font-size:12.5px; text-transform:uppercase; letter-spacing:.3px; display:flex; align-items:center; gap:6px; }
   .erp-analisis-col.dipertahankan h4{ color:#1E6E3C; }
+  .erp-analisis-col.dipertahankan h4::before{ content:'✓'; display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:50%; background:#1E6E3C; color:#fff; font-size:11px; }
   .erp-analisis-col.ditingkatkan h4{ color:#B4562B; }
+  .erp-analisis-col.ditingkatkan h4::before{ content:'↑'; display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:50%; background:#B4562B; color:#fff; font-size:11px; }
   .erp-analisis-col ul{ margin:0; padding-left:18px; }
   .erp-analisis-col li{ margin-bottom:6px; font-size:13px; line-height:1.5; color:var(--ink); }
 
   /* -------- E-Raport: layout satu lembar terpadu (erp-sheet) -------- */
   .erp-sheet{
-    background:#fff; border-radius:18px; padding:24px;
-    box-shadow:0 4px 26px rgba(15,42,74,.08); border:1px solid var(--line);
+    position:relative;
+    background:#fff; border-radius:22px; padding:26px;
+    box-shadow:0 4px 10px rgba(15,42,74,.06), 0 20px 46px -18px rgba(15,42,74,.22);
+    border:1px solid var(--line);
+  }
+  .erp-sheet::before{
+    content:''; position:absolute; left:0; right:0; top:0; height:6px; border-radius:22px 22px 0 0;
+    background:repeating-linear-gradient(90deg,var(--teal-900) 0 18px,var(--gold-500) 18px 22px);
+    opacity:.9;
   }
   .erp-grid-2col{ display:grid; grid-template-columns:1fr 1fr; gap:18px; margin:18px 0; align-items:start; }
   .erp-grid-2col .erp-card{ margin-bottom:0; }
   @media (max-width:760px){ .erp-grid-2col{ grid-template-columns:1fr; } }
 
   .erp-catatan-ringkas-list{ display:flex; flex-direction:column; gap:10px; }
-  .erp-catatan-ringkas-item{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .erp-catatan-ringkas-item{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    background:var(--paper-soft); border-radius:12px; padding:9px 12px;
+  }
   .erp-catatan-ringkas-item .badge{ flex-shrink:0; white-space:nowrap; }
   .erp-catatan-ringkas-text{ font-size:12.5px; color:var(--ink-soft); }
 
   .erp-mini-table{ width:100%; border-collapse:collapse; margin-top:12px; font-size:12px; }
   .erp-mini-table th{ text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.3px; color:var(--ink-soft); padding:0 6px 6px; border-bottom:1px solid var(--line); }
   .erp-mini-table td{ padding:6px; border-bottom:1px dashed var(--paper-soft); }
+  .erp-mini-table tbody tr:hover td{ background:var(--paper-soft); }
 
-  .erp-ttd-row{ display:flex; justify-content:space-around; gap:24px; margin-top:28px; padding-top:20px; flex-wrap:wrap; }
+  .erp-ttd-row{
+    display:flex; justify-content:space-around; gap:24px; margin-top:30px; padding-top:22px; flex-wrap:wrap;
+    border-top:1px dashed var(--line);
+  }
   .erp-ttd-col{ text-align:center; min-width:180px; }
   .erp-ttd-line{ height:50px; }
   .erp-ttd-label{ font-size:12.5px; color:var(--ink-soft); border-top:1px solid var(--ink); padding-top:6px; }
   .erp-ttd-nama{ font-size:13px; font-weight:700; color:var(--teal-900); margin-top:2px; }
 
+  .erp-deskripsi-ai-card{ border:1px solid var(--sage-200); }
+  .erp-deskripsi-ai-card .btn-gold{
+    background:linear-gradient(135deg,var(--gold-500),var(--gold-300)); border:none; color:var(--teal-900);
+    box-shadow:0 4px 12px rgba(211,164,40,.35); transition:.18s ease;
+  }
+  .erp-deskripsi-ai-card .btn-gold:hover{ transform:translateY(-2px); box-shadow:0 8px 18px rgba(211,164,40,.4); }
+
+  /* -------- E-Raport: warna khas per kartu (hanya di dalam .erp-sheet) -------- */
+  .erp-sheet .erp-card-icon{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:28px; height:28px; border-radius:9px; font-size:14px; flex-shrink:0;
+  }
+  .erp-sheet .erp-card-ibadah::before{ background:linear-gradient(90deg,#043F7B,#3B82F6); }
+  .erp-sheet .erp-card-ibadah .erp-card-icon{ background:linear-gradient(135deg,#043F7B,#3B82F6); }
+
+  .erp-sheet .erp-card-karakter::before{ background:linear-gradient(90deg,#6D28D9,#A78BFA); }
+  .erp-sheet .erp-card-karakter .erp-card-icon{ background:linear-gradient(135deg,#6D28D9,#A78BFA); }
+
+  .erp-sheet .erp-card-kegiatan::before{ background:linear-gradient(90deg,#0F766E,#2DD4BF); }
+  .erp-sheet .erp-card-kegiatan .erp-card-icon{ background:linear-gradient(135deg,#0F766E,#2DD4BF); }
+
+  .erp-sheet .erp-card-tahfidz::before{ background:linear-gradient(90deg,#B4562B,var(--gold-500)); }
+  .erp-sheet .erp-card-tahfidz .erp-card-icon{ background:linear-gradient(135deg,#B4562B,var(--gold-500)); }
+
+  .erp-sheet .erp-card-catatan::before{ background:linear-gradient(90deg,#B5443A,#F0AD4E); }
+  .erp-sheet .erp-card-catatan .erp-card-icon{ background:linear-gradient(135deg,#B5443A,#F0AD4E); }
+
+  .erp-sheet .erp-card-keuangan::before{ background:linear-gradient(90deg,#15803D,#4ADE80); }
+  .erp-sheet .erp-card-keuangan .erp-card-icon{ background:linear-gradient(135deg,#15803D,#4ADE80); }
+
+  /* Setiap kartu ringkasan atas (erp-summary-card) diberi warna latar penuh sendiri-sendiri */
+  .erp-summary-grid .erp-summary-card:nth-child(1){ background:linear-gradient(135deg,#1D4ED8,#3B82F6); border-color:transparent; }
+  .erp-summary-grid .erp-summary-card:nth-child(2){ background:linear-gradient(135deg,#0F766E,#2DD4BF); border-color:transparent; }
+  .erp-summary-grid .erp-summary-card:nth-child(3){ background:linear-gradient(135deg,#B4562B,#E9B949); border-color:transparent; }
+  .erp-summary-grid .erp-summary-card:nth-child(4){ background:linear-gradient(135deg,#15803D,#4ADE80); border-color:transparent; }
+  .erp-summary-grid .erp-summary-card:nth-child(1)::before,
+  .erp-summary-grid .erp-summary-card:nth-child(2)::before,
+  .erp-summary-grid .erp-summary-card:nth-child(3)::before,
+  .erp-summary-grid .erp-summary-card:nth-child(4)::before{ display:none; }
+  .erp-summary-grid .erp-summary-card:nth-child(1) .erp-sc-icon,
+  .erp-summary-grid .erp-summary-card:nth-child(2) .erp-sc-icon,
+  .erp-summary-grid .erp-summary-card:nth-child(3) .erp-sc-icon,
+  .erp-summary-grid .erp-summary-card:nth-child(4) .erp-sc-icon{
+    background:rgba(255,255,255,.22); color:#fff;
+  }
+  .erp-summary-grid .erp-summary-card:nth-child(1) .erp-sc-value,
+  .erp-summary-grid .erp-summary-card:nth-child(2) .erp-sc-value,
+  .erp-summary-grid .erp-summary-card:nth-child(3) .erp-sc-value,
+  .erp-summary-grid .erp-summary-card:nth-child(4) .erp-sc-value{ color:#fff; }
+  .erp-summary-grid .erp-summary-card:nth-child(1) .erp-sc-label,
+  .erp-summary-grid .erp-summary-card:nth-child(2) .erp-sc-label,
+  .erp-summary-grid .erp-summary-card:nth-child(3) .erp-sc-label,
+  .erp-summary-grid .erp-summary-card:nth-child(4) .erp-sc-label{ color:rgba(255,255,255,.85); }
+
   @media print{
     .erp-header-controls, .side-nav, .topbar{ display:none !important; }
     .erp-sheet{ box-shadow:none; border:none; padding:0; }
+    .erp-sheet::before{ display:none; }
+    .erp-card, .erp-summary-card, .erp-profile-card{ box-shadow:none; }
   }
 
   @media(max-width:640px){
@@ -1075,6 +1217,7 @@ Minimum version required to store current data is: `+i+`.
     .erp-header-controls .field{ flex:1; min-width:140px; }
     .erp-profile-card{ flex-direction:column; align-items:flex-start; text-align:left; }
   }
+
 
   /* ---- Overlay notifikasi hasil Scan QR (muncul di tengah kamera) ---- */
   .qr-scan-overlay{
@@ -1258,7 +1401,7 @@ Minimum version required to store current data is: `+i+`.
       <div class="erp-wrap">
         <div class="erp-header">
           <div class="erp-header-title">
-            <h2>E-RAPORT SANTRI</h2>
+            <h2><span class="erp-title-emoji">🎓</span> E-RAPORT SANTRI</h2>
             <p>Laporan Perkembangan Santri</p>
           </div>
           <div class="erp-header-controls">
@@ -3976,8 +4119,8 @@ Minimum version required to store current data is: `+i+`.
           </div>
 
           <div class="erp-grid-2col">
-            <div class="erp-card">
-              <h3>Mutaba'ah Ibadah</h3>
+            <div class="erp-card erp-card-ibadah">
+              <h3><span class="erp-card-icon">🕌</span> Mutaba'ah Ibadah</h3>
               <p class="erp-card-sub">Rekap kepatuhan ibadah periode ${escapeHtml(periodeLabel)}.</p>
               <div style="font-size:11.5px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.3px;margin-bottom:8px;">Ibadah Wajib</div>
               ${total === 0
@@ -3996,8 +4139,8 @@ Minimum version required to store current data is: `+i+`.
               ` : ''}
             </div>
 
-            <div class="erp-card">
-              <h3>Penilaian Karakter</h3>
+            <div class="erp-card erp-card-karakter">
+              <h3><span class="erp-card-icon">⭐</span> Penilaian Karakter</h3>
               <p class="erp-card-sub">Kedisiplinan, kerapian &amp; attitude periode ${escapeHtml(periodeLabel)}.</p>
               <div class="erp-progress-grid">
                 ${progressRow('Kedisiplinan', pen.kedisiplinan)}
@@ -4006,8 +4149,8 @@ Minimum version required to store current data is: `+i+`.
               </div>
             </div>
 
-            <div class="erp-card">
-              <h3>Absensi Kegiatan</h3>
+            <div class="erp-card erp-card-kegiatan">
+              <h3><span class="erp-card-icon">📋</span> Absensi Kegiatan</h3>
               <p class="erp-card-sub">Kehadiran kegiatan periode ${escapeHtml(periodeLabel)}. Izin &amp; Sakit diambil dari data Catatan Santri.</p>
               <div class="erp-absensi-stat-grid">
                 <div class="erp-absensi-stat"><div class="num">${totalKegiatan > 0 ? hadirKegiatan : '-'}</div><div class="lbl">Hadir</div></div>
@@ -4020,8 +4163,8 @@ Minimum version required to store current data is: `+i+`.
                 : emptyState('Belum ada data absensi kegiatan untuk periode ini.')}
             </div>
 
-            <div class="erp-card">
-              <h3>Tahfidz</h3>
+            <div class="erp-card erp-card-tahfidz">
+              <h3><span class="erp-card-icon">📖</span> Tahfidz</h3>
               <p class="erp-card-sub">Ringkasan setoran hafalan periode ${escapeHtml(periodeLabel)}.</p>
               <div class="erp-tahfidz-grid">
                 <div class="erp-tahfidz-item">
@@ -4043,8 +4186,8 @@ Minimum version required to store current data is: `+i+`.
               </div>
             </div>
 
-            <div class="erp-card">
-              <h3>Catatan Santri</h3>
+            <div class="erp-card erp-card-catatan">
+              <h3><span class="erp-card-icon">📝</span> Catatan Santri</h3>
               <p class="erp-card-sub">Ringkasan catatan perkembangan periode ${escapeHtml(periodeLabel)}.</p>
               <div class="erp-catatan-ringkas-list">
                 ${catatanRingkasPerJenis.map(c=>`
@@ -4056,8 +4199,8 @@ Minimum version required to store current data is: `+i+`.
               </div>
             </div>
 
-            <div class="erp-card">
-              <h3>Keuangan Santri</h3>
+            <div class="erp-card erp-card-keuangan">
+              <h3><span class="erp-card-icon">💰</span> Keuangan Santri</h3>
               <p class="erp-card-sub">Rekap uang jajan periode ${escapeHtml(periodeLabel)}.</p>
               <div class="erp-absensi-stat-grid">
                 <div class="erp-absensi-stat"><div class="num">Rp ${totalMasuk.toLocaleString('id-ID')}</div><div class="lbl">Masuk</div></div>
