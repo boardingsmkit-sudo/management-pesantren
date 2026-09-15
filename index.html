@@ -1831,11 +1831,14 @@ Minimum version required to store current data is: `+i+`.
     clip.style.position = 'fixed';
     clip.style.top = '0';
     clip.style.left = '0';
-    clip.style.width = '1px';
-    clip.style.height = '1px';
-    clip.style.overflow = 'hidden';
     clip.style.zIndex = '-1';
     clip.style.pointerEvents = 'none';
+    // Catatan: sengaja TIDAK diberi width/height kecil + overflow:hidden.
+    // html2canvas ikut menghormati clipping CSS dari elemen ancestor,
+    // sehingga clip 1x1px sebelumnya menyebabkan wrapper (konten PDF)
+    // ikut terpotong di sisi kiri saat dirender. Elemen ini tetap
+    // tersembunyi secara visual berkat z-index:-1 (di belakang konten
+    // halaman) tanpa perlu membatasi ukurannya.
     const wrapper = document.createElement('div');
     wrapper.style.width = '800px';
     wrapper.style.background = '#fff';
