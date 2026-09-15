@@ -1881,6 +1881,16 @@ Minimum version required to store current data is: `+i+`.
           scale: 2,
           useCORS: true,
           backgroundColor: '#ffffff',
+          // x/y/scrollX/scrollY dipaksa 0 agar html2canvas tidak
+          // mengimbangi posisi hasil capture dengan posisi scroll
+          // halaman saat ini. Tanpa ini, elemen offscreen yang
+          // position:fixed (selalu tampil di titik (0,0) viewport)
+          // bisa salah dihitung ketika halaman dalam kondisi ter-scroll,
+          // sehingga hasil render bergeser dan sisi kiri konten terpotong.
+          x: 0,
+          y: 0,
+          scrollX: 0,
+          scrollY: 0,
           windowWidth: wrapper.scrollWidth,
           windowHeight: wrapper.scrollHeight
         },
