@@ -946,6 +946,354 @@ Minimum version required to store current data is: `+i+`.
     main{padding:20px 16px 60px;}
   }
 
+  /* =================================================================
+     CATATAN SANTRI — REDESIGN (biru & putih, clean/minimalis)
+     Scope: hanya di dalam #panel-catatan, tidak mempengaruhi menu lain.
+     ================================================================= */
+  #panel-catatan{
+    --cs-blue:#2563EB; --cs-blue-dark:#1D4ED8; --cs-blue-soft:#EFF6FF;
+    --cs-blue-line:#BFDBFE;
+    --cs-ink:#0F172A; --cs-muted:#64748B; --cs-line:#E6EBF2; --cs-bg:#F7F9FC;
+    --cs-r:16px;
+    --cs-sh:0 1px 2px rgba(15,23,42,.04), 0 6px 18px rgba(15,23,42,.05);
+    font-family:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  }
+  #panel-catatan .cs-legacy{display:none !important;}
+
+  /* ---------- Header ---------- */
+  #panel-catatan .cs-head{
+    display:flex;justify-content:space-between;align-items:flex-start;
+    gap:16px;flex-wrap:wrap;margin-bottom:18px;
+  }
+  #panel-catatan .cs-head-title h2{
+    margin:0 0 3px;font-family:inherit;
+    font-size:22px;font-weight:700;color:var(--cs-ink);letter-spacing:-.3px;
+  }
+  #panel-catatan .cs-head-title p{margin:0;font-size:13.5px;color:var(--cs-muted);}
+  #panel-catatan .cs-head-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+
+  #panel-catatan .cs-search{
+    position:relative;display:flex;align-items:center;
+    background:#fff;border:1px solid var(--cs-line);border-radius:12px;
+    padding:0 12px;min-width:230px;box-shadow:var(--cs-sh);
+  }
+  #panel-catatan .cs-search svg{width:16px;height:16px;color:var(--cs-muted);flex-shrink:0;}
+  #panel-catatan .cs-search input{
+    border:none;outline:none;background:transparent;font-size:13.5px;
+    padding:10px 8px;width:100%;color:var(--cs-ink);font-family:inherit;
+  }
+  #panel-catatan .cs-search input::placeholder{color:#94A3B8;}
+
+  /* ---------- Tombol ---------- */
+  #panel-catatan .cs-btn{
+    appearance:none;border:1px solid transparent;border-radius:12px;
+    padding:10px 16px;font-size:13.5px;font-weight:600;cursor:pointer;
+    display:inline-flex;align-items:center;gap:7px;font-family:inherit;
+    transition:background .15s ease,border-color .15s ease,transform .1s ease;
+  }
+  #panel-catatan .cs-btn svg{width:16px;height:16px;}
+  #panel-catatan .cs-btn-primary{background:var(--cs-blue);color:#fff;box-shadow:0 2px 8px rgba(37,99,235,.25);}
+  #panel-catatan .cs-btn-primary:hover{background:var(--cs-blue-dark);}
+  #panel-catatan .cs-btn-primary:active{transform:translateY(1px);}
+  #panel-catatan .cs-btn-ghost{background:#fff;border-color:var(--cs-line);color:var(--cs-muted);}
+  #panel-catatan .cs-btn-ghost:hover{background:var(--cs-bg);color:var(--cs-ink);}
+  #panel-catatan .cs-btn-danger{background:#fff;border-color:#FCA5A5;color:#DC2626;}
+  #panel-catatan .cs-btn-danger:hover{background:#FEF2F2;}
+
+  /* ---------- Tab utama: Catatan / Penilaian Karakter ---------- */
+  #panel-catatan .cs-tabs{
+    display:inline-flex;background:#EEF2F7;border-radius:12px;padding:4px;
+    gap:4px;margin-bottom:16px;max-width:100%;
+  }
+  #panel-catatan .cs-tabs button{
+    appearance:none;border:none;background:transparent;cursor:pointer;
+    padding:8px 18px;border-radius:9px;font-size:13.5px;font-weight:600;
+    color:var(--cs-muted);font-family:inherit;white-space:nowrap;
+  }
+  #panel-catatan .cs-tabs button.active{background:#fff;color:var(--cs-blue);box-shadow:0 1px 3px rgba(15,23,42,.08);}
+
+  /* ---------- Pill filter kategori ---------- */
+  #panel-catatan .cs-pills{
+    display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;
+    scrollbar-width:none;
+  }
+  #panel-catatan .cs-pills::-webkit-scrollbar{display:none;}
+  #panel-catatan .cs-pill{
+    appearance:none;background:#fff;border:1px solid var(--cs-line);
+    border-radius:999px;padding:7px 15px;font-size:12.5px;font-weight:600;
+    color:var(--cs-muted);cursor:pointer;white-space:nowrap;font-family:inherit;
+    transition:all .15s ease;
+  }
+  #panel-catatan .cs-pill:hover{border-color:var(--cs-blue-line);color:var(--cs-ink);}
+  #panel-catatan .cs-pill.active{background:var(--cs-blue);border-color:var(--cs-blue);color:#fff;}
+
+  /* ---------- Kartu / panel ---------- */
+  #panel-catatan .cs-panel-card{
+    background:#fff;border:1px solid var(--cs-line);border-radius:var(--cs-r);
+    padding:18px;box-shadow:var(--cs-sh);margin-bottom:14px;
+  }
+  #panel-catatan .cs-panel-head{
+    display:flex;justify-content:space-between;align-items:center;
+    gap:12px;flex-wrap:wrap;margin-bottom:12px;
+  }
+  #panel-catatan .cs-panel-head h3{
+    margin:0;font-size:15px;font-weight:700;color:var(--cs-ink);font-family:inherit;
+  }
+  #panel-catatan .cs-panel-sub{margin:2px 0 0;font-size:12px;color:var(--cs-muted);}
+  #panel-catatan .cs-hint{font-size:12.5px;color:var(--cs-muted);margin:12px 2px 0;text-align:center;}
+
+  /* ---------- Baris daftar ---------- */
+  #panel-catatan .cs-list{display:flex;flex-direction:column;gap:10px;}
+  #panel-catatan .cs-row{
+    display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+    background:#fff;border:1px solid var(--cs-line);border-radius:14px;
+    padding:13px 14px;cursor:pointer;font-family:inherit;
+    box-shadow:var(--cs-sh);transition:border-color .15s ease,transform .1s ease;
+  }
+  #panel-catatan .cs-row:hover{border-color:var(--cs-blue-line);}
+  #panel-catatan .cs-row:active{transform:scale(.995);}
+  #panel-catatan .cs-avatar{
+    width:42px;height:42px;border-radius:12px;flex-shrink:0;overflow:hidden;
+    background:var(--cs-blue-soft);color:var(--cs-blue);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:15px;
+  }
+  #panel-catatan .cs-avatar img{width:100%;height:100%;object-fit:cover;}
+  #panel-catatan .cs-avatar-lg{width:58px;height:58px;border-radius:16px;font-size:20px;}
+  #panel-catatan .cs-row-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;}
+  #panel-catatan .cs-row-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  #panel-catatan .cs-row-name{font-size:14px;font-weight:600;color:var(--cs-ink);}
+  #panel-catatan .cs-row-sub{font-size:11.5px;color:var(--cs-muted);}
+  #panel-catatan .cs-row-note{
+    font-size:12.5px;color:#475569;line-height:1.45;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  }
+  #panel-catatan .cs-row-right{
+    display:flex;align-items:center;gap:8px;flex-shrink:0;
+    font-size:11.5px;color:var(--cs-muted);white-space:nowrap;
+  }
+  #panel-catatan .cs-row-chev{font-size:19px;color:#CBD5E1;line-height:1;}
+  #panel-catatan .cs-row-ic{
+    width:38px;height:38px;border-radius:11px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;font-size:17px;
+    background:var(--cs-bg);
+  }
+
+  /* ---------- Badge kategori ---------- */
+  #panel-catatan .cs-badge{
+    display:inline-flex;align-items:center;gap:4px;border-radius:999px;
+    padding:3px 10px;font-size:10.5px;font-weight:700;letter-spacing:.2px;
+  }
+  #panel-catatan .cs-c-sakit{background:#FEF3C7;color:#92400E;}
+  #panel-catatan .cs-c-konseling{background:#E0F2FE;color:#075985;}
+  #panel-catatan .cs-c-prestasi{background:#DBEAFE;color:#1D4ED8;}
+  #panel-catatan .cs-c-perizinan{background:#EEF2F7;color:#475569;}
+  #panel-catatan .cs-c-pelanggaran{background:#FEE2E2;color:#B91C1C;}
+
+  /* ---------- Detail santri ---------- */
+  #panel-catatan .cs-back{
+    appearance:none;background:transparent;border:none;cursor:pointer;
+    color:var(--cs-blue);font-size:13.5px;font-weight:600;font-family:inherit;
+    padding:4px 0;margin-bottom:12px;display:inline-flex;align-items:center;gap:6px;
+  }
+  #panel-catatan .cs-back:hover{text-decoration:underline;}
+  #panel-catatan .cs-detail-head{
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    background:#fff;border:1px solid var(--cs-line);border-radius:var(--cs-r);
+    padding:16px 18px;box-shadow:var(--cs-sh);margin-bottom:14px;
+  }
+  #panel-catatan .cs-detail-id{flex:1;min-width:150px;}
+  #panel-catatan .cs-detail-id h3{margin:0 0 2px;font-size:17px;font-weight:700;color:var(--cs-ink);font-family:inherit;}
+  #panel-catatan .cs-detail-id p{margin:0;font-size:12.5px;color:var(--cs-muted);}
+
+  /* ---------- Ringkasan jumlah catatan (kartu kecil horizontal) ---------- */
+  #panel-catatan .cs-stats{
+    display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin-bottom:14px;
+  }
+  #panel-catatan .cs-stat{
+    background:#fff;border:1px solid var(--cs-line);border-radius:13px;
+    padding:11px 6px;text-align:center;box-shadow:var(--cs-sh);
+    display:flex;flex-direction:column;align-items:center;gap:2px;
+  }
+  #panel-catatan .cs-stat-ic{font-size:15px;line-height:1;}
+  #panel-catatan .cs-stat-num{font-size:19px;font-weight:700;color:var(--cs-ink);line-height:1.2;}
+  #panel-catatan .cs-stat-lb{font-size:10px;color:var(--cs-muted);font-weight:600;}
+
+  /* ---------- Riwayat catatan ---------- */
+  #panel-catatan .cs-riwayat{display:flex;flex-direction:column;gap:8px;}
+  #panel-catatan .cs-riwayat .cs-row{box-shadow:none;border-radius:12px;padding:11px 12px;}
+
+  /* ---------- Modal form ---------- */
+  #panel-catatan .cs-modal-overlay{
+    display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);
+    z-index:120;align-items:center;justify-content:center;padding:18px;
+    backdrop-filter:blur(2px);
+  }
+  #panel-catatan .cs-modal-overlay.show{display:flex;}
+  #panel-catatan .cs-modal{
+    background:#fff;border-radius:18px;width:100%;max-width:520px;
+    max-height:90vh;overflow-y:auto;box-shadow:0 24px 60px rgba(15,23,42,.28);
+  }
+  #panel-catatan .cs-modal-head{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:16px 18px;border-bottom:1px solid var(--cs-line);
+    position:sticky;top:0;background:#fff;z-index:2;border-radius:18px 18px 0 0;
+  }
+  #panel-catatan .cs-modal-head h3{margin:0;font-size:16px;font-weight:700;color:var(--cs-ink);font-family:inherit;}
+  #panel-catatan .cs-modal-x{
+    appearance:none;border:none;background:var(--cs-bg);border-radius:9px;
+    width:30px;height:30px;cursor:pointer;color:var(--cs-muted);font-size:15px;line-height:1;
+  }
+  #panel-catatan .cs-modal-x:hover{background:#E9EEF5;color:var(--cs-ink);}
+  #panel-catatan .cs-modal-body{padding:18px;}
+  #panel-catatan .cs-modal-actions{
+    display:flex;justify-content:flex-end;gap:10px;margin-top:18px;
+    padding-top:14px;border-top:1px solid var(--cs-line);
+  }
+
+  /* ---------- Field form ---------- */
+  #panel-catatan .cs-field{margin-bottom:14px;}
+  #panel-catatan .cs-field > label{
+    display:block;font-size:12px;font-weight:600;color:var(--cs-muted);
+    margin-bottom:6px;letter-spacing:.2px;
+  }
+  #panel-catatan .cs-field input[type="text"],
+  #panel-catatan .cs-field input[type="date"],
+  #panel-catatan .cs-field select,
+  #panel-catatan .cs-field textarea,
+  #panel-catatan .cs-select{
+    width:100%;border:1px solid var(--cs-line);border-radius:11px;
+    padding:10px 12px;font-size:13.5px;font-family:inherit;color:var(--cs-ink);
+    background:#fff;outline:none;transition:border-color .15s ease,box-shadow .15s ease;
+  }
+  #panel-catatan .cs-field textarea{min-height:88px;resize:vertical;line-height:1.5;}
+  #panel-catatan .cs-field input:focus,
+  #panel-catatan .cs-field select:focus,
+  #panel-catatan .cs-field textarea:focus,
+  #panel-catatan .cs-select:focus{border-color:var(--cs-blue);box-shadow:0 0 0 3px rgba(37,99,235,.12);}
+  #panel-catatan .cs-field select:disabled{background:var(--cs-bg);color:var(--cs-muted);}
+  #panel-catatan .cs-field-row{display:flex;gap:12px;flex-wrap:wrap;}
+  #panel-catatan .cs-field-row > .cs-field{flex:1;min-width:150px;}
+  #panel-catatan .cs-label{display:block;font-size:12px;font-weight:600;color:var(--cs-muted);margin-bottom:6px;}
+
+  /* ---------- Pilihan kategori di form ---------- */
+  #panel-catatan .cs-cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  #panel-catatan .cs-cat-btn{
+    appearance:none;background:#fff;border:1px solid var(--cs-line);border-radius:12px;
+    padding:11px 6px;cursor:pointer;font-size:11.5px;font-weight:600;color:var(--cs-muted);
+    display:flex;flex-direction:column;align-items:center;gap:5px;font-family:inherit;
+    transition:all .15s ease;
+  }
+  #panel-catatan .cs-cat-btn span{font-size:17px;line-height:1;}
+  #panel-catatan .cs-cat-btn:hover{border-color:var(--cs-blue-line);}
+  #panel-catatan .cs-cat-btn.active{background:var(--cs-blue-soft);border-color:var(--cs-blue);color:var(--cs-blue-dark);}
+
+  /* ---------- Collapsible "Tambah Detail" ---------- */
+  #panel-catatan .cs-extra{
+    border:1px dashed var(--cs-line);border-radius:12px;margin-bottom:4px;overflow:hidden;
+  }
+  #panel-catatan .cs-extra-toggle{
+    appearance:none;width:100%;background:var(--cs-bg);border:none;cursor:pointer;
+    display:flex;justify-content:space-between;align-items:center;
+    padding:11px 14px;font-size:12.5px;font-weight:600;color:var(--cs-ink);font-family:inherit;
+  }
+  #panel-catatan .cs-extra-toggle em{font-style:normal;font-weight:500;color:var(--cs-muted);}
+  #panel-catatan .cs-extra-chev{transition:transform .2s ease;font-size:14px;color:var(--cs-muted);}
+  #panel-catatan .cs-extra-toggle[aria-expanded="true"] .cs-extra-chev{transform:rotate(180deg);}
+  #panel-catatan .cs-extra-body{padding:14px;border-top:1px solid var(--cs-line);background:#fff;}
+  #panel-catatan .cs-extra-body .cs-field:last-child{margin-bottom:0;}
+
+  /* ---------- Penilaian karakter ---------- */
+  #panel-catatan .cs-seg{
+    display:inline-flex;background:#EEF2F7;border-radius:11px;padding:3px;gap:3px;margin-bottom:14px;
+  }
+  #panel-catatan .cs-seg button{
+    appearance:none;border:none;background:transparent;cursor:pointer;
+    padding:7px 15px;border-radius:8px;font-size:12.5px;font-weight:600;
+    color:var(--cs-muted);font-family:inherit;
+  }
+  #panel-catatan .cs-seg button.active{background:#fff;color:var(--cs-blue);box-shadow:0 1px 3px rgba(15,23,42,.08);}
+  #panel-catatan .cs-kat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  #panel-catatan .cs-kat-card{
+    appearance:none;background:#fff;border:1px solid var(--cs-line);border-radius:14px;
+    padding:14px 10px;cursor:pointer;font-family:inherit;text-align:center;
+    display:flex;flex-direction:column;align-items:center;gap:4px;
+    transition:all .15s ease;
+  }
+  #panel-catatan .cs-kat-card:hover{border-color:var(--cs-blue-line);}
+  #panel-catatan .cs-kat-card.active{background:var(--cs-blue-soft);border-color:var(--cs-blue);}
+  #panel-catatan .cs-kat-ic{font-size:20px;line-height:1;}
+  #panel-catatan .cs-kat-label{font-size:12px;font-weight:600;color:var(--cs-ink);}
+  #panel-catatan .cs-kat-score{font-size:18px;font-weight:700;color:var(--cs-blue);line-height:1.2;}
+  #panel-catatan .cs-kat-panel{margin-top:16px;padding-top:16px;border-top:1px solid var(--cs-line);}
+  #panel-catatan .cs-kat-panel-head{
+    display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px;
+  }
+  #panel-catatan .cs-kat-panel-head h4{margin:0;font-size:14px;font-weight:700;color:var(--cs-ink);font-family:inherit;}
+  #panel-catatan .cs-ind{
+    display:flex;justify-content:space-between;align-items:center;gap:12px;
+    padding:11px 0;border-bottom:1px solid var(--cs-line);flex-wrap:wrap;
+  }
+  #panel-catatan .cs-ind:last-of-type{border-bottom:none;}
+  #panel-catatan .cs-ind-label{font-size:13px;font-weight:600;color:var(--cs-ink);flex:1;min-width:130px;}
+  #panel-catatan .cs-ind-bobot{font-size:11px;color:var(--cs-muted);font-weight:600;}
+  #panel-catatan .cs-ind select{
+    border:1px solid var(--cs-line);border-radius:10px;padding:8px 10px;
+    font-size:12.5px;font-family:inherit;color:var(--cs-ink);background:#fff;
+    outline:none;max-width:260px;width:100%;flex:1;min-width:180px;
+  }
+  #panel-catatan .cs-ind select:focus{border-color:var(--cs-blue);}
+  #panel-catatan .cs-score-pill{
+    display:inline-flex;align-items:center;gap:6px;background:var(--cs-blue-soft);
+    color:var(--cs-blue-dark);border-radius:999px;padding:5px 13px;font-size:12px;font-weight:700;
+  }
+  #panel-catatan .cs-legacy-note{
+    background:var(--cs-bg);border-radius:10px;padding:10px 12px;
+    font-size:12px;color:var(--cs-muted);margin:0 0 12px;
+  }
+
+  /* ---------- Detail modal (pakai modal umum aplikasi) ---------- */
+  .cs-detail-row{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid #EEF2F7;font-size:13px;}
+  .cs-detail-row:last-of-type{border-bottom:none;}
+  .cs-detail-row .k{width:140px;flex-shrink:0;color:#64748B;font-weight:600;font-size:12px;}
+  .cs-detail-row .v{flex:1;min-width:0;color:#0F172A;line-height:1.55;word-break:break-word;}
+  .cs-detail-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;padding-top:14px;border-top:1px solid #EEF2F7;}
+
+  /* ---------- Mobile ---------- */
+  @media (max-width:640px){
+    #panel-catatan .cs-head{gap:12px;}
+    #panel-catatan .cs-head-title h2{font-size:19px;}
+    #panel-catatan .cs-head-tools{width:100%;flex-direction:column;align-items:stretch;}
+    #panel-catatan .cs-search{width:100%;min-width:0;}
+    #panel-catatan .cs-btn-primary{justify-content:center;width:100%;}
+    #panel-catatan .cs-tabs{width:100%;}
+    #panel-catatan .cs-tabs button{flex:1;padding:8px 10px;}
+    #panel-catatan .cs-stats{grid-template-columns:repeat(5,1fr);gap:6px;}
+    #panel-catatan .cs-stat{padding:9px 3px;border-radius:11px;}
+    #panel-catatan .cs-stat-num{font-size:16px;}
+    #panel-catatan .cs-stat-lb{font-size:8.5px;}
+    #panel-catatan .cs-stat-ic{font-size:13px;}
+    #panel-catatan .cs-row{padding:11px;gap:10px;border-radius:13px;}
+    #panel-catatan .cs-avatar{width:38px;height:38px;border-radius:11px;font-size:14px;}
+    #panel-catatan .cs-avatar-lg{width:50px;height:50px;}
+    #panel-catatan .cs-row-note{-webkit-line-clamp:2;font-size:12px;}
+    #panel-catatan .cs-row-right{flex-direction:column;align-items:flex-end;gap:2px;}
+    #panel-catatan .cs-detail-head{padding:14px;}
+    #panel-catatan .cs-detail-head .cs-btn{width:100%;justify-content:center;}
+    #panel-catatan .cs-kat-grid{grid-template-columns:1fr;}
+    #panel-catatan .cs-kat-card{flex-direction:row;justify-content:space-between;padding:12px 14px;}
+    #panel-catatan .cs-cat-grid{grid-template-columns:repeat(2,1fr);}
+    #panel-catatan .cs-modal-overlay{padding:0;align-items:flex-end;}
+    #panel-catatan .cs-modal{max-width:100%;max-height:94vh;border-radius:18px 18px 0 0;}
+    #panel-catatan .cs-modal-head{border-radius:18px 18px 0 0;}
+    #panel-catatan .cs-modal-actions{flex-direction:column-reverse;}
+    #panel-catatan .cs-modal-actions .cs-btn{width:100%;justify-content:center;}
+    #panel-catatan .cs-ind{flex-direction:column;align-items:stretch;gap:7px;}
+    #panel-catatan .cs-ind select{max-width:100%;}
+    .cs-detail-row{flex-direction:column;gap:3px;}
+    .cs-detail-row .k{width:auto;}
+  }
+
   /* ================= E-RAPORT (modern redesign) ================= */
   .erp-wrap{
     position:relative; background:linear-gradient(180deg,#F7FAFF 0%,#F3F6FB 100%);
@@ -1646,72 +1994,98 @@ Minimum version required to store current data is: `+i+`.
       </div>
     </section>
 
-    <!-- CATATAN SANTRI (termasuk Perizinan) -->
+    <!-- ================= CATATAN SANTRI (redesign) ================= -->
     <section class="panel" id="panel-catatan">
-      <div class="ct-header">
-        <h2>Catatan Perkembangan Santri</h2>
-        <p>Rekam perkembangan, pembinaan, kesehatan, perizinan, prestasi, dan kedisiplinan santri.</p>
+
+      <!-- Kontrol lama yang masih dipakai fungsi JS & export PDF (disembunyikan,
+           JANGAN dihapus agar seluruh fungsi lama tetap berjalan) -->
+      <div class="cs-legacy" aria-hidden="true">
+        <select id="catatan-santri"></select>
+        <select id="ct-filter-jenis">
+          <option value="semua">Semua Jenis</option>
+          <option value="sakit">Sakit</option>
+          <option value="perizinan">Perizinan</option>
+          <option value="konseling">Konseling</option>
+          <option value="prestasi">Prestasi</option>
+          <option value="pelanggaran">Pelanggaran</option>
+        </select>
+        <select id="ct-filter-periode">
+          <option value="semua">Semua Periode</option>
+          <option value="bulan">Bulan Ini</option>
+          <option value="3bulan">3 Bulan Terakhir</option>
+          <option value="semester">Semester (6 Bulan)</option>
+          <option value="custom">Custom Tanggal</option>
+        </select>
+        <input type="date" id="ct-filter-dari">
+        <input type="date" id="ct-filter-sampai">
       </div>
 
-      <div class="card">
-        <div class="ct-picker-row" style="margin-bottom:0;">
-          <div class="field">
-            <label>Pilih Santri</label>
-            <select id="catatan-santri"></select>
+      <!-- ---------- VIEW 1: DAFTAR ---------- -->
+      <div id="cs-view-list">
+        <div class="cs-head">
+          <div class="cs-head-title">
+            <h2>Catatan Santri</h2>
+            <p>Kelola perkembangan dan riwayat santri</p>
           </div>
+          <div class="cs-head-tools">
+            <div class="cs-search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+              <input type="text" id="ct-search-input" placeholder="Cari nama santri...">
+            </div>
+            <button class="cs-btn cs-btn-primary" id="cs-btn-add" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+              Tambah Catatan
+            </button>
+          </div>
+        </div>
+
+        <div class="cs-tabs" id="cs-main-tabs">
+          <button type="button" class="active" data-view="catatan">Catatan</button>
+          <button type="button" data-view="penilaian">Penilaian Karakter</button>
+        </div>
+
+        <!-- Sub-view: Catatan -->
+        <div id="cs-sub-catatan">
+          <div class="cs-pills" id="cs-pills"></div>
+          <div class="cs-list" id="cs-list"></div>
+        </div>
+
+        <!-- Sub-view: Penilaian Karakter -->
+        <div id="cs-sub-penilaian" style="display:none;">
+          <div class="cs-panel-card">
+            <label class="cs-label" for="cs-pen-santri">Pilih Santri</label>
+            <select id="cs-pen-santri" class="cs-select"></select>
+          </div>
+          <div id="ct-penilaian-wrap"></div>
         </div>
       </div>
 
-      <div id="ct-profile-wrap"></div>
-      <div id="ct-stats-wrap"></div>
-      <div id="ct-insight-wrap"></div>
-
-      <div class="card" id="ct-quick-cats-card" style="display:none;">
-        <h2 style="font-size:15px;">Kategori Catatan</h2>
-        <p class="sub" style="margin-top:-4px;">Pilih kategori untuk menambah catatan atau mengisi penilaian.</p>
-        <div class="ct-type-grid" id="ct-quick-cats"></div>
-      </div>
-
-      <div id="ct-penilaian-wrap"></div>
-
-      <div class="card" id="ct-form-card" style="display:none;">
-        <div id="ct-form-wrap"></div>
-      </div>
-
-      <div class="card">
-        <div class="ct-toolbar">
-          <div class="ct-search">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-            <input type="text" id="ct-search-input" placeholder="Cari catatan...">
+      <!-- ---------- VIEW 2: DETAIL SANTRI ---------- -->
+      <div id="cs-view-detail" style="display:none;">
+        <button class="cs-back" id="cs-btn-back" type="button">&larr; Kembali</button>
+        <div id="ct-profile-wrap"></div>
+        <div id="ct-stats-wrap"></div>
+        <div class="cs-panel-card">
+          <div class="cs-panel-head">
+            <h3>Riwayat Catatan</h3>
+            <button class="cs-btn cs-btn-ghost" id="btn-download-catatan-pdf" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>
+              Export PDF
+            </button>
           </div>
-          <div class="ct-filters">
-            <select id="ct-filter-jenis">
-              <option value="semua">Semua Jenis</option>
-              <option value="sakit">Sakit</option>
-              <option value="perizinan">Perizinan</option>
-              <option value="konseling">Konseling</option>
-              <option value="prestasi">Prestasi</option>
-              <option value="pelanggaran">Pelanggaran</option>
-            </select>
-            <select id="ct-filter-periode">
-              <option value="semua">Semua Periode</option>
-              <option value="bulan">Bulan Ini</option>
-              <option value="3bulan">3 Bulan Terakhir</option>
-              <option value="semester">Semester (6 Bulan)</option>
-              <option value="custom">Custom Tanggal</option>
-            </select>
-            <input type="date" id="ct-filter-dari" style="display:none;">
-            <input type="date" id="ct-filter-sampai" style="display:none;">
-          </div>
-          <button class="btn btn-primary" id="btn-download-catatan-pdf">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>
-            Export PDF
-          </button>
+          <div id="ct-timeline" class="cs-riwayat"></div>
         </div>
-        <div id="ct-timeline" class="ct-timeline"></div>
+        <div id="ct-insight-wrap"></div>
       </div>
 
-      <!-- tabel tersembunyi: sumber data untuk export PDF, struktur & fungsi lama dipertahankan -->
+      <!-- ---------- MODAL FORM CATATAN ---------- -->
+      <div class="cs-modal-overlay" id="ct-form-overlay">
+        <div class="cs-modal" id="ct-form-card">
+          <div id="ct-form-wrap"></div>
+        </div>
+      </div>
+
+      <!-- tabel tersembunyi: sumber data untuk export PDF (struktur lama dipertahankan) -->
       <table id="catatan-table" style="display:none;"></table>
     </section>
 
@@ -4773,6 +5147,8 @@ Minimum version required to store current data is: `+i+`.
   };
   // Gabungan seluruh kategori Catatan Santri (untuk kartu kategori cepat)
   const CT_ALL_CATEGORIES = ['kedisiplinan','kerapian','attitude','prestasi','pelanggaran','konseling','perizinan','sakit'];
+  // Urutan tampil kategori Catatan Santri pada UI baru (filter, form, ringkasan)
+  const CT_JENIS_ORDER = ['sakit','konseling','prestasi','perizinan','pelanggaran'];
 
   /* =============================================================================
      SISTEM PENILAIAN KARAKTER BERBASIS INDIKATOR (Kedisiplinan / Kerapian / Attitude)
@@ -4951,7 +5327,7 @@ Minimum version required to store current data is: `+i+`.
   function ctParsedEntries(sid){
     return (catatanData[sid] || []).map(e=>{
       const { text, meta } = ctParseKeterangan(e.keterangan);
-      return Object.assign({}, e, { ctText:text, ctMeta:meta });
+      return Object.assign({}, e, { ctText:text, ctMeta:meta, santriId:sid });
     });
   }
   function ctEntryTitle(e){
@@ -4959,6 +5335,8 @@ Minimum version required to store current data is: `+i+`.
     if(e.jenis === 'prestasi' && meta.nama_prestasi) return meta.nama_prestasi;
     if(e.jenis === 'pelanggaran' && meta.jenis_pelanggaran) return meta.jenis_pelanggaran;
     if(e.jenis === 'konseling' && meta.topik) return meta.topik;
+    if(e.jenis === 'sakit' && meta.keluhan) return meta.keluhan;
+    if(e.jenis === 'perizinan' && meta.keperluan) return meta.keperluan;
     if(e.ctText) return e.ctText.split('\n')[0].slice(0, 80);
     return JENIS_META[e.jenis] ? JENIS_META[e.jenis].label : e.jenis;
   }
@@ -5058,247 +5436,267 @@ Minimum version required to store current data is: `+i+`.
 
   function populateCatatanSantriSelect(){
     const sel = document.getElementById('catatan-santri');
+    if(!sel) return;
     const prev = sel.value;
-    sel.innerHTML = sortSantriList(santriList)
-      .map(s=>`<option value="${s.id}">${escapeHtml(s.nama)}${s.kelas ? ' — '+escapeHtml(s.kelas):''}</option>`).join('');
+    const opts = sortSantriList(santriList)
+      .map(s=>`<option value="${s.id}">${escapeHtml(s.nama)}${s.kelas ? ' \u2014 '+escapeHtml(s.kelas):''}</option>`).join('');
+    sel.innerHTML = opts;
     if(santriList.some(s=>s.id===prev)) sel.value = prev;
+    // Dropdown santri pada tab Penilaian Karakter (UI baru)
+    const pen = document.getElementById('cs-pen-santri');
+    if(pen){
+      const prevPen = pen.value;
+      pen.innerHTML = `<option value="">\u2014 Pilih santri \u2014</option>` + opts;
+      pen.value = santriList.some(s=>s.id===prevPen) ? prevPen : '';
+    }
   }
 
   /* -------- Kartu profil santri -------- */
   function ctRenderProfile(){
     const wrap = document.getElementById('ct-profile-wrap');
+    if(!wrap) return;
     const sid = ctSelectedSantriId();
     const s = santriList.find(x=>x.id===sid);
     if(!s){ wrap.innerHTML = ''; return; }
-    const avatar = s.foto_url
-      ? `<img src="${escapeHtml(s.foto_url)}" alt="">`
-      : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
     wrap.innerHTML = `
-      <div class="card ct-profile-card">
-        <div class="ct-profile-top">
-          <div class="ct-profile-avatar">${avatar}</div>
-          <div class="ct-profile-info">
-            <h3>${escapeHtml(s.nama)}</h3>
-            <div class="ct-profile-meta">
-              <span>NIS: <b>${escapeHtml(s.nis || '-')}</b></span>
-              <span>Kelas: <b>${escapeHtml(s.kelas || '-')}</b></span>
-              <span>Kamar: <b>${escapeHtml(s.no_kamar || '-')}</b></span>
-            </div>
-          </div>
-          <div class="ct-profile-status">
-            <span class="badge ${s.aktif===false ? 'nonaktif' : 'aktif'}">${s.aktif===false ? 'Tidak Aktif' : 'Aktif'}</span>
-          </div>
+      <div class="cs-detail-head">
+        <div class="cs-avatar cs-avatar-lg">${csAvatarInner(s)}</div>
+        <div class="cs-detail-id">
+          <h3>${escapeHtml(s.nama)}</h3>
+          <p>${escapeHtml(s.kelas || 'Tanpa kelas')}${s.no_kamar ? ' \u00b7 Kamar '+escapeHtml(s.no_kamar) : ''}${s.aktif===false ? ' \u00b7 Tidak Aktif' : ''}</p>
         </div>
-        <div class="ct-profile-actions">
-          <button class="btn btn-gold" id="btn-tambah-catatan" type="button">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-            Tambah Catatan
-          </button>
-        </div>
+        <button class="cs-btn cs-btn-primary" id="btn-tambah-catatan" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+          Tambah Catatan
+        </button>
       </div>`;
-    document.getElementById('btn-tambah-catatan').addEventListener('click', ()=> ctOpenForm(null));
+    document.getElementById('btn-tambah-catatan').addEventListener('click', ()=> ctOpenForm(null, null, sid));
   }
 
   /* -------- Ringkasan mini-stat -------- */
   function ctRenderStats(){
     const wrap = document.getElementById('ct-stats-wrap');
+    if(!wrap) return;
     const sid = ctSelectedSantriId();
     if(!sid){ wrap.innerHTML = ''; return; }
     const entries = ctParsedEntries(sid);
-    const count = j => entries.filter(e=>e.jenis===j).length;
-    const cards = [
-      { j:'prestasi',    cls:'st-prestasi',    label:'Total prestasi' },
-      { j:'pelanggaran', cls:'st-pelanggaran', label:'Perlu pembinaan' },
-      { j:'konseling',   cls:'st-konseling',   label:'Sesi konseling' },
-      { j:'sakit',       cls:'st-sakit',       label:'Riwayat sakit' },
-      { j:'perizinan',   cls:'st-perizinan',   label:'Riwayat izin' }
-    ];
-    wrap.innerHTML = `<div class="ct-stats-grid">` + cards.map(c=>`
-      <div class="ct-stat-card ${c.cls}">
-        <div class="ct-stat-icon">${JENIS_META[c.j].icon}</div>
-        <div class="ct-stat-num">${count(c.j)}</div>
-        <div class="ct-stat-label">${JENIS_META[c.j].label} · ${c.label}</div>
-      </div>`).join('') + `</div>`;
+    wrap.innerHTML = `<div class="cs-stats">` + CT_JENIS_ORDER.map(j=>{
+      const m = JENIS_META[j];
+      const n = entries.filter(e=>e.jenis===j).length;
+      return `<div class="cs-stat">
+        <span class="cs-stat-ic">${m.icon}</span>
+        <span class="cs-stat-num">${n}</span>
+        <span class="cs-stat-lb">${m.label}</span>
+      </div>`;
+    }).join('') + `</div>`;
   }
 
   /* -------- Insight perkembangan (dihitung otomatis dari data yang ada) -------- */
   function ctRenderInsight(entries){
     const wrap = document.getElementById('ct-insight-wrap');
+    if(!wrap) return;
     const sid = ctSelectedSantriId();
     if(!sid){ wrap.innerHTML = ''; return; }
     const count = j => entries.filter(e=>e.jenis===j).length;
     const nPrestasi = count('prestasi'), nPelanggaran = count('pelanggaran'), nKonseling = count('konseling');
     const items = [];
-    if(nPrestasi > 0) items.push({
-      cls:'positif', dot:'🟢', title:'Perkembangan Positif',
-      text:`Santri memiliki ${nPrestasi} catatan prestasi dalam periode ini.`
-    });
-    if(nPelanggaran > 0) items.push({
-      cls:'perhatian', dot:'🟡', title:'Perlu Perhatian',
-      text:`Terdapat ${nPelanggaran} catatan pelanggaran yang perlu dipantau.`
-    });
-    if(nKonseling > 0) items.push({
-      cls:'pembinaan', dot:'🔵', title:'Catatan Pembinaan',
-      text:`Santri telah mengikuti ${nKonseling} sesi konseling.`
-    });
+    if(nPrestasi > 0) items.push(`\ud83d\udfe2 <b>Perkembangan positif</b> \u2014 ${nPrestasi} catatan prestasi.`);
+    if(nPelanggaran > 0) items.push(`\ud83d\udfe1 <b>Perlu perhatian</b> \u2014 ${nPelanggaran} catatan pelanggaran.`);
+    if(nKonseling > 0) items.push(`\ud83d\udd35 <b>Pembinaan</b> \u2014 ${nKonseling} sesi konseling.`);
     if(items.length === 0){ wrap.innerHTML = ''; return; }
     wrap.innerHTML = `
-      <div class="card" style="padding-bottom:6px;">
-        <h2 style="font-size:15px;">Insight Perkembangan Santri</h2>
-        <div class="ct-insight-grid">
-          ${items.map(it=>`
-            <div class="ct-insight-item ${it.cls}">
-              <span class="ct-insight-dot">${it.dot}</span>
-              <div><b>${it.title}</b><span class="ct-insight-text">${escapeHtml(it.text)}</span></div>
-            </div>`).join('')}
-        </div>
+      <div class="cs-panel-card">
+        <div class="cs-panel-head" style="margin-bottom:8px;"><h3>Insight Perkembangan</h3></div>
+        ${items.map(t=>`<p style="margin:0 0 6px;font-size:12.5px;color:#475569;line-height:1.5;">${t}</p>`).join('')}
       </div>`;
   }
 
   /* -------- Form tambah / edit catatan -------- */
-  function ctOpenForm(editEntry, presetJenis){
+  function ctOpenForm(editEntry, presetJenis, presetSantriId){
+    if(santriList.length === 0){ showToast('Belum ada data santri', true); return; }
     ctEditingId = editEntry ? editEntry.id : null;
-    const card = document.getElementById('ct-form-card');
-    card.style.display = '';
+    const overlay = document.getElementById('ct-form-overlay');
     const defaultJenis = editEntry ? editEntry.jenis : (presetJenis || 'sakit');
+    const sid = editEntry ? (editEntry.santriId || ctSelectedSantriId())
+                          : (presetSantriId || '');
     document.getElementById('ct-form-wrap').innerHTML = `
-      <div class="ct-form-head">
-        <h3>${editEntry ? 'Edit Catatan' : 'Tambah Catatan Baru'}</h3>
-        <button class="modal-close" id="btn-cancel-catatan" type="button" title="Tutup">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-        </button>
+      <div class="cs-modal-head">
+        <h3>${editEntry ? 'Edit Catatan' : 'Tambah Catatan'}</h3>
+        <button class="cs-modal-x" id="btn-cancel-catatan" type="button" title="Tutup">&#10005;</button>
       </div>
-      <div class="field" style="margin-bottom:16px;">
-        <label>Jenis Catatan</label>
-        <div class="ct-type-grid" id="ct-type-grid">
-          ${Object.keys(JENIS_META).map(k=>`
-            <button type="button" class="ct-type-btn${k===defaultJenis?' active':''}" data-jenis="${k}">
-              <span class="ct-type-icon">${JENIS_META[k].icon}</span><span>${JENIS_META[k].label}</span>
-            </button>`).join('')}
+      <div class="cs-modal-body">
+        <div class="cs-field">
+          <label for="ct-f-santri">Santri</label>
+          <select id="ct-f-santri"${editEntry ? ' disabled' : ''}>
+            <option value="">\u2014 Pilih santri \u2014</option>
+            ${sortSantriList(santriList).map(s=>`<option value="${s.id}"${s.id===sid?' selected':''}>${escapeHtml(s.nama)}${s.kelas ? ' \u2014 '+escapeHtml(s.kelas):''}</option>`).join('')}
+          </select>
         </div>
-      </div>
-      <div id="ct-dynamic-fields"></div>
-    `;
+        <div class="cs-field">
+          <label>Kategori</label>
+          <div class="cs-cat-grid" id="ct-type-grid">
+            ${CT_JENIS_ORDER.map(k=>`
+              <button type="button" class="cs-cat-btn${k===defaultJenis?' active':''}" data-jenis="${k}">
+                <span>${JENIS_META[k].icon}</span>${JENIS_META[k].label}
+              </button>`).join('')}
+          </div>
+        </div>
+        <div id="ct-dynamic-fields"></div>
+      </div>`;
     document.getElementById('btn-cancel-catatan').addEventListener('click', ctCloseForm);
-    document.querySelectorAll('#ct-type-grid .ct-type-btn').forEach(b=>{
+    document.querySelectorAll('#ct-type-grid .cs-cat-btn').forEach(b=>{
       b.addEventListener('click', ()=>{
-        document.querySelectorAll('#ct-type-grid .ct-type-btn').forEach(x=>x.classList.remove('active'));
+        document.querySelectorAll('#ct-type-grid .cs-cat-btn').forEach(x=>x.classList.remove('active'));
         b.classList.add('active');
         ctRenderDynamicFields(b.dataset.jenis, editEntry);
       });
     });
     ctRenderDynamicFields(defaultJenis, editEntry);
-    card.scrollIntoView({behavior:'smooth', block:'nearest'});
+    overlay.classList.add('show');
   }
   function ctCloseForm(){
     ctEditingId = null;
-    document.getElementById('ct-form-card').style.display = 'none';
-    document.getElementById('ct-form-wrap').innerHTML = '';
+    const overlay = document.getElementById('ct-form-overlay');
+    if(overlay) overlay.classList.remove('show');
+    const wrap = document.getElementById('ct-form-wrap');
+    if(wrap) wrap.innerHTML = '';
   }
 
-  function ctExtraFieldsHtml(jenis, meta){
+  function ctExtraFieldsHtml(jenis, meta, editEntry){
     meta = meta || {};
+    const tglKembali = (editEntry && editEntry.jenis === jenis) ? (editEntry.tanggalKembali || '') : '';
+    const fieldKembali = `
+      <div class="cs-field">
+        <label>Tanggal Kembali</label>
+        <input type="date" id="ct-tanggal-kembali" value="${tglKembali}">
+      </div>`;
     if(jenis === 'prestasi'){
       return `
-        <div class="row">
-          <div class="field" style="flex:2;min-width:220px;">
-            <label>Nama Prestasi</label>
-            <input type="text" id="ct-f-nama-prestasi" placeholder="Contoh: Juara 1 Tahfidz" value="${escapeHtml(meta.nama_prestasi||'')}">
-          </div>
-          <div class="field" style="min-width:170px;">
-            <label>Tingkat</label>
-            <select id="ct-f-tingkat-prestasi">
-              ${['Internal','Kecamatan','Kabupaten','Provinsi','Nasional'].map(t=>`<option value="${t}" ${meta.tingkat===t?'selected':''}>${t}</option>`).join('')}
-            </select>
-          </div>
+        <div class="cs-field">
+          <label>Nama Prestasi</label>
+          <input type="text" id="ct-f-nama-prestasi" placeholder="Contoh: Juara 1 Tahfidz" value="${escapeHtml(meta.nama_prestasi||'')}">
         </div>
-        <div class="row" style="margin-top:12px;">
-          <div class="field" style="flex:1;min-width:260px;">
-            <label>Sertifikat (PDF/JPG/PNG, opsional)</label>
-            <div id="ct-sertifikat-wrap"></div>
-          </div>
+        <div class="cs-field">
+          <label>Tingkat</label>
+          <select id="ct-f-tingkat-prestasi">
+            ${['Internal','Kecamatan','Kabupaten','Provinsi','Nasional'].map(t=>`<option value="${t}" ${meta.tingkat===t?'selected':''}>${t}</option>`).join('')}
+          </select>
+        </div>
+        <div class="cs-field">
+          <label>Sertifikat (PDF/JPG/PNG, opsional)</label>
+          <div id="ct-sertifikat-wrap"></div>
         </div>`;
     }
     if(jenis === 'pelanggaran'){
       return `
-        <div class="row">
-          <div class="field" style="flex:2;min-width:220px;">
-            <label>Jenis Pelanggaran</label>
-            <input type="text" id="ct-f-jenis-pelanggaran" placeholder="Contoh: Terlambat mengaji" value="${escapeHtml(meta.jenis_pelanggaran||'')}">
-          </div>
-          <div class="field" style="min-width:150px;">
+        <div class="cs-field">
+          <label>Jenis Pelanggaran</label>
+          <input type="text" id="ct-f-jenis-pelanggaran" placeholder="Contoh: Terlambat mengaji" value="${escapeHtml(meta.jenis_pelanggaran||'')}">
+        </div>
+        <div class="cs-field-row">
+          <div class="cs-field">
             <label>Tingkat</label>
             <select id="ct-f-tingkat-pelanggaran">
               ${['Ringan','Sedang','Berat'].map(t=>`<option value="${t}" ${meta.tingkat===t?'selected':''}>${t}</option>`).join('')}
             </select>
           </div>
-        </div>
-        <div class="row" style="margin-top:12px;">
-          <div class="field" style="flex:2;min-width:220px;">
-            <label>Tindakan Pembinaan</label>
-            <input type="text" id="ct-f-tindakan" placeholder="Contoh: Teguran lisan, nasihat" value="${escapeHtml(meta.tindakan||'')}">
-          </div>
-          <div class="field" style="min-width:170px;">
-            <label>Status</label>
+          <div class="cs-field">
+            <label>Status Pembinaan</label>
             <select id="ct-f-status-pelanggaran">
               ${['Selesai','Dalam Pembinaan'].map(t=>`<option value="${t}" ${meta.status===t?'selected':''}>${t}</option>`).join('')}
             </select>
           </div>
+        </div>
+        <div class="cs-field">
+          <label>Tindakan Pembinaan</label>
+          <input type="text" id="ct-f-tindakan" placeholder="Contoh: Teguran lisan, nasihat" value="${escapeHtml(meta.tindakan||'')}">
         </div>`;
     }
     if(jenis === 'konseling'){
       return `
-        <div class="field">
+        <div class="cs-field">
           <label>Topik Konseling</label>
           <input type="text" id="ct-f-topik" placeholder="Contoh: Motivasi belajar" value="${escapeHtml(meta.topik||'')}">
         </div>
-        <div class="row" style="margin-top:12px;">
-          <div class="field" style="flex:1;min-width:220px;">
-            <label>Hasil Konseling</label>
-            <textarea id="ct-f-hasil" placeholder="Ringkasan hasil konseling">${escapeHtml(meta.hasil||'')}</textarea>
-          </div>
-          <div class="field" style="flex:1;min-width:220px;">
-            <label>Tindak Lanjut</label>
-            <textarea id="ct-f-tindak-lanjut" placeholder="Rencana tindak lanjut">${escapeHtml(meta.tindak_lanjut||'')}</textarea>
-          </div>
+        <div class="cs-field">
+          <label>Hasil Konseling</label>
+          <textarea id="ct-f-hasil" placeholder="Ringkasan hasil konseling">${escapeHtml(meta.hasil||'')}</textarea>
+        </div>
+        <div class="cs-field">
+          <label>Tindak Lanjut</label>
+          <textarea id="ct-f-tindak-lanjut" placeholder="Rencana tindak lanjut">${escapeHtml(meta.tindak_lanjut||'')}</textarea>
         </div>`;
+    }
+    if(jenis === 'sakit'){
+      return `
+        <div class="cs-field">
+          <label>Keluhan / Kondisi</label>
+          <input type="text" id="ct-f-keluhan" placeholder="Contoh: Demam, istirahat di asrama" value="${escapeHtml(meta.keluhan||'')}">
+        </div>
+        ${fieldKembali}`;
+    }
+    if(jenis === 'perizinan'){
+      return `
+        <div class="cs-field">
+          <label>Keperluan</label>
+          <input type="text" id="ct-f-keperluan" placeholder="Contoh: Pulang, acara keluarga" value="${escapeHtml(meta.keperluan||'')}">
+        </div>
+        ${fieldKembali}`;
     }
     return '';
   }
 
   function ctRenderDynamicFields(jenis, editEntry){
-    ctPendingSertifikat = undefined; // reset setiap kali form jenis dirender ulang
+    ctPendingSertifikat = undefined; // reset setiap kali jenis dirender ulang
     const wrap = document.getElementById('ct-dynamic-fields');
-    const meta = (editEntry && editEntry.jenis === jenis) ? (editEntry.ctMeta || {}) : {};
+    const sameJenis = editEntry && editEntry.jenis === jenis;
+    const meta = sameJenis ? (editEntry.ctMeta || {}) : {};
     const tanggal = editEntry ? editEntry.tanggal : todayStr();
-    const text = editEntry && editEntry.jenis === jenis ? (editEntry.ctText || '') : '';
-    const tanggalKembali = editEntry ? (editEntry.tanggalKembali || '') : '';
+    const text = sameJenis ? (editEntry.ctText || '') : '';
+    const extra = ctExtraFieldsHtml(jenis, meta, editEntry);
+    // Buka otomatis bila catatan lama memang sudah punya detail tambahan
+    const adaDetail = sameJenis && (Object.keys(meta).length > 0 || !!editEntry.tanggalKembali);
     wrap.innerHTML = `
-      <div class="ct-dynamic-fields">
-        <div class="row">
-          <div class="field"><label>Tanggal</label><input type="date" id="ct-tanggal" value="${tanggal}"></div>
-          ${jenis === 'perizinan' ? `<div class="field"><label>Tanggal Kembali</label><input type="date" id="ct-tanggal-kembali" value="${tanggalKembali}"></div>` : ''}
-        </div>
-        <div style="margin-top:12px;">${ctExtraFieldsHtml(jenis, meta)}</div>
-        <div class="field" style="margin-top:12px;">
-          <label>Keterangan</label>
-          <textarea id="ct-keterangan" placeholder="Contoh: gejala sakit / keperluan izin / kronologi tambahan (opsional)">${escapeHtml(text)}</textarea>
-        </div>
-        <div class="ct-form-actions">
-          <button class="btn btn-ghost" id="btn-batal-catatan" type="button" style="color:var(--ink-soft);border-color:var(--line);">Batal</button>
-          <button class="btn btn-gold" id="btn-simpan-catatan" type="button">${editEntry ? 'Simpan Perubahan' : 'Simpan Catatan'}</button>
-        </div>
+      <div class="cs-field">
+        <label for="ct-tanggal">Tanggal</label>
+        <input type="date" id="ct-tanggal" value="${tanggal}">
+      </div>
+      <div class="cs-field">
+        <label for="ct-keterangan">Catatan</label>
+        <textarea id="ct-keterangan" placeholder="Tulis catatan singkat mengenai kondisi atau perkembangan santri...">${escapeHtml(text)}</textarea>
+      </div>
+      ${extra ? `
+      <div class="cs-extra">
+        <button type="button" class="cs-extra-toggle" id="ct-extra-toggle" aria-expanded="${adaDetail?'true':'false'}">
+          <span>Tambah Detail <em>(opsional)</em></span>
+          <span class="cs-extra-chev">&#9662;</span>
+        </button>
+        <div class="cs-extra-body" id="ct-extra-body" style="display:${adaDetail?'block':'none'};">${extra}</div>
+      </div>` : ''}
+      <div class="cs-modal-actions">
+        <button class="cs-btn cs-btn-ghost" id="btn-batal-catatan" type="button">Batal</button>
+        <button class="cs-btn cs-btn-primary" id="btn-simpan-catatan" type="button">${editEntry ? 'Simpan Perubahan' : 'Simpan Catatan'}</button>
       </div>`;
+    const toggle = document.getElementById('ct-extra-toggle');
+    if(toggle){
+      toggle.addEventListener('click', ()=>{
+        const body = document.getElementById('ct-extra-body');
+        const open = body.style.display !== 'none';
+        body.style.display = open ? 'none' : 'block';
+        toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
+      });
+    }
     document.getElementById('btn-batal-catatan').addEventListener('click', ctCloseForm);
     document.getElementById('btn-simpan-catatan').addEventListener('click', ()=> ctSubmitForm(jenis, editEntry));
     if(jenis === 'prestasi') ctBindSertifikatField(meta);
   }
 
   function ctCollectMeta(jenis, editEntry){
+    const val = id => { const el = document.getElementById(id); return el ? el.value : ''; };
     if(jenis === 'prestasi'){
       const meta = {
-        nama_prestasi: (document.getElementById('ct-f-nama-prestasi')||{}).value || '',
-        tingkat: (document.getElementById('ct-f-tingkat-prestasi')||{}).value || ''
+        nama_prestasi: val('ct-f-nama-prestasi'),
+        tingkat: val('ct-f-tingkat-prestasi')
       };
       const prevMeta = (editEntry && editEntry.jenis === 'prestasi') ? (editEntry.ctMeta || {}) : {};
       if(ctPendingSertifikat === null){
@@ -5315,25 +5713,31 @@ Minimum version required to store current data is: `+i+`.
       return meta;
     }
     if(jenis === 'pelanggaran') return {
-      jenis_pelanggaran: (document.getElementById('ct-f-jenis-pelanggaran')||{}).value || '',
-      tingkat: (document.getElementById('ct-f-tingkat-pelanggaran')||{}).value || '',
-      tindakan: (document.getElementById('ct-f-tindakan')||{}).value || '',
-      status: (document.getElementById('ct-f-status-pelanggaran')||{}).value || ''
+      jenis_pelanggaran: val('ct-f-jenis-pelanggaran'),
+      tingkat: val('ct-f-tingkat-pelanggaran'),
+      tindakan: val('ct-f-tindakan'),
+      status: val('ct-f-status-pelanggaran')
     };
     if(jenis === 'konseling') return {
-      topik: (document.getElementById('ct-f-topik')||{}).value || '',
-      hasil: (document.getElementById('ct-f-hasil')||{}).value || '',
-      tindak_lanjut: (document.getElementById('ct-f-tindak-lanjut')||{}).value || ''
+      topik: val('ct-f-topik'),
+      hasil: val('ct-f-hasil'),
+      tindak_lanjut: val('ct-f-tindak-lanjut')
     };
+    if(jenis === 'sakit') return { keluhan: val('ct-f-keluhan') };
+    if(jenis === 'perizinan') return { keperluan: val('ct-f-keperluan') };
     return {};
   }
 
   async function ctSubmitForm(jenis, editEntry){
-    const sid = ctSelectedSantriId();
-    if(!sid) return;
+    const santriSel = document.getElementById('ct-f-santri');
+    const sid = editEntry
+      ? (editEntry.santriId || ctSelectedSantriId())
+      : ((santriSel && santriSel.value) || '');
+    if(!sid){ showToast('Pilih santri terlebih dahulu', true); return; }
     const tanggal = document.getElementById('ct-tanggal').value || todayStr();
     const tanggalKembaliEl = document.getElementById('ct-tanggal-kembali');
-    const tanggalKembali = (jenis === 'perizinan' && tanggalKembaliEl) ? (tanggalKembaliEl.value || null) : null;
+    const tanggalKembali = ((jenis === 'perizinan' || jenis === 'sakit') && tanggalKembaliEl)
+      ? (tanggalKembaliEl.value || null) : null;
     const keteranganRaw = document.getElementById('ct-keterangan').value.trim();
     const meta = ctCollectMeta(jenis, editEntry);
     const keterangan = ctEncodeKeterangan(keteranganRaw, meta);
@@ -5359,7 +5763,7 @@ Minimum version required to store current data is: `+i+`.
       catatanData[sid].unshift({ id:created.id, tanggal:created.tanggal, jenis:created.jenis, keterangan:created.keterangan, tanggalKembali:created.tanggal_kembali });
     }
     ctCloseForm();
-    ctRenderAll();
+    csRefresh();
   }
 
   /* -------- Modal konfirmasi hapus (reuse modal umum aplikasi) -------- */
@@ -5379,35 +5783,38 @@ Minimum version required to store current data is: `+i+`.
   /* -------- Modal detail catatan -------- */
   function ctOpenDetailModal(e){
     const meta = e.ctMeta || {};
+    const jm = JENIS_META[e.jenis] || { label:e.jenis, icon:'\ud83d\udcdd' };
     const rows = [];
-    rows.push(['Jenis', `<span class="badge ${JENIS_META[e.jenis].badge}">${JENIS_META[e.jenis].icon} ${JENIS_META[e.jenis].label}</span>`]);
+    rows.push(['Kategori', `<span class="cs-badge cs-c-${e.jenis}">${jm.icon} ${jm.label}</span>`]);
     rows.push(['Tanggal', fmtTanggalShort(e.tanggal)]);
-    if(e.jenis === 'perizinan' && e.tanggalKembali) rows.push(['Tanggal Kembali', fmtTanggalShort(e.tanggalKembali)]);
     if(e.jenis === 'prestasi'){
       if(meta.nama_prestasi) rows.push(['Nama Prestasi', escapeHtml(meta.nama_prestasi)]);
       if(meta.tingkat) rows.push(['Tingkat', escapeHtml(meta.tingkat)]);
-      if(meta.sertifikat_data) rows.push(['Sertifikat', `<button type="button" class="btn btn-ghost" id="ct-detail-lihat-sertifikat" style="color:var(--teal-700);border-color:var(--sage-200);padding:6px 14px;">Lihat Sertifikat</button>`]);
+      if(meta.sertifikat_data) rows.push(['Sertifikat', `<button type="button" class="cs-btn cs-btn-ghost" id="ct-detail-lihat-sertifikat" style="padding:6px 12px;">Lihat Sertifikat</button>`]);
     }
     if(e.jenis === 'pelanggaran'){
       if(meta.jenis_pelanggaran) rows.push(['Jenis Pelanggaran', escapeHtml(meta.jenis_pelanggaran)]);
       if(meta.tingkat) rows.push(['Tingkat', escapeHtml(meta.tingkat)]);
       if(meta.tindakan) rows.push(['Tindakan Pembinaan', escapeHtml(meta.tindakan)]);
-      if(meta.status) rows.push(['Status', escapeHtml(meta.status)]);
+      if(meta.status) rows.push(['Status Pembinaan', escapeHtml(meta.status)]);
     }
     if(e.jenis === 'konseling'){
       if(meta.topik) rows.push(['Topik', escapeHtml(meta.topik)]);
       if(meta.hasil) rows.push(['Hasil Konseling', escapeHtml(meta.hasil)]);
       if(meta.tindak_lanjut) rows.push(['Tindak Lanjut', escapeHtml(meta.tindak_lanjut)]);
     }
-    rows.push(['Keterangan', e.ctText ? escapeHtml(e.ctText) : '<span style="color:var(--ink-soft);">-</span>']);
+    if(e.jenis === 'sakit' && meta.keluhan) rows.push(['Keluhan / Kondisi', escapeHtml(meta.keluhan)]);
+    if(e.jenis === 'perizinan' && meta.keperluan) rows.push(['Keperluan', escapeHtml(meta.keperluan)]);
+    if(e.tanggalKembali) rows.push(['Tanggal Kembali', fmtTanggalShort(e.tanggalKembali)]);
+    rows.push(['Catatan', e.ctText ? escapeHtml(e.ctText) : '<span style="color:#94A3B8;">-</span>']);
     const bodyHtml = rows.map(r=>`
-      <div class="ct-detail-row">
-        <div class="ct-detail-label">${r[0]}</div>
-        <div class="ct-detail-value">${r[1]}</div>
+      <div class="cs-detail-row">
+        <div class="k">${r[0]}</div>
+        <div class="v">${r[1]}</div>
       </div>`).join('') + `
-      <div class="ct-detail-actions">
-        <button class="btn btn-ghost" id="ct-detail-edit" type="button" style="color:var(--teal-700);border-color:var(--sage-200);">Edit</button>
-        <button class="btn btn-primary" id="ct-detail-hapus" type="button" style="background:var(--danger);">Hapus</button>
+      <div class="cs-detail-actions">
+        <button class="cs-btn cs-btn-ghost" id="ct-detail-edit" type="button">Edit</button>
+        <button class="cs-btn cs-btn-danger" id="ct-detail-hapus" type="button">Hapus</button>
       </div>`;
     openModal(ctEntryTitle(e), bodyHtml);
     document.getElementById('ct-detail-edit').addEventListener('click', ()=>{
@@ -5429,9 +5836,9 @@ Minimum version required to store current data is: `+i+`.
     if(!ok) return;
     const deleted = await dbDeleteCatatan(e.id);
     if(!deleted) return;
-    const sid = ctSelectedSantriId();
+    const sid = e.santriId || ctSelectedSantriId();
     catatanData[sid] = (catatanData[sid]||[]).filter(x=>x.id!==e.id);
-    ctRenderAll();
+    csRefresh();
   }
 
   /* -------- Filter periode -------- */
@@ -5479,60 +5886,52 @@ Minimum version required to store current data is: `+i+`.
   function ctRenderTimeline(){
     const timelineEl = document.getElementById('ct-timeline');
     const tableEl = document.getElementById('catatan-table');
+    if(!timelineEl) return;
     const sid = ctSelectedSantriId();
     if(!sid){
       timelineEl.innerHTML = emptyState('Pilih santri terlebih dahulu untuk melihat catatan.');
-      tableEl.innerHTML = '';
+      if(tableEl) tableEl.innerHTML = '';
       return;
     }
-    const entries = ctFilteredEntries();
+    const entries = ctParsedEntries(sid).slice()
+      .sort((a,b)=> (b.tanggal||'').localeCompare(a.tanggal||''));
     ctRenderInsight(entries);
 
     if(entries.length === 0){
-      const noRecordAtAll = (catatanData[sid]||[]).length === 0;
-      timelineEl.innerHTML = emptyState(noRecordAtAll
-        ? 'Belum ada catatan untuk santri ini.'
-        : 'Tidak ada catatan yang cocok dengan pencarian/filter.');
-      tableEl.innerHTML = '';
+      timelineEl.innerHTML = emptyState('Belum ada catatan untuk santri ini.');
+      if(tableEl) tableEl.innerHTML = '';
       return;
     }
 
     timelineEl.innerHTML = entries.map(e=>{
-      const meta = JENIS_META[e.jenis] || { label:e.jenis, icon:'📝', badge:'' };
-      const desc = e.ctText ? `"${escapeHtml(e.ctText.length > 160 ? e.ctText.slice(0,160)+'…' : e.ctText)}"` : '';
+      const m = JENIS_META[e.jenis] || { label:e.jenis, icon:'\ud83d\udcdd' };
+      const judul = csTrim(ctEntryTitle(e), 70);
+      const ket = csTrim(e.ctText || '', 90);
       return `
-      <div class="ct-timeline-item">
-        <div class="ct-timeline-date">${fmtTanggalShort(e.tanggal).toUpperCase()}</div>
-        <div class="ct-timeline-dot ${meta.badge}"></div>
-        <div class="ct-timeline-card" data-open-detail="${e.id}">
-          <span class="badge ${meta.badge}">${meta.icon} ${meta.label.toUpperCase()}</span>
-          <div class="ct-timeline-title">${escapeHtml(ctEntryTitle(e))}</div>
-          ${desc ? `<div class="ct-timeline-desc">${desc}</div>` : ''}
-          <div class="ct-timeline-actions">
-            <button data-detail="${e.id}" type="button">Detail</button>
-            <button class="ct-del" data-del="${e.id}" type="button">Hapus</button>
-          </div>
-        </div>
-      </div>`;
+      <button type="button" class="cs-row" data-detail="${e.id}">
+        <span class="cs-row-ic">${m.icon}</span>
+        <span class="cs-row-body">
+          <span class="cs-row-top">
+            <span class="cs-row-name">${m.label}</span>
+          </span>
+          <span class="cs-row-note">${escapeHtml(judul)}</span>
+          ${ket && ket !== judul ? `<span class="cs-row-sub">${escapeHtml(ket)}</span>` : ''}
+        </span>
+        <span class="cs-row-right">
+          <span class="cs-row-date">${fmtTanggalShort(e.tanggal)}</span>
+          <span class="cs-row-chev">&#8250;</span>
+        </span>
+      </button>`;
     }).join('');
 
-    timelineEl.querySelectorAll('[data-open-detail],[data-detail]').forEach(el=>{
-      el.addEventListener('click', (ev)=>{
-        ev.stopPropagation();
-        const id = el.dataset.openDetail || el.dataset.detail;
-        const entry = entries.find(x=>x.id===id);
+    timelineEl.querySelectorAll('[data-detail]').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        const entry = entries.find(x=>x.id===el.dataset.detail);
         if(entry) ctOpenDetailModal(entry);
       });
     });
-    timelineEl.querySelectorAll('[data-del]').forEach(el=>{
-      el.addEventListener('click', (ev)=>{
-        ev.stopPropagation();
-        const entry = entries.find(x=>x.id===el.dataset.del);
-        if(entry) ctDeleteEntry(entry);
-      });
-    });
 
-    // Bangun ulang tabel tersembunyi (sumber export PDF) mengikuti data & filter yang sedang tampil
+    // Bangun ulang tabel tersembunyi (sumber export PDF) — struktur lama dipertahankan
     let html = `<thead><tr><th>Tanggal</th><th>Jenis</th><th>Judul</th><th>Keterangan</th><th>Kembali</th></tr></thead><tbody>`;
     entries.forEach(e=>{
       const meta = JENIS_META[e.jenis] || { label:e.jenis };
@@ -5545,13 +5944,16 @@ Minimum version required to store current data is: `+i+`.
       </tr>`;
     });
     html += `</tbody>`;
-    tableEl.innerHTML = html;
+    if(tableEl) tableEl.innerHTML = html;
   }
 
   /* -------- Kartu kategori cepat -------- */
   function ctRenderQuickCats(){
+    // Kartu "kategori cepat" versi lama. UI baru tidak lagi menampilkannya,
+    // fungsi dipertahankan agar kode lama yang memanggilnya tidak error.
     const wrapCard = document.getElementById('ct-quick-cats-card');
     const wrap = document.getElementById('ct-quick-cats');
+    if(!wrapCard || !wrap) return;
     const sid = ctSelectedSantriId();
     if(!sid){ wrapCard.style.display = 'none'; return; }
     wrapCard.style.display = '';
@@ -5567,9 +5969,8 @@ Minimum version required to store current data is: `+i+`.
         if(KARAKTER_META[cat]){
           ctKarakterActiveTab = cat;
           ctRenderPenilaian();
-          document.getElementById('ct-penilaian-wrap').scrollIntoView({behavior:'smooth', block:'start'});
         } else {
-          ctOpenForm(null, cat);
+          ctOpenForm(null, cat, sid);
         }
       });
     });
@@ -5577,7 +5978,7 @@ Minimum version required to store current data is: `+i+`.
 
   /* -------- Penilaian Santri: Kedisiplinan, Kerapian, Attitude/Adab -------- */
   let ctPenilaianMode = 'bulanan'; // 'mingguan' | 'bulanan' — bulanan = nilai resmi (masuk ke E-Raport)
-  let ctKarakterActiveTab = 'kedisiplinan';
+  let ctKarakterActiveTab = null; // indikator baru ditampilkan setelah kategori dipilih
   let ctKarakterWorking = { kedisiplinan:{}, kerapian:{}, attitude:{} }; // skor draft yang sedang diedit (belum tentu tersimpan)
 
   // Tentukan kunci periode (untuk disimpan ke DB) & label tampilan, berdasarkan mode Minggu Ini / Bulan Ini
@@ -5608,38 +6009,43 @@ Minimum version required to store current data is: `+i+`.
 
   function ctRenderPenilaian(){
     const wrap = document.getElementById('ct-penilaian-wrap');
+    if(!wrap) return;
     const sid = ctSelectedSantriId();
-    if(!sid){ wrap.innerHTML = ''; return; }
+    const penSel = document.getElementById('cs-pen-santri');
+    if(penSel && penSel.value !== (sid || '')) penSel.value = sid || '';
+    if(!sid){
+      wrap.innerHTML = `<div class="cs-panel-card">${emptyState('Pilih santri terlebih dahulu untuk mengisi penilaian karakter.')}</div>`;
+      return;
+    }
     const { key: periodeKey, label: periodeLabel } = ctPenilaianRange();
     const penKey = sid + '_' + periodeKey;
     const pen = penilaianData[penKey] || {};
     const meta = penDecodeMeta(pen.catatan);
     ctLoadKarakterWorkingFromMeta(meta);
     wrap.innerHTML = `
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
-          <h2 style="font-size:15px;margin:0;">Penilaian Santri</h2>
-          <button class="btn btn-primary" id="btn-download-penilaian-pdf" type="button">
+      <div class="cs-panel-card">
+        <div class="cs-panel-head">
+          <div>
+            <h3>Penilaian Karakter</h3>
+            <p class="cs-panel-sub">${escapeHtml(periodeLabel)} \u00b7 nilai <b>Bulan Ini</b> otomatis masuk E-Raport</p>
+          </div>
+          <button class="cs-btn cs-btn-ghost" id="btn-download-penilaian-pdf" type="button">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>
             Export PDF
           </button>
         </div>
-        <p class="sub" style="margin-top:6px;">Nilai Kedisiplinan, Kerapian &amp; Attitude/Adab dihitung otomatis dari indikator berbobot. Penilaian <b>Bulan Ini</b> otomatis tampil sebagai rekap resmi di E-Raport.</p>
-        ${meta.legacy ? `<div class="empty" style="margin:0 0 14px;padding:12px 16px;text-align:left;"><p style="margin:0;font-size:12.5px;">Catatan penilaian lama (sebelum sistem indikator): "${escapeHtml(meta.legacy)}"</p></div>` : ''}
-        <div class="field" style="margin-bottom:14px;max-width:420px;">
-          <label>Periode Penilaian</label>
-          <div class="subtabs" id="pen-periode-toggle" style="margin-bottom:0;">
-            <button type="button" data-periode="mingguan"${ctPenilaianMode==='mingguan'?' class="active"':''}>Minggu Ini</button>
-            <button type="button" data-periode="bulanan"${ctPenilaianMode==='bulanan'?' class="active"':''}>Bulan Ini</button>
-          </div>
-          <p class="sub" style="margin:6px 0 0;font-size:11.5px;">${escapeHtml(periodeLabel)}</p>
+        <div class="cs-seg" id="pen-periode-toggle">
+          <button type="button" data-periode="mingguan" class="${ctPenilaianMode==='mingguan'?'active':''}">Minggu Ini</button>
+          <button type="button" data-periode="bulanan" class="${ctPenilaianMode==='bulanan'?'active':''}">Bulan Ini</button>
         </div>
-        <div class="ct-karakter-tabs" id="ct-karakter-tabs">
+        ${meta.legacy ? `<p class="cs-legacy-note">Catatan penilaian lama (sebelum sistem indikator): "${escapeHtml(meta.legacy)}"</p>` : ''}
+        <div class="cs-kat-grid" id="ct-karakter-tabs">
           ${Object.keys(KARAKTER_META).map(k=>{
             const savedTotal = (pen[k]!==null && pen[k]!==undefined) ? pen[k] : null;
-            return `<button type="button" class="ct-karakter-tab${k===ctKarakterActiveTab?' active':''}" data-kat="${k}">
-              <span class="ct-karakter-tab-label">${KARAKTER_META[k].icon} ${KARAKTER_META[k].label}</span>
-              <span class="ct-karakter-tab-score">${savedTotal!==null ? savedTotal : '-'}</span>
+            return `<button type="button" class="cs-kat-card${k===ctKarakterActiveTab?' active':''}" data-kat="${k}">
+              <span class="cs-kat-ic">${KARAKTER_META[k].icon}</span>
+              <span class="cs-kat-label">${KARAKTER_META[k].label}</span>
+              <span class="cs-kat-score">${savedTotal!==null ? savedTotal : '\u2014'}</span>
             </button>`;
           }).join('')}
         </div>
@@ -5647,19 +6053,17 @@ Minimum version required to store current data is: `+i+`.
       </div>`;
     document.querySelectorAll('#pen-periode-toggle button[data-periode]').forEach(btn=>{
       btn.addEventListener('click', ()=>{
-        document.querySelectorAll('#pen-periode-toggle button').forEach(b=>b.classList.remove('active'));
-        btn.classList.add('active');
         ctPenilaianMode = btn.dataset.periode;
         ctRenderPenilaian();
       });
     });
     const btnDownloadPenilaianPdf = document.getElementById('btn-download-penilaian-pdf');
     if(btnDownloadPenilaianPdf) btnDownloadPenilaianPdf.addEventListener('click', downloadPenilaianPdf);
-    document.querySelectorAll('#ct-karakter-tabs .ct-karakter-tab').forEach(btn=>{
+    document.querySelectorAll('#ct-karakter-tabs .cs-kat-card').forEach(btn=>{
       btn.addEventListener('click', ()=>{
-        ctKarakterActiveTab = btn.dataset.kat;
-        document.querySelectorAll('#ct-karakter-tabs .ct-karakter-tab').forEach(b=>b.classList.remove('active'));
-        btn.classList.add('active');
+        ctKarakterActiveTab = (ctKarakterActiveTab === btn.dataset.kat) ? null : btn.dataset.kat;
+        document.querySelectorAll('#ct-karakter-tabs .cs-kat-card').forEach(b=>b.classList.remove('active'));
+        if(ctKarakterActiveTab) btn.classList.add('active');
         ctRenderKarakterPanel(ctKarakterActiveTab);
       });
     });
@@ -5670,6 +6074,10 @@ Minimum version required to store current data is: `+i+`.
     const panel = document.getElementById('ct-karakter-panel');
     const sid = ctSelectedSantriId();
     if(!panel || !sid) return;
+    if(!kategori){
+      panel.innerHTML = `<p class="cs-hint">Pilih salah satu kategori di atas untuk mengisi indikator penilaian.</p>`;
+      return;
+    }
     const indikatorList = KARAKTER_INDIKATOR[kategori] || [];
     const skorMap = ctKarakterWorking[kategori] || {};
     const total = hitungNilaiKategori(kategori, skorMap);
@@ -5680,47 +6088,40 @@ Minimum version required to store current data is: `+i+`.
     const catatanKategori = (meta[kategori] && meta[kategori].catatan) || '';
 
     panel.innerHTML = `
-      <div class="ct-karakter-head">
-        <h3>${KARAKTER_META[kategori].label.toUpperCase()} — Nilai ${total}</h3>
-        <span class="badge ${karakterBadgeClass(total)}">${karakterLevelLabel(total)}</span>
-      </div>
-      <p class="erp-card-sub" style="margin:2px 0 12px;">${filled}/${indikatorList.length} indikator telah dinilai. Total dihitung otomatis dari bobot masing-masing indikator.</p>
-      <div class="table-wrap ct-karakter-table">
-        <table>
-          <thead><tr><th>Indikator</th><th>Bobot</th><th>Skor</th></tr></thead>
-          <tbody>
-            ${indikatorList.map(ind=>{
-              const val = skorMap[ind.key] || '';
-              return `<tr>
-                <td>${escapeHtml(ind.label)}</td>
-                <td class="mono">${ind.bobot}%</td>
-                <td>
-                  <select data-ind="${ind.key}" class="ct-karakter-skor-select">
-                    <option value="">-- pilih skor --</option>
-                    ${[4,3,2,1].map(lvl=>`<option value="${lvl}" ${Number(val)===lvl?'selected':''}>${lvl} — ${LEVEL_LABEL[lvl]}: ${escapeHtml(ind.rubrik[lvl])}</option>`).join('')}
-                  </select>
-                </td>
-              </tr>`;
-            }).join('')}
-          </tbody>
-        </table>
-      </div>
-      <div class="field" style="margin-top:14px;">
-        <label>Catatan / Evaluasi Musyrif — ${KARAKTER_META[kategori].label}</label>
-        <textarea id="ct-karakter-catatan" placeholder="Contoh: Santri cukup disiplin dalam mengikuti kegiatan, namun masih perlu meningkatkan ketepatan waktu.">${escapeHtml(catatanKategori)}</textarea>
-      </div>
-      <div style="margin-top:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
-        <div style="font-size:13.5px;color:var(--ink-soft);">Nilai ${KARAKTER_META[kategori].label}: <b style="color:var(--teal-900);">${total}/100</b></div>
-        <button class="btn btn-gold" id="btn-simpan-karakter">Simpan Penilaian ${KARAKTER_META[kategori].label}</button>
-      </div>
-    `;
+      <div class="cs-kat-panel">
+        <div class="cs-kat-panel-head">
+          <h4>${KARAKTER_META[kategori].icon} ${escapeHtml(KARAKTER_META[kategori].label)}</h4>
+          <span class="cs-score-pill">${total}/100 \u00b7 ${karakterLevelLabel(total)}</span>
+        </div>
+        <p class="cs-panel-sub" style="margin-bottom:8px;">${filled}/${indikatorList.length} indikator dinilai. Total dihitung otomatis dari bobot tiap indikator.</p>
+        ${indikatorList.map(ind=>{
+          const val = skorMap[ind.key] || '';
+          return `<div class="cs-ind">
+            <span class="cs-ind-label">${escapeHtml(ind.label)} <span class="cs-ind-bobot">\u00b7 ${ind.bobot}%</span></span>
+            <select data-ind="${ind.key}" class="ct-karakter-skor-select">
+              <option value="">-- pilih skor --</option>
+              ${[4,3,2,1].map(lvl=>`<option value="${lvl}" ${Number(val)===lvl?'selected':''}>${lvl} \u2014 ${LEVEL_LABEL[lvl]}</option>`).join('')}
+            </select>
+          </div>`;
+        }).join('')}
+        <div class="cs-field" style="margin-top:14px;">
+          <label>Catatan / Evaluasi Musyrif</label>
+          <textarea id="ct-karakter-catatan" placeholder="Contoh: Santri cukup disiplin, namun masih perlu meningkatkan ketepatan waktu.">${escapeHtml(catatanKategori)}</textarea>
+        </div>
+        <div class="cs-modal-actions" style="border-top:none;padding-top:0;margin-top:4px;">
+          <button class="cs-btn cs-btn-primary" id="btn-simpan-karakter" type="button">Simpan Penilaian</button>
+        </div>
+      </div>`;
 
     panel.querySelectorAll('.ct-karakter-skor-select').forEach(sel=>{
       sel.addEventListener('change', ()=>{
         const k = sel.dataset.ind;
         const v = sel.value ? Number(sel.value) : null;
         if(v) ctKarakterWorking[kategori][k] = v; else delete ctKarakterWorking[kategori][k];
+        const draftCatatan = (document.getElementById('ct-karakter-catatan')||{}).value;
         ctRenderKarakterPanel(kategori);
+        const ta = document.getElementById('ct-karakter-catatan');
+        if(ta && draftCatatan !== undefined) ta.value = draftCatatan;
       });
     });
     document.getElementById('btn-simpan-karakter').addEventListener('click', ()=> ctSimpanKarakter(kategori));
@@ -5788,37 +6189,216 @@ Minimum version required to store current data is: `+i+`.
     ctRenderProfile();
     ctRenderStats();
     ctRenderTimeline(); // juga memanggil ctRenderInsight() dengan data yang sudah difilter
-    ctRenderQuickCats();
     ctRenderPenilaian();
+  }
+
+  /* =================================================================
+     UI BARU CATATAN SANTRI — daftar, detail, dan perpindahan view
+     ================================================================= */
+  let csView = 'list';        // 'list' | 'detail'
+  let csTab  = 'catatan';     // 'catatan' | 'penilaian'
+  let csFilterJenis = 'semua';
+
+  function csTrim(t, n){
+    t = (t || '').replace(/\s+/g,' ').trim();
+    return t.length > n ? t.slice(0, n) + '\u2026' : t;
+  }
+  function csAvatarInner(s){
+    if(s && s.foto_url) return `<img src="${escapeHtml(s.foto_url)}" alt="">`;
+    const nama = (s && s.nama) ? s.nama.trim() : '?';
+    return escapeHtml(nama.charAt(0).toUpperCase());
+  }
+
+  function csShowList(){
+    csView = 'list';
+    const list = document.getElementById('cs-view-list');
+    const detail = document.getElementById('cs-view-detail');
+    if(list) list.style.display = '';
+    if(detail) detail.style.display = 'none';
+    csRenderList();
+  }
+  function csOpenDetail(sid){
+    const sel = document.getElementById('catatan-santri');
+    if(sel) sel.value = sid;
+    csView = 'detail';
+    const list = document.getElementById('cs-view-list');
+    const detail = document.getElementById('cs-view-detail');
+    if(list) list.style.display = 'none';
+    if(detail) detail.style.display = '';
+    ctRenderAll();
+    try{ window.scrollTo({ top:0, behavior:'smooth' }); }catch(e){}
+  }
+  function csSwitchTab(tab){
+    csTab = tab;
+    document.querySelectorAll('#cs-main-tabs button').forEach(b=>{
+      b.classList.toggle('active', b.dataset.view === tab);
+    });
+    const subC = document.getElementById('cs-sub-catatan');
+    const subP = document.getElementById('cs-sub-penilaian');
+    if(subC) subC.style.display = tab === 'catatan' ? '' : 'none';
+    if(subP) subP.style.display = tab === 'penilaian' ? '' : 'none';
+    if(tab === 'penilaian') ctRenderPenilaian();
+    else csRenderList();
+  }
+
+  function csRenderPills(){
+    const wrap = document.getElementById('cs-pills');
+    if(!wrap) return;
+    const items = [['semua','Semua']].concat(CT_JENIS_ORDER.map(j=>[j, JENIS_META[j].label]));
+    wrap.innerHTML = items.map(([k,label])=>
+      `<button type="button" class="cs-pill${k===csFilterJenis?' active':''}" data-jenis="${k}">${label}</button>`
+    ).join('');
+    wrap.querySelectorAll('.cs-pill').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        csFilterJenis = btn.dataset.jenis;
+        csRenderPills();
+        csRenderList();
+      });
+    });
+  }
+
+  // Gabungan seluruh catatan dari semua santri, terbaru dulu
+  function csAllEntries(){
+    const out = [];
+    santriList.forEach(s=>{
+      ctParsedEntries(s.id).forEach(e=> out.push(Object.assign({}, e, { santri:s })));
+    });
+    return out.sort((a,b)=> (b.tanggal||'').localeCompare(a.tanggal||''));
+  }
+
+  function csRenderList(){
+    const listEl = document.getElementById('cs-list');
+    if(!listEl) return;
+    const q = (ctSearchQuery || '').toLowerCase();
+    let rows = csAllEntries();
+    if(csFilterJenis !== 'semua') rows = rows.filter(e=> e.jenis === csFilterJenis);
+    if(q){
+      rows = rows.filter(e=>{
+        const s = e.santri || {};
+        return (s.nama||'').toLowerCase().includes(q)
+          || (s.kelas||'').toLowerCase().includes(q)
+          || ctEntryTitle(e).toLowerCase().includes(q)
+          || (e.ctText||'').toLowerCase().includes(q);
+      });
+    }
+    // Santri yang cocok pencarian tapi belum punya catatan — tetap bisa dibuka
+    let tanpaCatatan = [];
+    if(q){
+      const adaCatatan = new Set(rows.map(r=>r.santri.id));
+      tanpaCatatan = sortSantriList(santriList).filter(s=>
+        !adaCatatan.has(s.id) &&
+        ((s.nama||'').toLowerCase().includes(q) || (s.kelas||'').toLowerCase().includes(q))
+      );
+    }
+
+    if(rows.length === 0 && tanpaCatatan.length === 0){
+      listEl.innerHTML = emptyState(
+        (q || csFilterJenis !== 'semua')
+          ? 'Tidak ada catatan yang cocok dengan pencarian/filter.'
+          : 'Belum ada catatan santri. Tekan "Tambah Catatan" untuk mulai.'
+      );
+      return;
+    }
+
+    const LIMIT = 80;
+    const shown = rows.slice(0, LIMIT);
+    const rowHtml = shown.map(e=>{
+      const s = e.santri || {};
+      const m = JENIS_META[e.jenis] || { label:e.jenis, icon:'\ud83d\udcdd' };
+      const ringkas = csTrim(e.ctText || ctEntryTitle(e), 110);
+      return `
+      <button type="button" class="cs-row" data-santri="${s.id}">
+        <span class="cs-avatar">${csAvatarInner(s)}</span>
+        <span class="cs-row-body">
+          <span class="cs-row-top">
+            <span class="cs-row-name">${escapeHtml(s.nama || '-')}</span>
+            <span class="cs-badge cs-c-${e.jenis}">${m.label}</span>
+          </span>
+          <span class="cs-row-sub">${escapeHtml(s.kelas || 'Tanpa kelas')}</span>
+          <span class="cs-row-note">${escapeHtml(ringkas)}</span>
+        </span>
+        <span class="cs-row-right">
+          <span class="cs-row-date">${fmtTanggalShort(e.tanggal)}</span>
+          <span class="cs-row-chev">&#8250;</span>
+        </span>
+      </button>`;
+    }).join('');
+
+    const kosongHtml = tanpaCatatan.map(s=>`
+      <button type="button" class="cs-row" data-santri="${s.id}">
+        <span class="cs-avatar">${csAvatarInner(s)}</span>
+        <span class="cs-row-body">
+          <span class="cs-row-top"><span class="cs-row-name">${escapeHtml(s.nama || '-')}</span></span>
+          <span class="cs-row-sub">${escapeHtml(s.kelas || 'Tanpa kelas')}</span>
+          <span class="cs-row-note">Belum ada catatan</span>
+        </span>
+        <span class="cs-row-right"><span class="cs-row-chev">&#8250;</span></span>
+      </button>`).join('');
+
+    const moreHtml = rows.length > LIMIT
+      ? `<p class="cs-hint">Menampilkan ${LIMIT} catatan terbaru dari ${rows.length}. Gunakan pencarian atau filter kategori untuk mempersempit.</p>`
+      : '';
+
+    listEl.innerHTML = rowHtml + kosongHtml + moreHtml;
+    listEl.querySelectorAll('[data-santri]').forEach(el=>{
+      el.addEventListener('click', ()=> csOpenDetail(el.dataset.santri));
+    });
+  }
+
+  // Dipanggil setelah tambah/edit/hapus catatan
+  function csRefresh(){
+    if(csView === 'detail') ctRenderAll();
+    else if(csTab === 'penilaian') ctRenderPenilaian();
+    else csRenderList();
+    if(csView === 'list' && csTab === 'catatan') csRenderList();
   }
 
   function renderCatatanTab(){
     populateCatatanSantriSelect();
     ctCloseForm();
-    ctRenderAll();
+    ctFilterJenis = 'semua';
+    ctFilterPeriode = 'semua';
+    ctSearchQuery = '';
+    csFilterJenis = 'semua';
+    ctKarakterActiveTab = null;
+    const sel = document.getElementById('catatan-santri');
+    if(sel) sel.value = '';
+    const si = document.getElementById('ct-search-input');
+    if(si) si.value = '';
+    csRenderPills();
+    csSwitchTab('catatan');
+    csShowList();
   }
 
-  document.getElementById('catatan-santri').addEventListener('change', ()=>{
+  /* ---------------- Event listener menu Catatan Santri ---------------- */
+  document.getElementById('cs-btn-add').addEventListener('click', ()=>{
+    ctOpenForm(null, null, csView === 'detail' ? ctSelectedSantriId() : '');
+  });
+  document.getElementById('cs-btn-back').addEventListener('click', ()=>{
     ctCloseForm();
-    ctRenderAll();
+    csShowList();
+  });
+  document.querySelectorAll('#cs-main-tabs button').forEach(btn=>{
+    btn.addEventListener('click', ()=> csSwitchTab(btn.dataset.view));
+  });
+  document.getElementById('cs-pen-santri').addEventListener('change', (e)=>{
+    const sel = document.getElementById('catatan-santri');
+    if(sel) sel.value = e.target.value;
+    ctKarakterActiveTab = null;
+    ctRenderPenilaian();
   });
   document.getElementById('ct-search-input').addEventListener('input', (e)=>{
     ctSearchQuery = e.target.value.trim();
-    ctRenderTimeline();
+    csRenderList();
   });
-  document.getElementById('ct-filter-jenis').addEventListener('change', (e)=>{
-    ctFilterJenis = e.target.value;
-    ctRenderTimeline();
+  document.getElementById('catatan-santri').addEventListener('change', ()=>{
+    ctCloseForm();
+    if(csView === 'detail') ctRenderAll();
   });
-  document.getElementById('ct-filter-periode').addEventListener('change', (e)=>{
-    ctFilterPeriode = e.target.value;
-    const customOn = ctFilterPeriode === 'custom';
-    document.getElementById('ct-filter-dari').style.display = customOn ? '' : 'none';
-    document.getElementById('ct-filter-sampai').style.display = customOn ? '' : 'none';
-    ctRenderTimeline();
+  // Tutup modal form saat mengklik area gelap di luar kartu
+  document.getElementById('ct-form-overlay').addEventListener('click', (e)=>{
+    if(e.target.id === 'ct-form-overlay') ctCloseForm();
   });
-  document.getElementById('ct-filter-dari').addEventListener('change', ctRenderTimeline);
-  document.getElementById('ct-filter-sampai').addEventListener('change', ctRenderTimeline);
 
   document.getElementById('btn-download-catatan-pdf').addEventListener('click', async ()=>{
     const sid = ctSelectedSantriId();
@@ -5828,7 +6408,7 @@ Minimum version required to store current data is: `+i+`.
       showToast('Belum ada data untuk diunduh', true);
       return;
     }
-    await downloadHistoryPdf('Riwayat Catatan Santri', s.nama + (s.kelas?(' — '+s.kelas):''), tableEl, `Catatan-${s.nama.replace(/\s+/g,'-')}.pdf`);
+    await downloadHistoryPdf('Riwayat Catatan Santri', s.nama + (s.kelas?(' \u2014 '+s.kelas):''), tableEl, `Catatan-${s.nama.replace(/\s+/g,'-')}.pdf`);
   });
 
   /* ================= KEUANGAN: Jajan Santri (Debit/Kredit) ================= */
